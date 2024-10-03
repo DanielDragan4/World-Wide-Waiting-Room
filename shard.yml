@@ -1,0 +1,19 @@
+name: worldwidewaitingroom
+version: 0.1.0
+
+authors:
+  - Frankie Primerano <frankieprimerano@gmail.com>
+
+targets:
+  worldwidewaitingroom:
+    main: src/worldwidewaitingroom.cr
+
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+  crinja:
+    github: straight-shoota/crinja
+
+crystal: '>= 1.13.3'
+
+license: MIT
