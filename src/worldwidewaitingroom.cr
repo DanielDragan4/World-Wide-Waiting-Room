@@ -15,10 +15,16 @@ end
 
 # User timer stuff
 
-def start_user_timer (socket_channel)
+def start_user_timer (socket_channel, firstSession)
   # Load in the last known time for the user here ...
 
   current_time_milliseconds : Int128 = 0
+
+  #to check wether the current person previously was online and sets time to previous
+  if !firstSession
+    current_time_milliseconds = get_users_last_time()
+
+  current_time_milliseconds if 
 
   spawn do
     loop do
@@ -34,6 +40,36 @@ end
 
 def load_last_known_time_left
   60 * 60 * 1000 # Some millisecond value. Not sure exactly where this will b3e coming from yet.
+end
+
+def get_users_last_time
+  #time that the last user had kept somewhere
+end
+
+def get_rank
+  #returns the players rank
+end
+
+def val_change(num_clicks)
+  #returns the amount that will be added to time left
+end
+
+def daily_inc_clicks(firstSession)
+  inc_clicks = 0
+  if !firstSession
+    # some way of getting the number of clicks from whatever db is used
+
+    inc_clicks += 1
+  time_left += val_change(inc_clicks)
+end
+
+def daily_dec_clicks(firstSession)
+  dec_clicks = 0
+  if !firstSession
+    # some way of getting the number of clicks from whatever db is used
+
+    inc_clicks += 1
+  time_left -= val_change(inc_clicks)
 end
 
 spawn do
