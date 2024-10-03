@@ -10,7 +10,7 @@ eventing = Eventing.new
 # This number represents milliseconds
 
 module Values
-  SomeValue = Atomic(Int128).new 60000
+  SomeValue = Atomic(Int64).new 60000
 end
 
 # User timer stuff
@@ -18,13 +18,12 @@ end
 def start_user_timer (eventing, socket_channel, firstSession)
   # Load in the last known time for the user here ...
 
-  current_time_milliseconds : Int128 = 0
+  current_time_milliseconds : Int64 = 0
 
   #to check wether the current person previously was online and sets time to previous
   if !firstSession
     current_time_milliseconds = get_users_last_time()
-
-  current_time_milliseconds if 
+  end
 
   spawn do
     loop do
@@ -40,7 +39,7 @@ end
 # The timer Fiber
 
 def load_last_known_time_left
-  Int128.new 60 * 60 * 1000 # Some millisecond value. Not sure exactly where this will b3e coming from yet.
+  Int64.new 60 * 60 * 1000 # Some millisecond value. Not sure exactly where this will b3e coming from yet.
 end
 
 def get_users_last_time
@@ -55,23 +54,24 @@ def val_change(num_clicks)
   #returns the amount that will be added to time left
 end
 
-def daily_inc_clicks(firstSession)
-  inc_clicks = 0
-  if !firstSession
-    # some way of getting the number of clicks from whatever db is used
+# def daily_inc_clicks(firstSession)
+#   inc_clicks = 0
+#   if !firstSession
+#     # some way of getting the number of clicks from whatever db is used
+#   end
 
-    inc_clicks += 1
-  time_left += val_change(inc_clicks)
-end
+#     inc_clicks += 1
+#   time_left += val_change(inc_clicks)
+# end
 
-def daily_dec_clicks(firstSession)
-  dec_clicks = 0
-  if !firstSession
-    # some way of getting the number of clicks from whatever db is used
-
-    inc_clicks += 1
-  time_left -= val_change(inc_clicks)
-end
+# def daily_dec_clicks(firstSession)
+#   dec_clicks = 0
+#   if !firstSession
+#     # some way of getting the number of clicks from whatever db is used
+#   end
+#     inc_clicks += 1
+#   time_left -= val_change(inc_clicks)
+# end
 
 spawn do
   time_left = load_last_known_time_left()
@@ -113,7 +113,7 @@ ws "/ws" do |socket|
   socket.on_close do
     socket_status.close
     eventing.unregister_channel id
-    eventing.emit({ :disconnected, Int128.new 0 })
+    eventing.emit({ :disconnected, Int64.new 0 })
     puts "The socket closed"
   end
 
@@ -154,7 +154,7 @@ ws "/ws" do |socket|
 
   # start_user_timer eventing, socket_status
 
-  eventing.emit({ :connected, Int128.new 0 })
+  eventing.emit({ :connected, Int64.new 0 })
 end
 
 Kemal.run port: 8082
