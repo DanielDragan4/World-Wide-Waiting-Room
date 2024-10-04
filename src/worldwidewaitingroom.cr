@@ -1,101 +1,25 @@
 require "kemal"
 require "./templates"
-require "./eventing"
+require "./modules"
 
 templates = Templates.new
-eventing = Eventing.new
 
-# These represent the current rates of increase/decrease
-# We use Atomics to prevent race conditions
-# This number represents milliseconds
-
-module Values
-  SomeValue = Atomic(Int64).new 60000
-end
-
-# User timer stuff
-
-def start_user_timer (eventing, socket_channel, firstSession)
-  # Load in the last known time for the user here ...
-
-  current_time_milliseconds : Int64 = 0
-
-  #to check wether the current person previously was online and sets time to previous
-  if !firstSession
-    current_time_milliseconds = get_users_last_time()
-  end
-
-  spawn do
-    loop do
-      current_time_milliseconds += 1000
-      eventing.emit({ :timer, current_time_milliseconds })
-      sleep 1
-      Fiber.yield
-      break if socket_channel.closed?
-    end
-  end
-end
-
-# The timer Fiber
-
-def load_last_known_time_left
-  Int64.new 60 * 60 * 1000 # Some millisecond value. Not sure exactly where this will b3e coming from yet.
-end
-
-def get_users_last_time
-  #time that the last user had kept somewhere
-end
-
-def get_rank
-  #returns the players rank
-end
-
-def val_change(num_clicks)
-  #returns the amount that will be added to time left
-end
-
-# def daily_inc_clicks(firstSession)
-#   inc_clicks = 0
-#   if !firstSession
-#     # some way of getting the number of clicks from whatever db is used
-#   end
-
-#     inc_clicks += 1
-#   time_left += val_change(inc_clicks)
-# end
-
-# def daily_dec_clicks(firstSession)
-#   dec_clicks = 0
-#   if !firstSession
-#     # some way of getting the number of clicks from whatever db is used
-#   end
-#     inc_clicks += 1
-#   time_left -= val_change(inc_clicks)
-# end
-
-spawn do
-  time_left = load_last_known_time_left()
-  loop do
-    time_left -= 1
-    eventing.emit({ :global_timer, time_left })
-    sleep 1
-    Fiber.yield
-  end
-end
-
-# HTTP Route handing stuff.
+eventing = Modules::Event
+waiters = Modules::Waiters
+global_timer = Modules::GlobalTimer
+leaderboard = Modules::Leaderboard
+persist_data = Modules::PersistData
 
 post "/increase" do
-  # This is where the global
-  "Increase Timer"
-  Values::SomeValue.add 1000
-  eventing.emit({ :inc, Values::SomeValue.get })
+  # Get UID here
+  uid = Int64.new 1
+  Modules::Event.emit({ :inc, { "uid" => uid } })
 end
 
 post "/decrease" do
-  "Decrease Timer"
-  Values::SomeValue.sub 1000
-  eventing.emit({ :dec, Values::SomeValue.get })
+  # Get UID here
+  uid = Int64.new 1
+  Modules::Event.emit({ :dec, { "uid" => uid } })
 end
 
 get "/" do
@@ -103,24 +27,19 @@ get "/" do
 end
 
 ws "/ws" do |socket|
-  puts "The socket opened"
-
   events = Channel(Event).new
-  id = eventing.register_channel events
+  unique_waiter_id = Modules::Event.register_channel events
 
   socket_status = Channel(Nil).new
 
   socket.on_close do
     socket_status.close
-    eventing.unregister_channel id
-    eventing.emit({ :disconnected, Int64.new 0 })
-    puts "The socket closed"
+    Modules::Event.unregister_channel unique_waiter_id
+    Modules::Event.emit({ :disconnected, { "uid" => unique_waiter_id } })
   end
 
   spawn do
     loop do
-      value = Values::SomeValue.get
-
       select
       when event = events.receive
         name, value = event
@@ -138,8 +57,14 @@ ws "/ws" do |socket|
         when :global_timer
           puts "Global Timer #{value}"
           socket.send "<div id=\"time-left\">#{value}</div>"
+        when :connected
+          puts "User #{value} connected."
+        when :disconnected
+          puts "User #{value} disconnected."
+        when :leaderboard_updated
+          puts "New leaderboard order #{value}"
         else
-          puts "No match"
+          puts "No match #{event}"
         end
 
       when socket_status.receive?
@@ -152,9 +77,7 @@ ws "/ws" do |socket|
     end
   end
 
-  # start_user_timer eventing, socket_status
-
-  eventing.emit({ :connected, Int64.new 0 })
+  Modules::Event.emit({ :connected, { "uid" => unique_waiter_id } })
 end
 
 Kemal.run port: 8082

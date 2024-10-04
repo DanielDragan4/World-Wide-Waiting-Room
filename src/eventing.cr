@@ -1,4 +1,4 @@
-alias Event = Tuple(Symbol, Int64)
+alias Event = Tuple(Symbol, Hash(String, Int64))
 
 class Eventing
   def initialize
@@ -18,7 +18,7 @@ class Eventing
     @channels.delete(serial_id)
   end
 
-  def emit (message)
+  def emit (message : Event)
     @channels.each_value do |channel|
       channel.send message
     end
