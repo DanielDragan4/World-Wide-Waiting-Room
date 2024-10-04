@@ -1,21 +1,23 @@
-alias Event = Tuple(Symbol, Hash(String, Int64))
+require "uuid"
+
+alias EventHashValue = String | Int32 | UUID | Int64 | Nil
+alias EventHash = Hash(String, EventHashValue)
+alias Event = Tuple(Symbol, EventHash)
 
 class Eventing
   def initialize
-    @serial = Atomic(Int64).new 0
-    @channels = Hash(Int64, Channel(Event)).new
+    @channels = Hash(UUID, Channel(Event)).new
   end
 
   def register_channel (channel)
-    @serial.add 1
-    puts "Registered channel #{@serial.get}"
-    id = @serial.get
-    @channels[id] = channel
-    id
+    uuid = UUID.v4
+    puts "Registered channel #{uuid}"
+    @channels[uuid] = channel
+    uuid
   end
 
-  def unregister_channel (serial_id)
-    @channels.delete(serial_id)
+  def unregister_channel (uuid)
+    @channels.delete(uuid)
   end
 
   def emit (message : Event)

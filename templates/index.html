@@ -9,14 +9,13 @@
     <div hx-ext="ws" ws-connect="/ws"></div>
     <div class="mx-auto w-full text-center">
       <h1 class="text-[2em]">Time Left</h1>
-      <h3 class="text-[4em]">1 hour 3 minutes 32 seconds</h3>
+      <h3 hx-swap-oob="true" class="text-[4em]" id="time-left"></h3>
       <button hx-post="/increase" hx-swap="none" class="border shadow p-2">Increase</button>
       <button hx-post="/decrease" hx-swap="none" class="border shadow p-2">Decrease</button>
       <h5 class="text-lg">Your click will have a 3s time impact.</h5>
     </div>
     <div class="border shadow w-64 border border-red mx-auto my-4 flex flex-col text-center">
       <h1 class="text-xl">Your Time</h1>
-      <div hx-swap-oob="self" id="time-left"></div>
       <span hx-swap-oob="self" id="number">0</span>
       <span hx-swap-oob="self" id="clicked"></span>
       <span>0 hours 0 minutes 32 seconds waiting</span>

@@ -13,13 +13,13 @@ persist_data = Modules::PersistData
 post "/increase" do
   # Get UID here
   uid = Int64.new 1
-  Modules::Event.emit({ :inc, { "uid" => uid } })
+  Modules::Event.emit({ :inc, { "uid" => uid } of String => EventHashValue })
 end
 
 post "/decrease" do
   # Get UID here
   uid = Int64.new 1
-  Modules::Event.emit({ :dec, { "uid" => uid } })
+  Modules::Event.emit({ :dec, { "uid" => uid } of String => EventHashValue })
 end
 
 get "/" do
@@ -38,7 +38,7 @@ ws "/ws" do |socket|
     socket_status.close
     Modules::Waiters.remove_waiter unique_waiter_id
     Modules::Event.unregister_channel unique_waiter_id
-    Modules::Event.emit({ :disconnected, { "uid" => unique_waiter_id } })
+    Modules::Event.emit({ :disconnected, { "uid" => unique_waiter_id } of String => EventHashValue })
   end
 
   spawn do
@@ -58,8 +58,8 @@ ws "/ws" do |socket|
           puts "Timer #{value}"
           socket.send "<div id=\"timer\">#{value}</div>"
         when :global_timer
-          puts "Global Timer #{value}"
-          socket.send "<div id=\"time-left\">#{value}</div>"
+          time_left = value["time_left"]
+          socket.send "<div id=\"time-left\">#{time_left}</div>"
         when :connected
           puts "User #{value} connected."
         when :disconnected
@@ -80,7 +80,7 @@ ws "/ws" do |socket|
     end
   end
 
-  Modules::Event.emit({ :connected, { "uid" => unique_waiter_id } })
+  Modules::Event.emit({ :connected, { "uid" => unique_waiter_id } of String => EventHashValue })
 end
 
 Kemal.run port: 8082

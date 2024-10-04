@@ -8,7 +8,7 @@ end
 
 class WaitersModule
   def initialize
-    @waiters = Hash(Int64, WaiterData).new
+    @waiters = Hash(UUID, WaiterData).new
   end
 
   def add_waiter (uid)
