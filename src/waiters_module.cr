@@ -18,10 +18,4 @@ class WaitersModule
   def remove_waiter (uid)
     puts "Tried to remove waiter #{uid} but the method is not implemented."
   end
-
-  def get_waiter_data(uid)
-  end
-
-  def update_waiter_data(uid)
-  end
 end
