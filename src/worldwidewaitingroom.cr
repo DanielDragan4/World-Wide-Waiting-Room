@@ -10,16 +10,18 @@ global_timer = Modules::GlobalTimer
 leaderboard = Modules::Leaderboard
 persist_data = Modules::PersistData
 
-post "/increase" do
-  # Get UID here
-  uid = Int64.new 1
-  Modules::Event.emit({ :inc, { "uid" => uid } of String => EventHashValue })
-end
+post "/transfer" do |env|
+  to = env.params.body["to"].as String
+  from = env.params.body["from"].as String
+  action = env.params.body["action"].as String
 
-post "/decrease" do
-  # Get UID here
-  uid = Int64.new 1
-  Modules::Event.emit({ :dec, { "uid" => uid } of String => EventHashValue })
+  if action == "give"
+    puts "Taking from #{from} to #{to}"
+    Modules::Waiters.give 1000, to, from
+  elsif action == "take"
+    puts "Giving to #{to} from #{from}"
+    Modules::Waiters.take 1000, from, to
+  end
 end
 
 get "/" do
@@ -36,9 +38,11 @@ ws "/ws" do |socket|
 
   socket.on_close do
     socket_status.close
+    puts "User #{unique_waiter_id} disconnected."
     Modules::Waiters.remove_waiter unique_waiter_id
     Modules::Event.unregister_channel unique_waiter_id
-    Modules::Event.emit({ :disconnected, { "uid" => unique_waiter_id } of String => EventHashValue })
+    #Modules::Event.emit({ :disconnected, { "uid" => unique_waiter_id } of String => EventHashValue })
+    #Modules::Leaderboard.compute
   end
 
   spawn do
@@ -48,26 +52,22 @@ ws "/ws" do |socket|
         name, value = event
 
         case name
-        when :inc
-          puts "Added #{value}"
-          socket.send "<div id=\"number\">#{value}</div>"
-        when :dec
-          puts "Decremented #{value}"
-          socket.send "<div id=\"number\">#{value}</div>"
-        when :timer
-          puts "Timer #{value}"
-          socket.send "<div id=\"timer\">#{value}</div>"
+        when :waiter_updated
+          #if value["uid"] == unique_waiter_id
+          #end
         when :global_timer
           time_left = value["time_left"]
-          socket.send "<div id=\"time-left\">#{time_left}</div>"
-        when :connected
-          puts "User #{value} connected."
-        when :disconnected
-          puts "User #{value} disconnected."
-        when :leaderboard_updated
-          puts "New leaderboard order #{value}"
-        else
-          puts "No match #{event}"
+          this_waiter = Modules::Waiters.get_waiter unique_waiter_id
+          begin
+            wc = templates.render "waiter-card.html", { "info" => this_waiter, "place" => Modules::Leaderboard.get_place unique_waiter_id }
+            tl = templates.render "time-left.html", { "time_left" => time_left }
+            lb = templates.render "leaderboard.html", {
+              "waiters" => Modules::Leaderboard.leaderboard,
+              "this_waiter" => this_waiter
+            }
+            socket.send "#{wc}#{tl}#{lb}"
+          rescue
+          end
         end
 
       when socket_status.receive?
@@ -80,7 +80,10 @@ ws "/ws" do |socket|
     end
   end
 
+  puts "User #{unique_waiter_id} connected."
   Modules::Event.emit({ :connected, { "uid" => unique_waiter_id } of String => EventHashValue })
+  #Modules::Leaderboard.compute
+  #Modules::GlobalTimer.emit
 end
 
 Kemal.run port: 8082

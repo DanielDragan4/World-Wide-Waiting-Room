@@ -8,24 +8,13 @@
   <body>
     <div hx-ext="ws" ws-connect="/ws"></div>
     <div class="mx-auto w-full text-center">
-      <h1 class="text-[2em]">Time Left</h1>
-      <h3 hx-swap-oob="true" class="text-[4em]" id="time-left"></h3>
-      <button hx-post="/increase" hx-swap="none" class="border shadow p-2">Increase</button>
-      <button hx-post="/decrease" hx-swap="none" class="border shadow p-2">Decrease</button>
-      <h5 class="text-lg">Your click will have a 3s time impact.</h5>
+      <h1 class="text-[2em]">World Wide Waiting Room</h1>
+      <h3 hx-swap-oob="true" id="time-left">
+        Loading...
+      </h3>
     </div>
-    <div class="border shadow w-64 border border-red mx-auto my-4 flex flex-col text-center">
-      <h1 class="text-xl">Your Time</h1>
-      <span hx-swap-oob="self" id="number">0</span>
-      <span hx-swap-oob="self" id="clicked"></span>
-      <span>0 hours 0 minutes 32 seconds waiting</span>
-      <span>You're in 100000000th place</span>
-    </div>
-    <div class="m-2 flex flex-row flex-wrap [&>*]:m-2 justify-center">
-      {% for x in [1,2,3,4,5,6,7,8] %}
-        <div class="card border shadow-md border-red-300 p-2 w-32 text-center h-32">abc</div>
-      {% endfor %} 
-    </div>
+    <div id="waiter-card" hx-swap-oob="true"></div>
+    <div id="leaderboard" hx-swap-oob="true"></div> 
   </body>
 </html>
 

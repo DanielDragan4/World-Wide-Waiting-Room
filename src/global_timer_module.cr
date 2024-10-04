@@ -2,44 +2,38 @@ require "./modules"
 
 class GlobalTimerModule
   def initialize
-    @timeleft = 60000
+    @timeleft = 600000000
     start_timer_fiber
   end
 
-  def append_time_to_string (str, value, unit)
-    if value > 0
-      str = "#{str}#{value} #{unit}"
-      if value > 1
-        str = "#{str}s"
-      end
-      str = "#{str} "
-    end
-    str
+  def increase_by (milliseconds)
+    @timeleft += milliseconds
   end
 
-  def time_left_string
-    days_left = @timeleft // 1000 // 60 // 60 // 24
-    hours_left = @timeleft // 1000 // 60 // 60 % 24
-    minutes_left = @timeleft // 1000 // 60 % 60
-    seconds_left = @timeleft // 1000 % 60
+  def decrease_by (milliseconds)
+    @timeleft -= milliseconds
+  end
 
-    output = ""
+  def current_time_left
+    build_time_left_string @timeleft
+  end
 
-    output = append_time_to_string output, days_left, "day"
-    output = append_time_to_string output, hours_left, "hour"
-    output = append_time_to_string output, minutes_left, "minute"
-    output = append_time_to_string output, seconds_left, "second"
-
-    output
+  def emit
+    Modules::Event.emit({ :global_timer, { "time_left" => current_time_left } of String => EventHashValue })
   end
 
   def start_timer_fiber
     puts "Global Timer Fiber Started."
     spawn do
       loop do
-        Modules::Event.emit({ :global_timer, { "time_left" => time_left_string } of String => EventHashValue })
-        @timeleft -= 1
-        sleep 0.001
+        if @timeleft == 0
+          next
+        end
+
+        emit
+        @timeleft -= 1000
+        Modules::Leaderboard.compute
+        sleep 1
         Fiber.yield
       end
     end

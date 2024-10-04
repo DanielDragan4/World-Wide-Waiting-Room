@@ -6,11 +6,11 @@ alias Event = Tuple(Symbol, EventHash)
 
 class Eventing
   def initialize
-    @channels = Hash(UUID, Channel(Event)).new
+    @channels = Hash(String, Channel(Event)).new
   end
 
   def register_channel (channel)
-    uuid = UUID.v4
+    uuid = UUID.v4.hexstring
     puts "Registered channel #{uuid}"
     @channels[uuid] = channel
     uuid

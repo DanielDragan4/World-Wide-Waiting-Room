@@ -1,0 +1,21 @@
+<div id="leaderboard">
+  <h3 class="tex-lg text-center">The Waiting Room</h3>
+  <div class="m-2 flex flex-row flex-wrap [&>*]:m-2 justify-center">
+    {% for x in waiters %}
+      <div class="card border flex flex-col shadow-md border-red-300 p-2 w-96 text-center items-center justify-center h-32">
+        <h2>Anonymous</h2>
+        <div>{{ x[1][2] }}</div>
+        {% if this_waiter[0] != x[0] %}
+        <div class="flex flex-row space-x-2">
+          <form hx-post="/transfer" hx-swap="none">
+            <input type="hidden" name="to" value="{{ x[0] }}">
+            <input type="hidden" name="from" value="{{ this_waiter[0] }}">
+            <button name="action" value="give" class="border border-2 shadow rounded p-4">Give 1s</button>
+            <button name="action" value="take" class="border border-2 shadow rounded p-4">Take 1s</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    {% endfor %} 
+  </div>
+</div>
