@@ -17,10 +17,10 @@ post "/transfer" do |env|
 
   if action == "give"
     puts "Taking from #{from} to #{to}"
-    Modules::Waiters.give 1000, to, from
+    Modules::Waiters.give 10000, to, from
   elsif action == "take"
     puts "Giving to #{to} from #{from}"
-    Modules::Waiters.take 1000, from, to
+    Modules::Waiters.take 10000, from, to
   end
 end
 
