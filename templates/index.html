@@ -23,7 +23,7 @@
       <h3 hx-swap-oob="true" id="time-left"></h3>
     </div>
 
-    <div class="flex flex-col">
+    <div class="flex flex-col items-center">
       <input 
         hx-post="/name" 
         hx-swap="none" 
@@ -34,13 +34,14 @@
         value="{{ name }}"
       >
 
+      <h1 class="text-white">Card Color</h1>
       <input 
         hx-post="/color" 
         hx-swap="none" 
         name="color"
         placeholder="Card Color"
-        class="outline-none text-[4em] w-full text-center text-white bg-transparent max-w-max mx-auto" 
-        type="text" 
+        class="border-none bg-transparent w-[32px] h-[32px]" 
+        type="color" 
         value="{{ color }}"
       >
     </div>
