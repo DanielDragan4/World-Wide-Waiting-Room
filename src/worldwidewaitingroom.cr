@@ -14,14 +14,18 @@ sockets = Hash(HTTP::WebSocket, Tuple(Secret, Public)).new
 # Global timer
 spawn do
   loop do
-    seen = Set(Secret).new
-    sockets.each_value do |value|
-      priv_key, pub_key = value
-      if !seen.includes? priv_key
-        add_time_to redis, pub_key, 1
-        seen.add priv_key
+    begin
+      seen = Set(Secret).new
+      sockets.each_value do |value|
+        priv_key, pub_key = value
+        if !seen.includes? priv_key
+          add_time_to redis, pub_key, 1
+          seen.add priv_key
+        end
+        update_leaderboard_for redis, pub_key
       end
-      update_leaderboard_for redis, pub_key
+    rescue ex
+      puts "There was some error #{ex} in spawn 1"
     end
 
     sleep 1
@@ -33,34 +37,38 @@ end
 spawn do
   redis.del("leaderboard")
   loop do
-    leaderboard = get_leaderboard redis
-    sockets.each do |socket, pub_priv|
-      priv_key, pub_key = pub_priv
-
-      data = get_data_for redis, pub_key
-
-      if !data
-        next
-      end
-
-      data["place"] = get_leaderboard_place redis, pub_key
-
-      begin
-      html =
-        (templates.render "waiter-card.html", data) +
-        (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data })
-      rescue
-        next
-      end
-
-      begin
-        socket.send html
-      rescue
+    begin
+      leaderboard = get_leaderboard redis
+      sockets.each do |socket, pub_priv|
         priv_key, pub_key = pub_priv
-        sockets.delete pub_key
-        redis.zrem("leaderboard", pub_key)
-        next
+
+        data = get_data_for redis, pub_key
+
+        if !data
+          next
+        end
+
+        data["place"] = get_leaderboard_place redis, pub_key
+
+        begin
+        html =
+          (templates.render "waiter-card.html", data) +
+          (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data })
+        rescue
+          next
+        end
+
+        begin
+          socket.send html
+        rescue
+          priv_key, pub_key = pub_priv
+          sockets.delete pub_key
+          redis.zrem("leaderboard", pub_key)
+          next
+        end
       end
+    rescue ex
+      puts "There was some error #{ex} in spawn 2"
     end
 
     sleep 1 / 2
