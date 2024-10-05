@@ -3,34 +3,44 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@2.0.2"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <title>World Wide Waiting Room</title>
   </head>
   <body>
     <div hx-ext="ws" ws-connect="/ws"></div>
-    <div class="mx-auto w-full text-center">
-      <h1 class="text-[2em]">World Wide Waiting Room</h1>
+    <div class="mx-auto w-full text-center bg-[#333355]">
+      <!--<img src="/man.png" class="mt-2 mx-auto w-[360px]">-->
+      <h1 class="font-bold text-white text-[2em]">World Wide Waiting Room</h1>
       <h3 hx-swap-oob="true" id="time-left"></h3>
     </div>
 
-    <input 
-      hx-post="/name" 
-      hx-swap="none" 
-      name="name"
-      class="w-full text-center" 
-      type="text" 
-      value="{{ name }}"
-    >
+    <div class="flex flex-col">
+      <input 
+        hx-post="/name" 
+        hx-swap="none" 
+        placeholder="Name"
+        name="name"
+        class="outline-none text-[4em] w-full text-center text-white bg-transparent max-w-max mx-auto" 
+        type="text" 
+        value="{{ name }}"
+      >
 
-    <input 
-      hx-post="/color" 
-      hx-swap="none" 
-      name="color"
-      class="w-full text-center" 
-      type="text" 
-      value="{{ color }}"
-    >
+      <input 
+        hx-post="/color" 
+        hx-swap="none" 
+        name="color"
+        placeholder="Card Color"
+        class="outline-none text-[4em] w-full text-center text-white bg-transparent max-w-max mx-auto" 
+        type="text" 
+        value="{{ color }}"
+      >
+    </div>
 
     <div id="waiter-card" hx-swap-oob="true"></div>
+    <div id="compressed-button" class="mx-auto flex justify-center" hx-trigger="load" hx-swap="innerHTML" hx-get="/compressed"></div>
     <div id="leaderboard" hx-swap-oob="true"></div> 
   </body>
 </html>

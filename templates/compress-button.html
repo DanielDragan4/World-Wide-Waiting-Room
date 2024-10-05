@@ -1,0 +1,9 @@
+{% if not compressed %}
+  <button hx-post="/compressed" name="compressed" hx-swap="outerHTML" value="yes" class="mx-auto rounded bg-white max-w-max p-2 border">
+    Minimize
+  </button>
+{% else %}
+  <button hx-post="/compressed" name="compressed" hx-swap="outerHTML" value="no" class="mx-auto rounded bg-white max-w-max p-2 border">
+    Maximize
+  </button>
+{% endif %}

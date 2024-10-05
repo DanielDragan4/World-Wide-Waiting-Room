@@ -43,9 +43,15 @@ spawn do
         next
       end
 
+      data["place"] = get_leaderboard_place redis, pub_key
+
+      begin
       html =
         (templates.render "waiter-card.html", data) +
-        (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key })
+        (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data })
+      rescue
+        next
+      end
 
       begin
         socket.send html
@@ -57,7 +63,7 @@ spawn do
       end
     end
 
-    sleep 1 / 5
+    sleep 1 / 2
     Fiber.yield
   end
 end
@@ -82,7 +88,7 @@ def get_data_for (r, pub_key)
   end
 
   begin
-    parsed = Hash(String, String | Int64).from_json(mdata)
+    parsed = Hash(String, String | Int64 | Bool).from_json(mdata)
   rescue
     return nil
   end
@@ -97,9 +103,17 @@ def set_data_for (r, pub_key, data : String)
   r.hset "data", pub_key, data
 end
 
+def get_leaderboard_place (r, pub_key)
+  leaderboard = r.zrange("leaderboard", 0, -1).reverse
+
+  place = leaderboard.index pub_key
+  place ||= 10000000
+  place + 1
+end
+
 def get_leaderboard (r)
   leaderboard = r.zrange("leaderboard", 0, -1).reverse
-  data = [] of Hash(String, String | Int64)
+  data = [] of Hash(String, String | Int64 | Bool)
 
   leaderboard.each do |member|
     mdat = get_data_for r, member
@@ -145,7 +159,7 @@ def setup_new_waiter (r)
 
   r.hset("tokens", secret_token, public_token)
   r.hset("time_waited", public_token, 0)
-  r.hset("data", public_token, { "name" => "Anonymous", "color" => "#ffffff" }.to_json)
+  r.hset("data", public_token, { "name" => "Anonymous", "color" => "#ffffff", "compressed" => false }.to_json)
 
   secret_token
 end
@@ -211,6 +225,32 @@ get "/" do |ctx|
   public_key = get_pub_key_from_ctx redis, ctx
   templates.render "index.html", get_data_for redis, public_key
 end
+
+post "/compressed" do |ctx|
+  public_key = get_pub_key_from_ctx redis, ctx
+  compressed = ctx.params.body["compressed"].as String
+  data = get_data_for redis, public_key
+  if data
+    data["compressed"] = compressed == "yes"
+    set_data_for redis, public_key, data.to_json
+  end
+
+  templates.render "compress-button.html", { "compressed" => compressed == "yes" }
+end
+
+get "/compressed" do |ctx|
+  public_key = get_pub_key_from_ctx redis, ctx
+  data = get_data_for redis, public_key
+
+  if data
+    is_compressed = data.fetch "compressed", false
+  else
+    is_compressed = false
+  end
+
+  templates.render "compress-button.html", { "compressed" => is_compressed }
+end
+
 
 post "/name" do |ctx|
   public_key = get_pub_key_from_ctx redis, ctx
