@@ -16,6 +16,7 @@ spawn do
   loop do
     begin
       seen = Set(Secret).new
+      tick_global_timer redis
       sockets.each_value do |value|
         priv_key, pub_key = value
         if !seen.includes? priv_key
@@ -39,6 +40,7 @@ spawn do
   loop do
     begin
       leaderboard = get_leaderboard redis
+      global_time = build_time_left_string (get_global_time_left redis)
       sockets.each do |socket, pub_priv|
         priv_key, pub_key = pub_priv
 
@@ -52,6 +54,7 @@ spawn do
 
         begin
         html =
+          (templates.render "time-left.html", { "time_left" => global_time }) +
           (templates.render "waiter-card.html", data) +
           (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data })
         rescue
@@ -74,6 +77,38 @@ spawn do
     sleep 1 / 3
     Fiber.yield
   end
+end
+
+def tick_global_timer (r)
+  gtl = get_global_time_left r
+  r.incrby "global_time", -1
+  if gtl <= 0
+    reset_game r
+  end
+end
+
+def reset_game (r)
+  r.set "global_time", 604800
+
+  leaderboard = get_leaderboard r
+  r.lpush "leaderboards", leaderboard.to_json
+
+  time_waited_keys = r.hkeys("time_waited")
+
+  time_waited_keys.each do |key|
+    r.hset("time_waited", key, 0)
+  end
+end
+
+def get_global_time_left (r)
+  global_time = r.get "global_time"
+
+  if global_time == nil
+    r.set "global_time", 604800
+  end
+
+  global_time ||= 604800
+  global_time.to_i
 end
 
 def add_time_to (r, pubkey, seconds)

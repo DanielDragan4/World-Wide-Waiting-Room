@@ -25,7 +25,6 @@
     <div class="mx-auto w-full text-center mt-4">
       <!--<img src="/man.png" class="mt-2 mx-auto w-[360px]">-->
       <h1 class="font-bold text-white text-[2em]">World Wide Waiting Room</h1>
-      <h3 hx-swap-oob="true" id="time-left"></h3>
     </div>
 
     <div class="flex flex-col items-center">
@@ -54,6 +53,7 @@
       >
     </div>
 
+    <h3 hx-swap-oob="true" id="time-left"></h3>
     <div id="waiter-card" hx-swap-oob="true"></div>
     <!--<h1 class="text-center text-white">Do nothing and you win! But be careful, others might steal your time.</h1>-->
     <div id="compressed-button" class="mx-auto flex justify-center" hx-trigger="load" hx-swap="innerHTML" hx-get="/compressed"></div>
