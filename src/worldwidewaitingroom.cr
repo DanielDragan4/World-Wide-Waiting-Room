@@ -14,6 +14,8 @@ sockets = Hash(HTTP::WebSocket, Tuple(Secret, Public)).new
 # Global timer
 spawn do
   loop do
+    puts "Global Timer ticked... Num sockets #{sockets.size}"
+
     begin
       seen = Set(Secret).new
       tick_global_timer redis
@@ -38,6 +40,7 @@ end
 spawn do
   redis.del("leaderboard")
   loop do
+    puts "Render Loop ticked..."
     begin
       leaderboard = get_leaderboard redis
       global_time = build_time_left_string (get_global_time_left redis)
