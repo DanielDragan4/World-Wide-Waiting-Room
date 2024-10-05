@@ -1,5 +1,4 @@
-<div id="waiter-card" class="border shadow w-64 border border-red mx-auto my-4 flex flex-col text-center">
-  <input class="w-full text-center" type="text" value="{{ name }}">
+<div style="background: {{ color }}" id="waiter-card" class="border shadow w-64 border border-red mx-auto my-4 flex flex-col text-center">
   <h1 class="text-xl">You have been waiting for...</h1>
   <span>{{ time_waited }}</span>
   <span>You're in {{ place }}{% if place == "1" %}st{% else %}th{% endif %} place</span>

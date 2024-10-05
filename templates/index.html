@@ -11,6 +11,25 @@
       <h1 class="text-[2em]">World Wide Waiting Room</h1>
       <h3 hx-swap-oob="true" id="time-left"></h3>
     </div>
+
+    <input 
+      hx-post="/name" 
+      hx-swap="none" 
+      name="name"
+      class="w-full text-center" 
+      type="text" 
+      value="{{ name }}"
+    >
+
+    <input 
+      hx-post="/color" 
+      hx-swap="none" 
+      name="color"
+      class="w-full text-center" 
+      type="text" 
+      value="{{ color }}"
+    >
+
     <div id="waiter-card" hx-swap-oob="true"></div>
     <div id="leaderboard" hx-swap-oob="true"></div> 
   </body>

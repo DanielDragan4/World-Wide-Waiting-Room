@@ -44,7 +44,7 @@ spawn do
       end
 
       html =
-        (templates.render "waiter-card-live.html", data) +
+        (templates.render "waiter-card.html", data) +
         (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key })
 
       begin
@@ -212,17 +212,22 @@ get "/" do |ctx|
   templates.render "index.html", get_data_for redis, public_key
 end
 
-get "/card" do |ctx|
-  public_key = get_pub_key_from_ctx redis, ctx
-  templates.render "waiter-card.html", get_data_for redis, public_key
-end
-
 post "/name" do |ctx|
   public_key = get_pub_key_from_ctx redis, ctx
   name = ctx.params.body["name"].as String
   data = get_data_for redis, public_key
   if data
     data["name"] = name
+    set_data_for redis, public_key, data.to_json
+  end
+end
+
+post "/color" do |ctx|
+  public_key = get_pub_key_from_ctx redis, ctx
+  color = ctx.params.body["color"].as String
+  data = get_data_for redis, public_key
+  if data && /\#[0-9a-f]{6}/.match color
+    data["color"] = color
     set_data_for redis, public_key, data.to_json
   end
 end

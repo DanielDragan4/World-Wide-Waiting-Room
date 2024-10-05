@@ -2,7 +2,7 @@
   <h3 class="tex-lg text-center">The Waiting Room</h3>
   <div class="m-2 flex flex-row flex-wrap [&>*]:m-2 justify-center">
     {% for x in leaderboard %}
-      <div class="card border flex flex-col shadow-md border-red-300 p-2 w-96 text-center items-center justify-center h-32">
+      <div style="background: {{ x['color'] }}" class="card border flex flex-col shadow-md border-red-300 p-2 w-96 text-center items-center justify-center h-32">
         <h2>{{ x["name"] }}</h2>
         <div>{{ x["time_waited"] }}</div>
         {% if this_waiter != x["user"] %}
