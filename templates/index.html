@@ -17,6 +17,10 @@
     <title>World Wide Waiting Room</title>
   </head>
   <body>
+    <div class="absolute top-4 right-4">
+      <div id="notification" class="flex flex-col space-y-2 max-h-64 overflow-y-auto">
+      </div>
+    </div>
     <div hx-ext="ws" ws-connect="/ws"></div>
     <div class="mx-auto w-full text-center bg-[#333355]">
       <!--<img src="/man.png" class="mt-2 mx-auto w-[360px]">-->
@@ -54,6 +58,27 @@
     <!--<h1 class="text-center text-white">Do nothing and you win! But be careful, others might steal your time.</h1>-->
     <div id="compressed-button" class="mx-auto flex justify-center" hx-trigger="load" hx-swap="innerHTML" hx-get="/compressed"></div>
     <div id="leaderboard" hx-swap-oob="true"></div> 
+
+    <script>
+      const notifications = document.querySelector("#notification")
+      function take() {
+        takeDiv = document.createElement("div") 
+        takeDiv.className = "rounded text-white p-2 bg-red-400"
+        takeDiv.innerHTML = "You took 10s!"
+        notifications.appendChild(takeDiv);
+
+        setTimeout((x) => x.remove(), 1000, takeDiv);
+      }
+
+      function give() {
+        giveDiv = document.createElement("div") 
+        giveDiv.className = "rounded text-white p-2 bg-green-400"
+        giveDiv.innerHTML = "You gave 10s!"
+        notifications.appendChild(giveDiv);
+
+        setTimeout((x) => x.remove(), 1000, giveDiv);
+      }
+    </script>
   </body>
 </html>
 

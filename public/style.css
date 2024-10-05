@@ -5,3 +5,11 @@ html, body {
   font-weight: <weight>;
   font-style: normal;
 }
+
+#notification {
+  scrollbar-width: none;
+}
+
+#notification::-webkit-scrollbar  {
+  display: none;
+}
