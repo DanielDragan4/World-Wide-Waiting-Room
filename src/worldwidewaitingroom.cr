@@ -56,7 +56,7 @@ spawn do
         html =
           (templates.render "time-left.html", { "time_left" => global_time }) +
           (templates.render "waiter-card.html", data) +
-          (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data })
+          (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key) })
         rescue
           next
         end
@@ -217,6 +217,25 @@ def get_wait_time (r, public_key) : Int64
   Int64.new time_waited.to_i
 end
 
+def can_take (r, pub_key) : Bool
+  if !pub_key
+    return false
+  end
+
+  can_take = r.get ("exp" + pub_key)
+
+  return can_take == nil
+end
+
+def rate_limit_take (r, pub_key)
+  if !pub_key
+    return
+  end
+
+  r.set ("exp" + pub_key), "yes"
+  r.expire ("exp" + pub_key), 2
+end
+
 post "/transfer" do |ctx|
   secret_key = ctx.request.cookies["token"].value
   public_key = secret_to_public redis, secret_key
@@ -230,13 +249,19 @@ post "/transfer" do |ctx|
 
   if action == "give"
     if (get_wait_time redis, public_key) >= amount
-      puts "Giving 10s to #{waiter} from #{public_key}"
+      puts "Giving 10m to #{waiter} from #{public_key}"
       add_time_to redis, waiter, amount
       remove_time_from redis, public_key, amount
     end
   elsif action == "take"
+    if !(can_take redis, public_key)
+      puts "#{public_key} was rate limited."
+      next "No"
+    end
+
+    rate_limit_take redis, public_key
     if (get_wait_time redis, waiter) >= amount
-      puts "Taking 10s from #{waiter} and giving to #{public_key}"
+      puts "Taking 10m from #{waiter} and giving to #{public_key}"
       remove_time_from redis, waiter, amount
       add_time_to redis, public_key, amount
     end
