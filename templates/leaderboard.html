@@ -12,7 +12,7 @@
         {% if x['color'] %}
         style="background: {{ x['color'] }}" 
         {% endif %}
-        class="relative card flex flex-col shadow-md rounded w-48 text-center items-center justify-center h-48"
+        class="relative overflow-hidden card flex flex-col shadow-md rounded w-48 text-center items-center justify-center h-48"
       >
         <h2 class="text-lg font-bold text-red absolute top-2">{{ x["name"] }}</h2>
         <div>{{ x["time_waited"] }}</div>
