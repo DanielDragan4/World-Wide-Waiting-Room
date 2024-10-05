@@ -74,7 +74,7 @@ spawn do
       puts "There was some error #{ex} in spawn 2"
     end
 
-    sleep 1 / 3
+    sleep 1 / 2
     Fiber.yield
   end
 end
