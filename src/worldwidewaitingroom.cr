@@ -212,6 +212,8 @@ before_all do |ctx|
     secret_key = setup_new_waiter redis
   end
 
+  puts "Setup new waiter"
+  ctx.request.cookies["token"] = secret_key
   ctx.response.cookies["token"] = secret_key
 end
 
