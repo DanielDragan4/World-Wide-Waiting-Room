@@ -14,9 +14,13 @@ sockets = Hash(HTTP::WebSocket, Tuple(Secret, Public)).new
 # Global timer
 spawn do
   loop do
+    seen = Set(Secret).new
     sockets.each_value do |value|
       priv_key, pub_key = value
-      add_time_to redis, pub_key, 1
+      if !seen.includes? priv_key
+        add_time_to redis, pub_key, 1
+        seen.add priv_key
+      end
       update_leaderboard_for redis, pub_key
     end
 
@@ -40,7 +44,7 @@ spawn do
       end
 
       html =
-        (templates.render "waiter-card.html", data) +
+        (templates.render "waiter-card-live.html", data) +
         (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key })
 
       begin
@@ -87,6 +91,10 @@ def get_data_for (r, pub_key)
   parsed["user"] = "#{pub_key}"
 
   parsed
+end
+
+def set_data_for (r, pub_key, data : String)
+  r.hset "data", pub_key, data
 end
 
 def get_leaderboard (r)
@@ -193,14 +201,35 @@ before_all do |ctx|
   ctx.response.cookies["token"] = secret_key
 end
 
+def get_pub_key_from_ctx (r, ctx)
+  secret_key = ctx.request.cookies["token"].value
+  public_key = secret_to_public r, secret_key
+  public_key
+end
+
 get "/" do |ctx|
-  templates.render "index.html"
+  public_key = get_pub_key_from_ctx redis, ctx
+  templates.render "index.html", get_data_for redis, public_key
+end
+
+get "/card" do |ctx|
+  public_key = get_pub_key_from_ctx redis, ctx
+  templates.render "waiter-card.html", get_data_for redis, public_key
+end
+
+post "/name" do |ctx|
+  public_key = get_pub_key_from_ctx redis, ctx
+  name = ctx.params.body["name"].as String
+  data = get_data_for redis, public_key
+  if data
+    data["name"] = name
+    set_data_for redis, public_key, data.to_json
+  end
 end
 
 ws "/ws" do |socket, context|
   secret_key = context.request.cookies["token"].value
   public_key = secret_to_public redis, secret_key
-
 
   if public_key
     puts "#{secret_key} connected."
