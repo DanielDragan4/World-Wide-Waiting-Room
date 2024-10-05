@@ -17,8 +17,8 @@
     <title>World Wide Waiting Room</title>
   </head>
   <body>
-    <div class="fixed top-4 right-4">
-      <div id="notification" class="flex flex-col space-y-2 max-h-64 overflow-y-auto">
+    <div class="fixed top-4 right-4 z-100">
+      <div id="notification" class="flex flex-col space-y-2 max-h-64 overflow-y-auto z-100">
       </div>
     </div>
     <div hx-ext="ws" ws-connect="/ws"></div>
