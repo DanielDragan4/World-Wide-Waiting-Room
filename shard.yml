@@ -13,6 +13,8 @@ dependencies:
     github: kemalcr/kemal
   crinja:
     github: straight-shoota/crinja
+  redis:
+    github: stefanwille/crystal-redis
 
 crystal: '>= 1.13.3'
 

@@ -1,89 +1,220 @@
 require "kemal"
+require "random"
+require "json"
+require "redis"
 require "./templates"
-require "./modules"
+
+alias Secret = String
+alias Public = String
 
 templates = Templates.new
+redis = Redis::PooledClient.new
+sockets = Hash(HTTP::WebSocket, Tuple(Secret, Public)).new
 
-eventing = Modules::Event
-waiters = Modules::Waiters
-global_timer = Modules::GlobalTimer
-leaderboard = Modules::Leaderboard
-persist_data = Modules::PersistData
+# Global timer
+spawn do
+  loop do
+    sockets.each_value do |value|
+      priv_key, pub_key = value
+      add_time_to redis, pub_key, 1
+      update_leaderboard_for redis, pub_key
+    end
 
-post "/transfer" do |env|
-  to = env.params.body["to"].as String
-  from = env.params.body["from"].as String
-  action = env.params.body["action"].as String
-
-  if action == "give"
-    puts "Taking from #{from} to #{to}"
-    Modules::Waiters.give 10000, to, from
-  elsif action == "take"
-    puts "Giving to #{to} from #{from}"
-    Modules::Waiters.take 10000, from, to
+    sleep 1
+    Fiber.yield
   end
 end
 
-get "/" do
-  templates.render "index.html"
-end
+# Render loop
+spawn do
+  redis.del("leaderboard")
+  loop do
+    leaderboard = get_leaderboard redis
+    sockets.each do |socket, pub_priv|
+      priv_key, pub_key = pub_priv
 
-ws "/ws" do |socket|
-  events = Channel(Event).new
-  unique_waiter_id = Modules::Event.register_channel events
+      data = get_data_for redis, pub_key
 
-  Modules::Waiters.add_waiter unique_waiter_id
-
-  socket_status = Channel(Nil).new
-
-  socket.on_close do
-    socket_status.close
-    puts "User #{unique_waiter_id} disconnected."
-    Modules::Waiters.remove_waiter unique_waiter_id
-    Modules::Event.unregister_channel unique_waiter_id
-    #Modules::Event.emit({ :disconnected, { "uid" => unique_waiter_id } of String => EventHashValue })
-    #Modules::Leaderboard.compute
-  end
-
-  spawn do
-    loop do
-      select
-      when event = events.receive
-        name, value = event
-
-        case name
-        when :waiter_updated
-          #if value["uid"] == unique_waiter_id
-          #end
-        when :global_timer
-          time_left = value["time_left"]
-          this_waiter = Modules::Waiters.get_waiter unique_waiter_id
-          begin
-            wc = templates.render "waiter-card.html", { "info" => this_waiter, "place" => Modules::Leaderboard.get_place unique_waiter_id }
-            tl = templates.render "time-left.html", { "time_left" => time_left }
-            lb = templates.render "leaderboard.html", {
-              "waiters" => Modules::Leaderboard.leaderboard,
-              "this_waiter" => this_waiter
-            }
-            socket.send "#{wc}#{tl}#{lb}"
-          rescue
-          end
-        end
-
-      when socket_status.receive?
-        break
-      else
-        break if socket_status.closed?
+      if !data
+        next
       end
 
-      Fiber.yield
+      html =
+        (templates.render "waiter-card.html", data) +
+        (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key })
+
+      begin
+        socket.send html
+      rescue
+        priv_key, pub_key = pub_priv
+        sockets.delete pub_key
+        redis.zrem("leaderboard", pub_key)
+        next
+      end
+    end
+
+    sleep 1 / 5
+    Fiber.yield
+  end
+end
+
+def add_time_to (r, pubkey, seconds)
+  r.hincrby("time_waited", pubkey, seconds)
+end
+
+def remove_time_from (r, pubkey, seconds)
+  add_time_to r, pubkey, -seconds
+end
+
+def update_leaderboard_for (r, public_key)
+  r.zadd("leaderboard", (get_wait_time r, public_key), public_key)
+end
+
+def get_data_for (r, pub_key)
+  mdata = r.hget "data", pub_key
+
+  if !mdata
+    return nil
+  end
+
+  begin
+    parsed = Hash(String, String | Int64).from_json(mdata)
+  rescue
+    return nil
+  end
+
+  parsed["time_waited"] = build_time_left_string (get_wait_time r, pub_key)
+  parsed["user"] = "#{pub_key}"
+
+  parsed
+end
+
+def get_leaderboard (r)
+  leaderboard = r.zrange("leaderboard", 0, -1).reverse
+  data = [] of Hash(String, String | Int64)
+
+  leaderboard.each do |member|
+    mdat = get_data_for r, member
+    if mdat
+      data << mdat
     end
   end
 
-  puts "User #{unique_waiter_id} connected."
-  Modules::Event.emit({ :connected, { "uid" => unique_waiter_id } of String => EventHashValue })
-  #Modules::Leaderboard.compute
-  #Modules::GlobalTimer.emit
+  data
+end
+
+def append_time_to_string (str, value, unit)
+  if value > 0
+    str = "#{str}#{value} #{unit}"
+    if value > 1
+      str = "#{str}s"
+    end
+    str = "#{str} "
+  end
+  str
+end
+
+def build_time_left_string (seconds)
+    days_left =    seconds // 60 // 60 // 24
+    hours_left =   seconds // 60 // 60 % 24
+    minutes_left = seconds // 60 % 60
+    seconds_left = seconds % 60
+
+    output = ""
+
+    output = append_time_to_string output, days_left, "day"
+    output = append_time_to_string output, hours_left, "hour"
+    output = append_time_to_string output, minutes_left, "minute"
+    output = append_time_to_string output, seconds_left, "second"
+
+    output
+end
+
+def setup_new_waiter (r)
+  puts "Setting up new waiter."
+  secret_token = Random.new.hex
+  public_token = Random.new.hex
+
+  r.hset("tokens", secret_token, public_token)
+  r.hset("time_waited", public_token, 0)
+  r.hset("data", public_token, { "name" => "Anonymous", "color" => "#ffffff" }.to_json)
+
+  secret_token
+end
+
+def secret_to_public (r, secret_key)
+  return r.hget "tokens", secret_key
+end
+
+def get_wait_time (r, public_key) : Int64
+  time_waited = r.hget("time_waited", public_key)
+  time_waited ||= 0
+  Int64.new time_waited.to_i
+end
+
+post "/transfer" do |ctx|
+  secret_key = ctx.request.cookies["token"].value
+  public_key = secret_to_public redis, secret_key
+
+  waiter = ctx.params.body["waiter"].as String
+  action = ctx.params.body["action"].as String
+
+  puts "#{waiter} #{action} #{public_key}"
+
+  amount = 10
+
+  if action == "give"
+    if (get_wait_time redis, public_key) >= amount
+      puts "Giving 10s to #{waiter} from #{public_key}"
+      add_time_to redis, waiter, amount
+      remove_time_from redis, public_key, amount
+    end
+  elsif action == "take"
+    if (get_wait_time redis, waiter) >= amount
+      puts "Taking 10s from #{waiter} and giving to #{public_key}"
+      remove_time_from redis, waiter, amount
+      add_time_to redis, public_key, amount
+    end
+  end
+end
+
+before_all do |ctx|
+  begin
+    secret_key = ctx.request.cookies["token"].value
+
+    if !(secret_to_public redis, secret_key)
+      secret_key = setup_new_waiter redis
+    end
+
+  rescue
+    secret_key = setup_new_waiter redis
+  end
+
+  ctx.response.cookies["token"] = secret_key
+end
+
+get "/" do |ctx|
+  templates.render "index.html"
+end
+
+ws "/ws" do |socket, context|
+  secret_key = context.request.cookies["token"].value
+  public_key = secret_to_public redis, secret_key
+
+
+  if public_key
+    puts "#{secret_key} connected."
+    update_leaderboard_for redis, public_key
+    sockets[socket] = ({ secret_key, public_key })
+  end
+
+  socket.on_close do
+    puts "Socket closed"
+    if public_key
+      redis.zrem("leaderboard", public_key)
+      sockets.delete socket
+    end
+  end
 end
 
 Kemal.run port: 8082
