@@ -253,23 +253,25 @@ post "/transfer" do |ctx|
 
   amount = 10
 
-  if action == "give"
-    if (get_wait_time redis, public_key) >= amount
-      puts "Giving 10m to #{waiter} from #{public_key}"
-      add_time_to redis, waiter, amount
-      remove_time_from redis, public_key, amount
-    end
-  elsif action == "take"
-    if !(can_take redis, public_key)
-      puts "#{public_key} was rate limited."
-      next "No"
-    end
+  if public_key != waiter
+    if action == "give"
+      if (get_wait_time redis, public_key) >= amount
+        puts "Giving 10m to #{waiter} from #{public_key}"
+        add_time_to redis, waiter, amount
+        remove_time_from redis, public_key, amount
+      end
+    elsif action == "take"
+      if !(can_take redis, public_key)
+        puts "#{public_key} was rate limited."
+        next "No"
+      end
 
-    rate_limit_take redis, public_key
-    if (get_wait_time redis, waiter) >= amount
-      puts "Taking 10m from #{waiter} and giving to #{public_key}"
-      remove_time_from redis, waiter, amount
-      add_time_to redis, public_key, amount
+      rate_limit_take redis, public_key
+      if (get_wait_time redis, waiter) >= amount
+        puts "Taking 10m from #{waiter} and giving to #{public_key}"
+        remove_time_from redis, waiter, amount
+        add_time_to redis, public_key, amount
+      end
     end
   end
 end
