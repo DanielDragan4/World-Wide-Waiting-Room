@@ -25,24 +25,33 @@ def update (tick, sockets, redis, templates)
   sockets.each do |socket, pub_priv|
     priv_key, pub_key = pub_priv
 
+    puts "\nDEBUG: Processing #{pub_key}"
     if tick
+      puts "DEBUG: Ticking"
       if !seen.includes? priv_key
         seen.add priv_key
         add_time_to redis, pub_key, 1
         update_leaderboard_for redis, pub_key
       end
+      puts "DEBUG: Ticking done"
     end
 
+    puts "DEBUG: Get data from Redis..."
     data = get_data_for redis, pub_key
+    puts "DEBUG: Get data from redis done."
 
     if !data
       puts "No data from Redis in render loop.... skipping."
       next
     end
 
+    puts "DEBUG: Get leader board..."
     data["place"] = get_leaderboard_place redis, pub_key
+    puts "DEBUG: Get leaderboard done."
 
+    puts "DEBUG: Rendering HTML..."
     html = templates.render "live-html.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key), "time_left" => global_time }
+    puts "DEBUG: Rendering HTML Done."
 
     if socket.closed?
       puts "Socket is closed. Ignoring"
@@ -51,6 +60,7 @@ def update (tick, sockets, redis, templates)
       next
     end
 
+    puts "DEBUG: Sending socket...."
     begin
       socket.send(html)
     rescue
@@ -58,6 +68,8 @@ def update (tick, sockets, redis, templates)
       sockets.delete pub_key
       remove_from_leaderboard redis, pub_key
     end
+    puts "DEBUG: Sending socket done."
+    puts "DEBUG: Done with #{pub_key}"
   end
 end
 
@@ -72,9 +84,10 @@ spawn do
       puts "Exception in main loop #{ex}"
     end
 
-    tick = !tick
+    # tick = !tick
+    #sleep 1 / 2
 
-    sleep 1 / 2
+    sleep 1
   end
 end
 
