@@ -1,4 +1,5 @@
 require "kemal"
+require "html-minifier"
 require "random"
 require "json"
 require "redis"
@@ -70,6 +71,8 @@ spawn do
             puts "Error while rendering HTML #{ex}"
             next
           end
+
+          html = HtmlMinifier.minify!(html)
 
           if socket.closed?
             sockets.delete pub_key
