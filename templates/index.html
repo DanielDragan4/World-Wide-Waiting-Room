@@ -21,7 +21,9 @@
       <div id="notification" class="flex flex-col space-y-2 max-h-64 overflow-y-auto z-100">
       </div>
     </div>
-    <div hx-ext="ws" ws-connect="/ws"></div>
+    <div hx-ext="ws" ws-connect="/ws">
+      <form ws-send hx-trigger="every 0.5s"></form>
+    </div>
     <div class="mx-auto w-full text-center mt-4">
       <!--<img src="/man.png" class="mt-2 mx-auto w-[360px]">-->
       <h1 class="font-bold text-white text-[2em]">World Wide Waiting Room</h1>

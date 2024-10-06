@@ -19,56 +19,16 @@ def update (tick, sockets, redis, templates)
     tick_global_timer redis
   end
 
-  leaderboard = get_leaderboard redis
-  global_time = build_time_left_string (get_global_time_left redis)
-
   sockets.each do |socket, pub_priv|
     priv_key, pub_key = pub_priv
 
-    puts "DEBUG: Processing #{pub_key}"
     if tick
-      puts "DEBUG: Ticking"
       if !seen.includes? priv_key
         seen.add priv_key
         add_time_to redis, pub_key, 1
         update_leaderboard_for redis, pub_key
       end
-      puts "DEBUG: Ticking done"
     end
-
-    puts "DEBUG: Get data from Redis..."
-    data = get_data_for redis, pub_key
-    puts "DEBUG: Get data from redis done."
-
-    if !data
-      puts "No data from Redis in render loop.... skipping."
-      next
-    end
-
-    puts "DEBUG: Get leader board..."
-    data["place"] = get_leaderboard_place redis, pub_key
-    puts "DEBUG: Get leaderboard done."
-
-    puts "DEBUG: Rendering HTML..."
-    html = templates.render "live-html.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key), "time_left" => global_time }
-    puts "DEBUG: Rendering HTML Done."
-
-    if socket.closed?
-      puts "Socket is closed. Ignoring"
-      sockets.delete pub_key
-      remove_from_leaderboard redis, pub_key
-      next
-    end
-
-    puts "DEBUG: Sending socket...."
-    begin
-      safe_socket_sent socket, html
-    rescue
-      puts "Could not send to socket. Ignoring."
-      sockets.delete pub_key
-      remove_from_leaderboard redis, pub_key
-    end
-    puts "DEBUG: Sending socket done."
   end
 end
 
@@ -82,6 +42,8 @@ spawn do
     rescue ex
       puts "Exception in main loop #{ex}"
     end
+
+    sleep 1
 
     # tick = !tick
 
@@ -360,19 +322,52 @@ end
 
 ws "/ws" do |socket, context|
   secret_key = context.request.cookies["token"].value
-  public_key = secret_to_public redis, secret_key
+  pub_key = secret_to_public redis, secret_key
 
-  if public_key
+  if pub_key
     puts "#{secret_key} connected."
-    update_leaderboard_for redis, public_key
-    sockets[socket] = ({ secret_key, public_key })
+    update_leaderboard_for redis, pub_key
+    sockets[socket] = ({ secret_key, pub_key })
+  end
+
+  socket.on_message do
+    puts "#{pub_key} requested a re-render"
+    leaderboard = get_leaderboard redis
+    global_time = build_time_left_string (get_global_time_left redis)
+
+    data = get_data_for redis, pub_key
+
+    if !data
+      puts "No data from Redis in render loop.... skipping."
+      next
+    end
+
+    data["place"] = get_leaderboard_place redis, pub_key
+
+    html = templates.render "live-html.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key), "time_left" => global_time }
+
+    if socket.closed?
+      puts "Socket is closed. Ignoring"
+      sockets.delete socket
+      remove_from_leaderboard redis, pub_key
+      next
+    end
+
+    begin
+      socket.send html
+    rescue
+      puts "Could not send to socket. Ignoring."
+      sockets.delete socket
+      remove_from_leaderboard redis, pub_key
+    end
   end
 
   socket.on_close do
     puts "Socket closed"
-    if public_key
-      redis.zrem("leaderboard", public_key)
+    if pub_key
+      redis.zrem("leaderboard", pub_key)
       sockets.delete socket
+      remove_from_leaderboard redis, pub_key
     end
   end
 end
