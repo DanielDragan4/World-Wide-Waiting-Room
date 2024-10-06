@@ -1,5 +1,4 @@
 require "kemal"
-# require "html-minifier"
 require "random"
 require "json"
 require "redis"
@@ -62,10 +61,7 @@ spawn do
         data["place"] = get_leaderboard_place redis, pub_key
 
         begin
-        html =
-          (templates.render "time-left.html", { "time_left" => global_time }) +
-          (templates.render "waiter-card.html", data) +
-          (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key) })
+          html = templates.render "live-html.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key), "time_left" => global_time }
         rescue ex
           puts "Error while rendering HTML #{ex}"
           next
@@ -76,8 +72,6 @@ spawn do
           remove_from_leaderboard redis, pub_key
           next
         end
-
-        # html = HtmlMinifier.minify!(html)
 
         begin
           socket.send(html)
