@@ -322,7 +322,6 @@ ws "/ws" do |socket, context|
   end
 
   socket.on_message do
-    puts "#{pub_key} requested a re-render"
     leaderboard = get_leaderboard redis
     global_time = build_time_left_string (get_global_time_left redis)
 
