@@ -63,11 +63,15 @@
 
     <script>
       const notifications = document.querySelector("#notification")
-      function take() {
+      function take(e) {
         takeDiv = document.createElement("div") 
         takeDiv.className = "rounded text-white p-2 bg-red-400"
         takeDiv.innerHTML = "You took 10s!"
         notifications.appendChild(takeDiv);
+
+        e.innerHTML = "Wait..."
+        e.className = "font-bold";
+        e.attributes['onclick'] = null;
 
         setTimeout((x) => x.remove(), 1000, takeDiv);
       }

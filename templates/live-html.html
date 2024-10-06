@@ -31,7 +31,7 @@
           <input type="hidden" name="waiter" value="{{ x["user"] }}">
           <button onclick="give()" name="action" value="give" class="hover:underline font-bold rounded ">Give 10s</button>
           {% if can_take %}
-          <button onclick="take()" name="action" value="take" class="hover:underline font-bold rounded ">Take 10s</button>
+          <button onclick="take(this)" name="action" value="take" class="hover:underline font-bold rounded ">Take 10s</button>
           {% else %}
           <span class="no-wrap font-bold">Wait...</span>
           {% endif %}
