@@ -50,6 +50,7 @@ spawn do
         data = get_data_for redis, pub_key
 
         if !data
+          puts "No data from Redis in render loop.... skipping."
           next
         end
 
@@ -60,13 +61,15 @@ spawn do
           (templates.render "time-left.html", { "time_left" => global_time }) +
           (templates.render "waiter-card.html", data) +
           (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key) })
-        rescue
+        rescue ex
+          puts "Error while rendering HTML #{ex}"
           next
         end
 
         begin
           socket.send html
         rescue
+          puts "Could not send to socket #{socket}"
           priv_key, pub_key = pub_priv
           sockets.delete pub_key
           redis.zrem("leaderboard", pub_key)
