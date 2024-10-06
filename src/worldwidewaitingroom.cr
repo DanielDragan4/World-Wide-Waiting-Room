@@ -72,11 +72,7 @@ spawn do
       puts "Exception in main loop #{ex}"
     end
 
-    if tick
-      tick = false
-    else
-      tick = true
-    end
+    tick = !tick
 
     sleep 1 / 2
   end
