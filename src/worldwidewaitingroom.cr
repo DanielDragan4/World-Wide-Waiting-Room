@@ -1,5 +1,5 @@
 require "kemal"
-require "html-minifier"
+# require "html-minifier"
 require "random"
 require "json"
 require "redis"
