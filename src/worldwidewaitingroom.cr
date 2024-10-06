@@ -11,77 +11,71 @@ templates = Templates.new
 redis = Redis::PooledClient.new
 sockets = Hash(HTTP::WebSocket, Tuple(Secret, Public)).new
 
-# Global timer
-spawn do
-  loop do
-    puts "Global Timer ticked... Num sockets #{sockets.size}"
+def update (tick, sockets, redis, templates)
+  seen = Set(Secret).new
+  puts "Game loop tick... Num sockets #{sockets.size}"
 
-    begin
-      seen = Set(Secret).new
-      tick_global_timer redis
-      sockets.each_value do |value|
-        priv_key, pub_key = value
-        if !seen.includes? priv_key
-          add_time_to redis, pub_key, 1
-          seen.add priv_key
-        end
+  if tick
+    tick_global_timer redis
+  end
+
+  leaderboard = get_leaderboard redis
+  global_time = build_time_left_string (get_global_time_left redis)
+
+  sockets.each do |socket, pub_priv|
+    priv_key, pub_key = pub_priv
+
+    if tick
+      if !seen.includes? priv_key
+        seen.add priv_key
+        add_time_to redis, pub_key, 1
         update_leaderboard_for redis, pub_key
       end
-    rescue ex
-      puts "There was some error #{ex} in spawn 1"
     end
 
-    sleep 1
+    data = get_data_for redis, pub_key
+
+    if !data
+      puts "No data from Redis in render loop.... skipping."
+      next
+    end
+
+    data["place"] = get_leaderboard_place redis, pub_key
+
+    html = templates.render "live-html.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key), "time_left" => global_time }
+
+    if socket.closed?
+      puts "Socket is closed. Ignoring"
+      sockets.delete pub_key
+      remove_from_leaderboard redis, pub_key
+      next
+    end
+
+    begin
+      socket.send(html)
+    rescue
+      puts "Could not send to socket. Ignoring."
+      sockets.delete pub_key
+      remove_from_leaderboard redis, pub_key
+    end
   end
 end
 
-def remove_from_leaderboard (r, pub_key)
-  puts "Removed #{pub_key} from leaderboard"
-  r.zrem("leaderboard", pub_key)
-end
-
-# Render loop
+# Global timer
 spawn do
   redis.del("leaderboard")
+  tick = true
   loop do
-    puts "Render Loop ticked..."
     begin
-      leaderboard = get_leaderboard redis
-      global_time = build_time_left_string (get_global_time_left redis)
-      sockets.each do |socket, pub_priv|
-        priv_key, pub_key = pub_priv
-
-        data = get_data_for redis, pub_key
-
-        if !data
-          puts "No data from Redis in render loop.... skipping."
-          next
-        end
-
-        data["place"] = get_leaderboard_place redis, pub_key
-
-        begin
-          html = templates.render "live-html.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key), "time_left" => global_time }
-        rescue ex
-          puts "Error while rendering HTML #{ex}"
-          next
-        end
-
-        if socket.closed?
-          sockets.delete pub_key
-          remove_from_leaderboard redis, pub_key
-          next
-        end
-
-        begin
-          socket.send(html)
-        rescue
-          sockets.delete pub_key
-          remove_from_leaderboard redis, pub_key
-        end
-      end
+      update tick, sockets, redis, templates
     rescue ex
-      puts "There was some error #{ex} in spawn 2"
+      puts "Exception in main loop #{ex}"
+    end
+
+    if tick
+      tick = false
+    else
+      tick = true
     end
 
     sleep 1 / 2
@@ -332,6 +326,10 @@ get "/compressed" do |ctx|
   templates.render "compress-button.html", { "compressed" => is_compressed }
 end
 
+def remove_from_leaderboard (r, pub_key)
+  puts "Removed #{pub_key} from leaderboard"
+  r.zrem("leaderboard", pub_key)
+end
 
 post "/name" do |ctx|
   public_key = get_pub_key_from_ctx redis, ctx
