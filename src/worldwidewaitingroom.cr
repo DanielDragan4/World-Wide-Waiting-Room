@@ -32,7 +32,6 @@ spawn do
     end
 
     sleep 1
-    Fiber.yield
   end
 end
 
@@ -81,7 +80,6 @@ spawn do
     end
 
     sleep 1 / 2
-    Fiber.yield
   end
 end
 
