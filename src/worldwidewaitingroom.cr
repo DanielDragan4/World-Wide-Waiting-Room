@@ -77,7 +77,7 @@ spawn do
           next
         end
 
-        html = HtmlMinifier.minify!(html)
+        # html = HtmlMinifier.minify!(html)
 
         begin
           socket.send(html)
