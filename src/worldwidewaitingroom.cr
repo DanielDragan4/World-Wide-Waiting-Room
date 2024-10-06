@@ -11,23 +11,19 @@ templates = Templates.new
 redis = Redis::PooledClient.new
 sockets = Hash(HTTP::WebSocket, Tuple(Secret, Public)).new
 
-def update (tick, sockets, redis, templates)
+def update (sockets, redis, templates)
   seen = Set(Secret).new
   puts "Game loop tick... Num sockets #{sockets.size}"
 
-  if tick
-    tick_global_timer redis
-  end
+  tick_global_timer redis
 
-  sockets.each do |socket, pub_priv|
+  sockets.each_value do |pub_priv|
     priv_key, pub_key = pub_priv
 
-    if tick
-      if !seen.includes? priv_key
-        seen.add priv_key
-        add_time_to redis, pub_key, 1
-        update_leaderboard_for redis, pub_key
-      end
+    if !seen.includes? priv_key
+      seen.add priv_key
+      add_time_to redis, pub_key, 1
+      update_leaderboard_for redis, pub_key
     end
   end
 end
@@ -35,19 +31,14 @@ end
 # Global timer
 spawn do
   redis.del("leaderboard")
-  tick = true
   loop do
     begin
-      update tick, sockets, redis, templates
+      update sockets, redis, templates
     rescue ex
       puts "Exception in main loop #{ex}"
     end
 
     sleep 1
-
-    # tick = !tick
-
-    #sleep 1 / 2
   end
 end
 
