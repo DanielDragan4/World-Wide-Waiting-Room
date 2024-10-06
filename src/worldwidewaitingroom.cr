@@ -79,13 +79,11 @@ spawn do
 
         html = HtmlMinifier.minify!(html)
 
-        spawn do
-          begin
-            socket.send(html)
-          rescue
-            sockets.delete pub_key
-            remove_from_leaderboard redis, pub_key
-          end
+        begin
+          socket.send(html)
+        rescue
+          sockets.delete pub_key
+          remove_from_leaderboard redis, pub_key
         end
       end
     rescue ex
