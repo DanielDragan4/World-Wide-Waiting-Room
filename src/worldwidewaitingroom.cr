@@ -1,5 +1,4 @@
 require "kemal"
-require "html-minifier"
 require "random"
 require "json"
 require "redis"
@@ -50,36 +49,34 @@ spawn do
       leaderboard = get_leaderboard redis
       global_time = build_time_left_string (get_global_time_left redis)
       sockets.each do |socket, pub_priv|
+        priv_key, pub_key = pub_priv
+
+        data = get_data_for redis, pub_key
+
+        if !data
+          puts "No data from Redis in render loop.... skipping."
+          next
+        end
+
+        data["place"] = get_leaderboard_place redis, pub_key
+
+        begin
+        html =
+          (templates.render "time-left.html", { "time_left" => global_time }) +
+          (templates.render "waiter-card.html", data) +
+          (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key) })
+        rescue ex
+          puts "Error while rendering HTML #{ex}"
+          next
+        end
+
+        if socket.closed?
+          sockets.delete pub_key
+          remove_from_leaderboard redis, pub_key
+          next
+        end
+
         spawn do
-          priv_key, pub_key = pub_priv
-
-          data = get_data_for redis, pub_key
-
-          if !data
-            puts "No data from Redis in render loop.... skipping."
-            next
-          end
-
-          data["place"] = get_leaderboard_place redis, pub_key
-
-          begin
-          html =
-            (templates.render "time-left.html", { "time_left" => global_time }) +
-            (templates.render "waiter-card.html", data) +
-            (templates.render "leaderboard.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key) })
-          rescue ex
-            puts "Error while rendering HTML #{ex}"
-            next
-          end
-
-          html = HtmlMinifier.minify!(html)
-
-          if socket.closed?
-            sockets.delete pub_key
-            remove_from_leaderboard redis, pub_key
-            next
-          end
-
           begin
             socket.send(html)
           rescue
