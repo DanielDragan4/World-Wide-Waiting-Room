@@ -25,7 +25,8 @@ def update (tick, sockets, redis, templates)
   sockets.each do |socket, pub_priv|
     priv_key, pub_key = pub_priv
 
-    puts "\nDEBUG: Processing #{pub_key}"
+    puts " "
+    puts "DEBUG: Processing #{pub_key}"
     if tick
       puts "DEBUG: Ticking"
       if !seen.includes? priv_key
