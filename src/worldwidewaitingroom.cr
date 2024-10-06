@@ -84,10 +84,10 @@ spawn do
       puts "Exception in main loop #{ex}"
     end
 
-    # tick = !tick
-    #sleep 1 / 2
+    tick = !tick
+    sleep 1 / 2
 
-    sleep 1
+    #sleep 1
   end
 end
 
