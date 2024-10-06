@@ -1,4 +1,5 @@
 require "kemal"
+require "html-minifier"
 require "random"
 require "json"
 require "redis"
@@ -75,6 +76,8 @@ spawn do
           remove_from_leaderboard redis, pub_key
           next
         end
+
+        html = HtmlMinifier.minify!(html)
 
         spawn do
           begin
