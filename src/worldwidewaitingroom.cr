@@ -9,11 +9,11 @@ alias Public = String
 
 templates = Templates.new
 redis = Redis::PooledClient.new
-sockets = Hash(HTTP::WebSocket, Tuple(Secret, Public)).new
+channels = Hash(Channel(String), Tuple(Secret, Public)).new
 
-def update (tick, sockets, redis, templates)
+def update (tick, channels, redis, templates)
   seen = Set(Secret).new
-  puts "Game loop tick... Num sockets #{sockets.size}"
+  puts "Game loop tick... Num channels #{channels.size}"
 
   if tick
     tick_global_timer redis
@@ -22,7 +22,7 @@ def update (tick, sockets, redis, templates)
   leaderboard = get_leaderboard redis
   global_time = build_time_left_string (get_global_time_left redis)
 
-  sockets.each do |socket, pub_priv|
+  channels.each do |channel, pub_priv|
     priv_key, pub_key = pub_priv
 
     puts " "
@@ -54,22 +54,16 @@ def update (tick, sockets, redis, templates)
     html = templates.render "live-html.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key), "time_left" => global_time }
     puts "DEBUG: Rendering HTML Done."
 
-    if socket.closed?
+    if channel.closed?
       puts "Socket is closed. Ignoring"
-      sockets.delete pub_key
+      channels.delete pub_key
       remove_from_leaderboard redis, pub_key
       next
     end
 
-    puts "DEBUG: Sending socket...."
-    begin
-      socket.send(html)
-    rescue
-      puts "Could not send to socket. Ignoring."
-      sockets.delete pub_key
-      remove_from_leaderboard redis, pub_key
-    end
-    puts "DEBUG: Sending socket done."
+    puts "DEBUG: Sending to channel...."
+    channel.send html
+    puts "DEBUG: Sending channel done."
     puts "DEBUG: Done with #{pub_key}"
   end
 end
@@ -80,7 +74,7 @@ spawn do
   tick = true
   loop do
     begin
-      update tick, sockets, redis, templates
+      update tick, channels, redis, templates
     rescue ex
       puts "Exception in main loop #{ex}"
     end
@@ -365,17 +359,35 @@ ws "/ws" do |socket, context|
   secret_key = context.request.cookies["token"].value
   public_key = secret_to_public redis, secret_key
 
+  html_channel = Channel(String).new
+
   if public_key
     puts "#{secret_key} connected."
     update_leaderboard_for redis, public_key
-    sockets[socket] = ({ secret_key, public_key })
+    channels[html_channel] = ({ secret_key, public_key })
   end
 
   socket.on_close do
     puts "Socket closed"
+    html_channel.close
     if public_key
       redis.zrem("leaderboard", public_key)
-      sockets.delete socket
+      channels.delete html_channel
+    end
+  end
+
+  spawn do
+    loop do
+      select
+      when html = html_channel.receive
+        puts "DEBUG: Sending to socket for #{public_key}"
+        socket.send html
+        puts "DEBUG: Sending to socket done for #{public_key}"
+      else
+        break if html_channel.closed?
+      end
+
+      Fiber.yield
     end
   end
 end
