@@ -35,6 +35,11 @@ spawn do
   end
 end
 
+def remove_from_leaderboard (r, pub_key)
+  puts "Removed #{pub_key} from leaderboard"
+  r.zrem("leaderboard", pub_key)
+end
+
 # Render loop
 spawn do
   redis.del("leaderboard")
@@ -65,14 +70,19 @@ spawn do
           next
         end
 
-        begin
-          socket.send html
-        rescue
-          puts "Could not send to socket #{socket}"
-          priv_key, pub_key = pub_priv
+        if socket.closed?
           sockets.delete pub_key
-          redis.zrem("leaderboard", pub_key)
+          remove_from_leaderboard redis, pub_key
           next
+        end
+
+        spawn do
+          begin
+            socket.send(html)
+          rescue
+            sockets.delete pub_key
+            remove_from_leaderboard redis, pub_key
+          end
         end
       end
     rescue ex
