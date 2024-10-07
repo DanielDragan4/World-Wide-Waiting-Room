@@ -36,15 +36,15 @@
           {{ x["time_waited"] }}
         </div>
         {% if not x["is_online"] %}
-        {% if can_take %}
+        {% if can_take and x["has_time_to_take"] %}
         <form hx-post="/transfer" hx-swap="none" class="mt-auto text-[0.8em]">
           <input type="hidden" name="waiter" value="{{ x["user"] }}"/>
-          <button onclick="take(this, `{{ x['offline_time'] }}`)" type="submit" name="action" value="take" class="p-[2px] border border-[#212126] rounded hover:text-white hover:bg-[#212126]">
-            Steal {{ x['offline_time'] }}
+          <button onclick="take(this, `{{ x['takeable_time'] }}`)" type="submit" name="action" value="take" class="p-[2px] border border-[#212126] rounded hover:text-white hover:bg-[#212126]">
+            Steal {{ x['takeable_time'] }}
           </button>
         </form>
-        {% else %}
-        <div class="text-sm text-gray-500 mt-auto flex flex-col">
+        {% elif x["has_time_to_take"] %}
+        <div class="text-sm hover:text-[#212126] text-gray-500 mt-auto flex flex-col">
           <span class="font-bold text-center">Next Steal</span>
           {{ data['rate_limit_time_left'] }}
         </div>

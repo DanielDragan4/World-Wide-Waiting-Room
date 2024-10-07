@@ -106,8 +106,12 @@ def get_data_for (pub_key)
     return nil
   end
 
+  takeable_time = (get_takeable_time pub_key)
+
   parsed["time_waited"] = build_time_left_string (get_wait_time pub_key)
   parsed["offline_time"] = build_time_left_string (get_offline_time pub_key)
+  parsed["has_time_to_take"] = takeable_time > 0
+  parsed["takeable_time"] = build_time_left_string takeable_time
   parsed["user"] = "#{pub_key}"
   parsed["is_online"] = (WWWR::Online.has_key? pub_key)
   parsed["rate_limit_time_left"] = build_time_left_string (get_rate_limit pub_key)
@@ -228,6 +232,10 @@ def rate_limit_take (pub_key)
   WWWR::R.hset "rate_limit", pub_key, 60 * 60 * 24
 end
 
+def get_takeable_time (pub_key)
+  Math.min (get_offline_time pub_key), (get_wait_time pub_key)
+end
+
 post "/transfer" do |ctx|
   secret_key = ctx.request.cookies["token"].value
   public_key = secret_to_public secret_key
@@ -237,7 +245,7 @@ post "/transfer" do |ctx|
 
   puts "#{waiter} #{action} #{public_key}"
 
-  amount = get_offline_time waiter
+  amount = get_takeable_time public_key
 
   puts "#{public_key} #{waiter}"
   is_waiter_online = WWWR::Online.has_key? waiter
