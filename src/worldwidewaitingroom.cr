@@ -22,8 +22,6 @@ def update
   tick_global_timer
   update_leaderboard
 
-  puts "#{get_leaderboard.size} num leader"
-
   WWWR::Leaderboard.each do |data|
     pub_key = data["user"]
     if WWWR::Online.has_key? pub_key
@@ -99,8 +97,10 @@ def update_leaderboard_for (public_key)
 end
 
 def get_data_for (pub_key)
-  mdata = WWWR::R.hget "data", pub_key
+  hydrate_data pub_key, (WWWR::R.hget "data", pub_key)
+end
 
+def hydrate_data (pub_key, mdata)
   if !mdata
     return nil
   end
@@ -137,13 +137,27 @@ def update_leaderboard
   WWWR::Place.clear
 
   leaderboard = WWWR::R.zrange("leaderboard", 0, -1).reverse
+  fetched_lb = [] of Redis::Future
 
-  leaderboard.each_with_index do |member, i|
-    mdat = get_data_for member
-    if mdat
-      WWWR::Place[member.as String] = i + 1
-      WWWR::Leaderboard << mdat
+  WWWR::R.pipelined do |p|
+     leaderboard.each do |member|
+      fetched_lb << p.hget "data", member
     end
+  end
+
+  fetched_lb.each_with_index do |m, i|
+    next if !m || !m.value
+
+    pk = leaderboard.fetch i, nil
+
+    next if !pk
+
+    WWWR::Place[pk.as String] = i + 1
+    hd = (hydrate_data pk.as String, m.value.as String)
+
+    next if !hd
+
+    WWWR::Leaderboard << hd
   end
 end
 
