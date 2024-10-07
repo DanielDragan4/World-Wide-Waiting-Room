@@ -4,78 +4,54 @@
 
 {% set compressed = data["compressed"] %}
 
-<div style="background: {{ data["color"] }}" id="waiter-card" class="shadow w-72 h-32 rounded mx-auto my-4 flex flex-col text-center items-center justify-center">
+<div style="background: {{ data["color"] }}" id="waiter-card" class="shadow max-w-max max-h-max rounded mx-auto my-4 flex flex-col text-center items-center justify-center p-8">
   <h1 class="text-xl">You have been waiting for...</h1>
   <span>{{ data["time_waited"] }}</span>
   <span>You are currently number <strong>{{ data["place"] }}</strong> in the queue.</span>
 </div>
 
 <div id="leaderboard">
-  {% if not compressed %}
-  <h1 class="text-white text-center font-bold my-4">Online Waiters</h1>
-  {% endif %}
   <div class="max-w-[1200px] mx-auto rounded flex flex-row flex-wrap [&>*]:m-[{% if compressed %}0{% else %}2{% endif %}px] ">
     {% for x in leaderboard %}
       {% if compressed %}
       <div 
-        style="background: {{ x['color'] }}"
+        style="background: {{ x['color'] }}; {% if not x['is_online'] %}opacity: 0.4;{% endif %}"
         class="w-[24px] h-[24px]"
       ></div>
       {% else %}
       <div 
         {% if x['color'] %}
-        style="background: {{ x['color'] }}" 
+        style="background: {{ x['color'] }}; {% if not x['is_online'] %}opacity: 0.4;{% endif %}" 
         {% endif %}
-        class="relative overflow-hidden card flex flex-col shadow-md rounded w-48 text-center items-center justify-center h-48"
+        class="relative overflow-hidden card flex flex-col shadow-md rounded w-56 text-center items-center justify-center h-56"
       >
-        <h2 class="text-lg font-bold text-red absolute top-2">{{ x["name"] }}</h2>
-        <div>{{ x["time_waited"] }}</div>
+        <h2 class="text-lg font-bold text-red top-2 flex flex-col text-center">
+          <span>{{ x["name"] }}</span>
+          {% if not x["is_online"] %}
+          <span class="text-[0.6em]">Offline: {{ x["offline_time"] }}</span>
+          {% endif %}
+        </h2>
+        <div class="flex flex-col my-auto">
+          <span class="text-sm font-bold">Waited</span>
+          {{ x["time_waited"] }}
+        </div>
+        {% if not x["is_online"] %}
+        {% if can_take %}
+        <form hx-post="/transfer" hx-swap="none" class="mt-auto text-[0.8em]">
+          <input type="hidden" name="waiter" value="{{ x["user"] }}"/>
+          <button onclick="take(this, `{{ x['offline_time'] }}`)" type="submit" name="action" value="take" class="p-[2px] border border-[#212126] rounded hover:text-white hover:bg-[#212126]">
+            Steal {{ x['offline_time'] }}
+          </button>
+        </form>
+        {% else %}
+        <div class="text-sm text-gray-500 mt-auto flex flex-col">
+          <span class="font-bold text-center">Next Steal</span>
+          {{ data['rate_limit_time_left'] }}
+        </div>
+        {% endif %}
+        {% endif %}
       </div>
       {% endif %}
     {% endfor %}
   </div>
-</div>
-
-<div id="offline-leaderboard" class="mb-2">
-{% if not compressed %}
-<h1 class="text-white my-4 font-bold text-center">Offline Waiters</h1>
-{% endif %}
-<div class="max-w-[1200px] mx-auto rounded flex flex-row flex-wrap [&>*]:m-[{% if compressed %}0{% else %}2{% endif %}px] ">
-  {% for x in offline_leaderboard %}
-    {% if compressed %}
-    <div 
-      style="background: {{ x['color'] }}; opacity: 0.6"
-      class="w-[24px] h-[24px]"
-    ></div>
-    {% else %}
-    <div 
-      {% if x['color'] %}
-      style="background: {{ x['color'] }}; opacity: 0.6" 
-      {% endif %}
-      class="relative overflow-hidden card flex flex-col shadow-md rounded w-48 text-center items-center justify-center h-64"
-    >
-      <h2 class="text-lg font-bold text-red absolute top-2">{{ x["name"] }}</h2>
-      <div>
-        <h2 class="font-bold mt-12">Offline Time</h2>
-        {{ x["offline_time_waited"] }}
-      </div>
-      <div>
-        <h2 class="font-bold mt-2">Wait Time</h2>
-        <div class="text-gray-600">{{ x["time_waited"] }}</div>
-      </div>
-      {% if can_take %}
-      <form hx-post="/transfer" hx-swap="none">
-        <input type="hidden" name="waiter" value="{{ x['user'] }}">
-        <button 
-          class="border border-[#212126] rounded px-2 hover:bg-[#212126] mt-2 hover:text-white" 
-          onclick="take(this, '{{ x["offline_time_waited"] }}')"
-          name="action"
-          value="take"
-        >Take Offline Time</button>
-      </form>
-      {% endif %}
-    </div>
-    {% endif %}
-  {% endfor %}
-</div>
 </div>

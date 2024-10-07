@@ -24,14 +24,14 @@
       <div class="flex flex-row space-x-2">
         <div class="relative">
           <button onclick="toggleWhatIsThis()" class="mx-auto max-w-max text-white border-white hover:text-[#212126] bg-[#212126] hover:bg-white px-2 border border-white hover:border-[#212126] rounded">What is this?</button>
-          <div id="what-is-this" class="w-64 h-72 overflow-y-auto top-10 hidden rounded absolute -left-10 inset-0 z-100 bg-[#212126] rounded p-2 text-white border border-white">
+          <div id="what-is-this" class="w-96 h-96 overflow-y-auto top-10 hidden rounded absolute right-[100%] z-100 bg-[#212126] rounded p-2 text-white border border-white">
             <div class="mx-auto px-2 space-y-4">
               <h1 class="text-center font-bold text-lg mb-4">What is this?</h1>
               <p>World Wide Waiting Room (WWWR) is a multiplayer idle game about accumulating time.</p>
               <p>While you are on the site, you will passively accumulate wait time.</p>
-              <p>However, when you go <strong>offline</strong> you will also accumulate time. The longer you stay offline, the more vulnerable you become.</p>
-              <p>Other players who are online can, once per day, steal an amount of wait time from offline players equal to the amount of time that player has been offline. Waitime cannot go in the negative. If an offline player has no time to give, then they are removed from the offline queue.</p>
-              <p>Your objective is to be the longest waiter in the queue when the game timer ends. At which point the game state will be saved, placed on the global leaderboard, and a new game will begin.</p>
+              <p>However, when you go offline you will stop accumulating wait time and start to accumulate <strong>offline time</strong>.</p> 
+              <p>Other players who are online can, once per day, steal wait time from offline players equal to the amount of offline time that they have accumulated. Wait time cannot go in the negative.</p>
+              <p>Your objective is to be the one with the most time accumulated when the game timer ends. At which point the game state will be saved, placed on the global leaderboard, and a new game will begin.</p>
             </div>
           </div>
         </div>
@@ -81,7 +81,6 @@
     <!--<h1 class="text-center text-white">Do nothing and you win! But be careful, others might steal your time.</h1>-->
     <div id="compressed-button" class="mx-auto flex justify-center" hx-trigger="load" hx-swap="innerHTML" hx-get="/compressed"></div>
     <div id="leaderboard" hx-swap-oob="true"></div> 
-    <div id="offline-leaderboard" hx-swap-oob="true"></div> 
 
     <script>
       const notifications = document.querySelector("#notification")
