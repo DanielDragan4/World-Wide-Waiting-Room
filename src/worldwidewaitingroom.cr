@@ -12,14 +12,19 @@ templates = Templates.new
 module WWWR
   R = Redis::PooledClient.new
   Online = Hash(Public, Secret).new
+  Leaderboard = Array(Hash(String, String | Int64 | Bool)).new
+  Place = Hash(Public, Int32).new
 end
 
 def update
   puts "Game loop tick... Num sockets #{WWWR::Online.size}"
 
   tick_global_timer
+  update_leaderboard
 
-  get_leaderboard.each do |data|
+  puts "#{get_leaderboard.size} num leader"
+
+  WWWR::Leaderboard.each do |data|
     pub_key = data["user"]
     if WWWR::Online.has_key? pub_key
       add_time_to pub_key, 1
@@ -124,25 +129,26 @@ def set_data_for (pub_key, data : String)
 end
 
 def get_leaderboard_place (pub_key)
+  WWWR::Place.fetch pub_key, 100000
+end
+
+def update_leaderboard
+  WWWR::Leaderboard.clear
+  WWWR::Place.clear
+
   leaderboard = WWWR::R.zrange("leaderboard", 0, -1).reverse
 
-  place = leaderboard.index pub_key
-  place ||= 10000000
-  place + 1
+  leaderboard.each_with_index do |member, i|
+    mdat = get_data_for member
+    if mdat
+      WWWR::Place[member.as String] = i
+      WWWR::Leaderboard << mdat
+    end
+  end
 end
 
 def get_leaderboard
-  leaderboard = WWWR::R.zrange("leaderboard", 0, -1).reverse
-  data = [] of Hash(String, String | Int64 | Bool)
-
-  leaderboard.each do |member|
-    mdat = get_data_for member
-    if mdat
-      data << mdat
-    end
-  end
-
-  data
+  WWWR::Leaderboard
 end
 
 def append_time_to_string (str, value, unit)
