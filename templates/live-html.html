@@ -10,7 +10,7 @@
   <span>You are currently number <strong>{{ data["place"] }}</strong> in the queue.</span>
 </div>
 
-<div id="leaderboard">
+<div id="leaderboard" class="my-6">
   <div class="max-w-[1200px] mx-auto rounded flex flex-row flex-wrap [&>*]:m-[{% if compressed %}0{% else %}2{% endif %}px] ">
     {% for x in leaderboard %}
       {% if compressed %}
