@@ -245,7 +245,7 @@ post "/transfer" do |ctx|
 
   puts "#{waiter} #{action} #{public_key}"
 
-  amount = get_takeable_time public_key
+  amount = get_takeable_time waiter
 
   puts "#{public_key} #{waiter}"
   is_waiter_online = WWWR::Online.has_key? waiter
@@ -264,16 +264,10 @@ post "/transfer" do |ctx|
         next "No"
       end
 
-      waiter_wait_time = (get_wait_time waiter)
-
-      puts "#{waiter_wait_time} #{amount}"
-
-      if waiter_wait_time >= amount
-        puts "#{public_key} took offline time #{waiter_wait_time} from #{waiter}"
-        remove_time_from waiter, amount
-        add_time_to public_key, amount
-        rate_limit_take public_key
-      end
+      puts "#{public_key} took offline time #{amount} from #{waiter}"
+      remove_time_from waiter, amount
+      add_time_to public_key, amount
+      rate_limit_take public_key
     end
   end
 end
