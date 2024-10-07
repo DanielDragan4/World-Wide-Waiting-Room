@@ -16,6 +16,7 @@ def update (sockets, redis, templates)
   puts "Game loop tick... Num sockets #{sockets.size}"
 
   tick_global_timer redis
+  tick_offline_leaderboard redis
 
   sockets.each_value do |pub_priv|
     priv_key, pub_key = pub_priv
@@ -50,11 +51,32 @@ def tick_global_timer (r)
   end
 end
 
+def tick_offline_leaderboard (r)
+  (get_offline_leaderboard r).each do |data|
+    public_key = data["user"]
+    time_waited = get_wait_time r, public_key
+
+    puts "Offline leaderboard #{public_key}"
+
+    if time_waited <= 0
+      r.zrem "offline_leaderboard", public_key
+      next
+    end
+
+    offline_time_waited = (get_offline_time r, public_key)
+    if time_waited > offline_time_waited
+      r.hincrby "offline_time_waited", public_key, 1
+    end
+    r.zadd "offline_leaderboard", (offline_time_waited + 1), public_key
+  end
+end
+
 def reset_game (r)
   r.set "global_time", 604800
 
   leaderboard = get_leaderboard r
   r.lpush "leaderboards", leaderboard.to_json
+  r.del "offline_leaderboard"
 
   time_waited_keys = r.hkeys("time_waited")
 
@@ -84,6 +106,8 @@ end
 
 def update_leaderboard_for (r, public_key)
   r.zadd("leaderboard", (get_wait_time r, public_key), public_key)
+  r.zrem("offline_leaderboard", public_key)
+  r.hset("offline_time_waited", public_key, 0)
 end
 
 def get_data_for (r, pub_key)
@@ -100,6 +124,7 @@ def get_data_for (r, pub_key)
   end
 
   parsed["time_waited"] = build_time_left_string (get_wait_time r, pub_key)
+  parsed["offline_time_waited"] = build_time_left_string (get_offline_time r, pub_key)
   parsed["user"] = "#{pub_key}"
 
   parsed
@@ -107,6 +132,21 @@ end
 
 def set_data_for (r, pub_key, data : String)
   r.hset "data", pub_key, data
+end
+
+def hydrate_pub_key_set (r, key)
+  leaderboard = r.zrange(key, 0, -1).reverse
+  data = [] of Hash(String, String | Int64 | Bool)
+
+  leaderboard.each do |member|
+    mdat = get_data_for r, member
+    if mdat
+      data << mdat
+    end
+  end
+
+  data
+
 end
 
 def get_leaderboard_place (r, pub_key)
@@ -118,17 +158,11 @@ def get_leaderboard_place (r, pub_key)
 end
 
 def get_leaderboard (r)
-  leaderboard = r.zrange("leaderboard", 0, -1).reverse
-  data = [] of Hash(String, String | Int64 | Bool)
+  hydrate_pub_key_set r, "leaderboard"
+end
 
-  leaderboard.each do |member|
-    mdat = get_data_for r, member
-    if mdat
-      data << mdat
-    end
-  end
-
-  data
+def get_offline_leaderboard (r)
+  hydrate_pub_key_set r, "offline_leaderboard"
 end
 
 def append_time_to_string (str, value, unit)
@@ -180,6 +214,12 @@ def get_wait_time (r, public_key) : Int64
   Int64.new time_waited.to_i
 end
 
+def get_offline_time (r, public_key) : Int64
+  offline_time = r.hget("offline_time_waited", public_key)
+  offline_time ||= 0
+  Int64.new offline_time.to_i
+end
+
 def can_take (r, pub_key) : Bool
   if !pub_key
     return false
@@ -196,7 +236,7 @@ def rate_limit_take (r, pub_key)
   end
 
   r.set ("exp" + pub_key), "yes"
-  r.expire ("exp" + pub_key), 2
+  r.expire ("exp" + pub_key), 60 * 60 * 24
 end
 
 post "/transfer" do |ctx|
@@ -208,26 +248,26 @@ post "/transfer" do |ctx|
 
   puts "#{waiter} #{action} #{public_key}"
 
-  amount = 10
+  amount = get_offline_time redis, waiter
+
+  puts "#{public_key} #{waiter}"
 
   if public_key != waiter
-    if action == "give"
-      if (get_wait_time redis, public_key) >= amount
-        puts "Giving 10m to #{waiter} from #{public_key}"
-        add_time_to redis, waiter, amount
-        remove_time_from redis, public_key, amount
-      end
-    elsif action == "take"
+     if action == "take"
       if !(can_take redis, public_key)
         puts "#{public_key} was rate limited."
         next "No"
       end
 
-      rate_limit_take redis, public_key
-      if (get_wait_time redis, waiter) >= amount
-        puts "Taking 10m from #{waiter} and giving to #{public_key}"
+      waiter_wait_time = (get_wait_time redis, waiter)
+
+      puts "#{waiter_wait_time} #{amount}"
+
+      if waiter_wait_time >= amount
+        puts "#{public_key} took offline time #{waiter_wait_time} from #{waiter}"
         remove_time_from redis, waiter, amount
         add_time_to redis, public_key, amount
+        rate_limit_take redis, public_key
       end
     end
   end
@@ -245,7 +285,6 @@ before_all do |ctx|
     secret_key = setup_new_waiter redis
   end
 
-  puts "Setup new waiter"
   ctx.request.cookies["token"] = secret_key
   ctx.response.cookies["token"] = secret_key
 end
@@ -289,6 +328,7 @@ end
 def remove_from_leaderboard (r, pub_key)
   puts "Removed #{pub_key} from leaderboard"
   r.zrem("leaderboard", pub_key)
+  r.zadd("offline_leaderboard", 0, pub_key)
 end
 
 post "/name" do |ctx|
@@ -323,6 +363,7 @@ ws "/ws" do |socket, context|
 
   socket.on_message do
     leaderboard = get_leaderboard redis
+    offline_leaderboard = get_offline_leaderboard redis
     global_time = build_time_left_string (get_global_time_left redis)
 
     data = get_data_for redis, pub_key
@@ -334,7 +375,13 @@ ws "/ws" do |socket, context|
 
     data["place"] = get_leaderboard_place redis, pub_key
 
-    html = templates.render "live-html.html", { "leaderboard" => leaderboard, "this_waiter" => pub_key, "data" => data, "can_take" => (can_take redis, pub_key), "time_left" => global_time }
+    html = templates.render "live-html.html", {
+        "leaderboard" => leaderboard,
+        "offline_leaderboard" => offline_leaderboard,
+        "this_waiter" => pub_key,
+        "data" => data,
+        "can_take" => (can_take redis, pub_key), "time_left" => global_time
+    }
 
     if socket.closed?
       puts "Socket is closed. Ignoring"

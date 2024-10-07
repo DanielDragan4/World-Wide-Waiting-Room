@@ -20,9 +20,25 @@
     <title>World Wide Waiting Room</title>
   </head>
   <body>
-    <div class="absolute top-4 right-4">
-      <a class="github-button" href="https://github.com/DanielDragan4/World-Wide-Waiting-Room" data-color-scheme="no-preference: dark_high_contrast; light: dark; dark: dark;" data-size="large" data-show-count="true" aria-label="Star DanielDragan4/World-Wide-Waiting-Room on GitHub">Star</a>
+    <div class="fixed top-4 right-4">
+      <div class="flex flex-row space-x-2">
+        <div class="relative">
+          <button onclick="toggleWhatIsThis()" class="mx-auto max-w-max text-white border-white hover:text-[#212126] bg-[#212126] hover:bg-white px-2 border border-white hover:border-[#212126] rounded">What is this?</button>
+          <div id="what-is-this" class="w-64 h-72 overflow-y-auto top-10 hidden rounded absolute -left-10 inset-0 z-100 bg-[#212126] rounded p-2 text-white border border-white">
+            <div class="mx-auto px-2 space-y-4">
+              <h1 class="text-center font-bold text-lg mb-4">What is this?</h1>
+              <p>World Wide Waiting Room (WWWR) is a multiplayer idle game about accumulating time.</p>
+              <p>While you are on the site, you will passively accumulate wait time.</p>
+              <p>However, when you go <strong>offline</strong> you will also accumulate time. The longer you stay offline, the more vulnerable you become.</p>
+              <p>Other players who are online can, once per day, steal an amount of wait time from offline players equal to the amount of time that player has been offline. Waitime cannot go in the negative. If an offline player has no time to give, then they are removed from the offline queue.</p>
+              <p>Your objective is to be the longest waiter in the queue when the game timer ends. At which point the game state will be saved, placed on the global leaderboard, and a new game will begin.</p>
+            </div>
+          </div>
+        </div>
+        <a class="github-button" href="https://github.com/DanielDragan4/World-Wide-Waiting-Room" data-color-scheme="no-preference: dark_high_contrast; light: dark; dark: dark;" data-size="large" data-show-count="true" aria-label="Star DanielDragan4/World-Wide-Waiting-Room on GitHub">Star</a>
+      </div>
     </div>
+
     <div class="fixed top-4 right-4 z-100">
       <div id="notification" class="flex flex-col space-y-2 max-h-64 overflow-y-auto z-100">
       </div>
@@ -37,7 +53,6 @@
 
     <div class="flex flex-col items-center">
       <h2 class="text-white mt-4 text-[1.3em]">Like waiting? Join our <a href="https://discord.gg/wBn6d2Vq" target="_blank" class="cursor-pointer hover:underline text-white font-bold">Discord</a>!</h2>
-
       <h1 class="text-white mt-4">Your Name</h1>
       <input 
         hx-post="/name" 
@@ -66,29 +81,23 @@
     <!--<h1 class="text-center text-white">Do nothing and you win! But be careful, others might steal your time.</h1>-->
     <div id="compressed-button" class="mx-auto flex justify-center" hx-trigger="load" hx-swap="innerHTML" hx-get="/compressed"></div>
     <div id="leaderboard" hx-swap-oob="true"></div> 
+    <div id="offline-leaderboard" hx-swap-oob="true"></div> 
 
     <script>
       const notifications = document.querySelector("#notification")
-      function take(e) {
+      function take(e, time) {
         takeDiv = document.createElement("div") 
         takeDiv.className = "rounded text-white p-2 bg-red-400"
-        takeDiv.innerHTML = "You took 10s!"
+        takeDiv.innerHTML = `You took ${time}`
         notifications.appendChild(takeDiv);
 
-        e.innerHTML = "Wait..."
-        e.className = "font-bold";
         e.attributes['onclick'] = null;
 
-        setTimeout((x) => x.remove(), 1000, takeDiv);
+        setTimeout((x) => x.remove(), 3000, takeDiv);
       }
 
-      function give() {
-        giveDiv = document.createElement("div") 
-        giveDiv.className = "rounded text-white p-2 bg-green-400"
-        giveDiv.innerHTML = "You gave 10s!"
-        notifications.appendChild(giveDiv);
-
-        setTimeout((x) => x.remove(), 1000, giveDiv);
+      function toggleWhatIsThis() {
+        document.querySelector("#what-is-this").classList.toggle("hidden")
       }
     </script>
   </body>
