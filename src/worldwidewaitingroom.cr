@@ -141,7 +141,7 @@ def update_leaderboard
   leaderboard.each_with_index do |member, i|
     mdat = get_data_for member
     if mdat
-      WWWR::Place[member.as String] = i
+      WWWR::Place[member.as String] = i + 1
       WWWR::Leaderboard << mdat
     end
   end
