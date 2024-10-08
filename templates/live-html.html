@@ -39,6 +39,21 @@
           0 seconds
           {% endif %}
         </div>
+        {% if x["is_online"] %}
+        <form hx-post="/transfer", hx-swap="none" class="mt-auto text-[0.8em] flex flex-row space-x-6">
+          <input type="hidden" name="waiter" value="{{ x["user"] }}"/>
+          {% if x["raw_wait_time"] >= 10 and x["user"] != this_waiter %}
+            {% if can_steal %}
+              <button class="font-bold cursor-pointer hover:underline" name="action" value="steal">Take 10s</button>
+            {% else %}
+            <span class="font-bold">Wait...</span>
+            {% endif %}
+          {% endif %}
+          {% if x["user"] != this_waiter and data["raw_wait_time"] >= 10 %}
+          <button class="font-bold cursor-pointer hover:underline" name="action" value="give">Give 10s</button>
+          {% endif %}
+        </form>
+        {% endif %}
         {% if not x["is_online"] %}
         {% if can_take and x["has_time_to_take"] %}
         <form hx-post="/transfer" hx-swap="none" class="mt-auto text-[0.8em]">

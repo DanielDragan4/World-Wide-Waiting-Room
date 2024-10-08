@@ -34,6 +34,10 @@ def update
       dec_key "rate_limit", pub_key
     end
 
+    if (get_int_key "rate_limit_steal", pub_key) > 0
+      dec_key "rate_limit_steal", pub_key
+    end
+
     update_leaderboard_for pub_key
   end
 end
@@ -112,8 +116,10 @@ def hydrate_data (pub_key, mdata)
   end
 
   takeable_time = (get_takeable_time pub_key)
+  wait_time = (get_wait_time pub_key)
 
-  parsed["time_waited"] = build_time_left_string (get_wait_time pub_key)
+  parsed["raw_wait_time"] = wait_time
+  parsed["time_waited"] = build_time_left_string wait_time
   parsed["offline_time"] = build_time_left_string (get_offline_time pub_key)
   parsed["has_time_to_take"] = takeable_time > 0
   parsed["takeable_time"] = build_time_left_string takeable_time
@@ -234,22 +240,36 @@ def get_rate_limit (pub_key)
   get_int_key "rate_limit", pub_key
 end
 
+def get_rate_limit_steal (pub_key)
+  get_int_key "rate_limit_steal", pub_key
+end
+
 def can_take (pub_key) : Bool
-  if !pub_key
-    return false
-  end
+  return false if !pub_key
 
   can_take = get_int_key "rate_limit", pub_key
 
-  return can_take <= 0
+  can_take <= 0
+end
+
+def can_steal (pub_key) : Bool
+  return false if !pub_key
+
+  can_steal = get_int_key "rate_limit_steal", pub_key
+
+  can_steal <= 0
 end
 
 def rate_limit_take (pub_key)
-  if !pub_key
-    return
-  end
+  return if !pub_key
 
   WWWR::R.hset "rate_limit", pub_key, 60 * 60 * 24
+end
+
+def rate_limit_steal (pub_key)
+  return if !pub_key
+
+  WWWR::R.hset "rate_limit_steal", pub_key, 1
 end
 
 def get_takeable_time (pub_key)
@@ -268,26 +288,51 @@ post "/transfer" do |ctx|
   amount = get_takeable_time waiter
 
   puts "#{public_key} #{waiter}"
-  is_waiter_online = WWWR::Online.has_key? waiter
 
-  puts "WAITER ONLINE #{is_waiter_online}"
+  if public_key != waiter
+    puts "ACTION TRIED #{action}"
+     case action
+       when "take"
+        is_waiter_online = WWWR::Online.has_key? waiter
 
-  if is_waiter_online
-    puts "#{public_key} tried to take from #{waiter} but he was online."
-    next "Can't take from an online player."
-  end
+        puts "WAITER ONLINE #{is_waiter_online}"
 
-  if public_key != waiter && !is_waiter_online
-     if action == "take"
-      if !(can_take public_key)
-        puts "#{public_key} was rate limited."
-        next "No"
-      end
+        if is_waiter_online
+          puts "#{public_key} tried to take from #{waiter} but he was online."
+          next "Can't take from an online player."
+        end
 
-      puts "#{public_key} took offline time #{amount} from #{waiter}"
-      remove_time_from waiter, amount
-      add_time_to public_key, amount
-      rate_limit_take public_key
+        if !(can_take public_key)
+          puts "#{public_key} was rate limited on take."
+          next "No"
+        end
+
+        puts "#{public_key} took offline time #{amount} from #{waiter}"
+        remove_time_from waiter, amount
+        add_time_to public_key, amount
+        rate_limit_take public_key
+      when "steal"
+        if (!can_steal public_key)
+          puts "#{public_key} was rate limited on steal."
+          next "No"
+        end
+
+        if (get_wait_time waiter) >= 10
+          puts "#{public_key} stole 10s from #{waiter}"
+          remove_time_from waiter, 10
+          add_time_to public_key, 10
+          rate_limit_steal public_key
+        else
+          puts "#{waiter} doesn't have enough time to steal."
+        end
+      when "give"
+        if (get_wait_time public_key) < 10
+          puts "You don't have enough time to give."
+        else
+          puts "#{public_key} gave 10s to #{waiter}"
+          remove_time_from public_key, 10
+          add_time_to waiter, 10
+        end
     end
   end
 end
@@ -395,6 +440,7 @@ ws "/ws" do |socket, context|
       "is_online" => (WWWR::Online.has_key? pub_key),
       "data" => data,
       "can_take" => (can_take pub_key),
+      "can_steal" => (can_steal pub_key),
       "time_left" => global_time
     }
 
