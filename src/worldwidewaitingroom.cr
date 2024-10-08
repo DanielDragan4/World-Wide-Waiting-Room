@@ -253,7 +253,7 @@ def can_take (pub_key) : Bool
 end
 
 def can_steal (pub_key) : Bool
-  return false if !pub_key
+  return false if !pub_key || (get_wait_time pub_key) < 2
 
   can_steal = get_int_key "rate_limit_steal", pub_key
 
