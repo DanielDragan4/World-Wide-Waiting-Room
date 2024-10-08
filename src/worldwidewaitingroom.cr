@@ -291,11 +291,12 @@ post "/transfer" do |ctx|
 
   puts "#{public_key} #{waiter}"
 
+  is_waiter_online = WWWR::Online.has_key? waiter
+
   if public_key != waiter
     puts "ACTION TRIED #{action}"
      case action
        when "take"
-        is_waiter_online = WWWR::Online.has_key? waiter
 
         puts "WAITER ONLINE #{is_waiter_online}"
 
@@ -314,6 +315,11 @@ post "/transfer" do |ctx|
         add_time_to public_key, amount
         rate_limit_take public_key
       when "steal"
+        if !is_waiter_online
+          puts "Steal tried for someone not online."
+          next "No"
+        end
+
         if (!can_steal public_key)
           puts "#{public_key} was rate limited on steal."
           next "No"
@@ -328,6 +334,11 @@ post "/transfer" do |ctx|
           puts "#{waiter} doesn't have enough time to steal."
         end
       when "give"
+        if !is_waiter_online
+          puts "Give tried for someone not online."
+          next "No"
+        end
+
         if (get_wait_time public_key) < 10
           puts "You don't have enough time to give."
         else
