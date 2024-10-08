@@ -4,6 +4,8 @@ WebSockets Extension
 This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md for usage instructions.
 */
 
+import { LZ4 } from "https://code4fukui.github.io/LZ4/LZ4.js";
+
 (function () {
 
 	/** @type {import("../htmx").HtmxInternalApi} */
@@ -126,30 +128,34 @@ This extension adds support for WebSockets to htmx.  See /www/extensions/ws.md f
 				return;
 			}
 
-			var response = event.data;
-			if (!api.triggerEvent(socketElt, "htmx:wsBeforeMessage", {
-				message: response,
-				socketWrapper: socketWrapper.publicInterface
-			})) {
-				return;
-			}
+                        new Response(event.data).arrayBuffer().then((response) => {
+                          const uint = [...new Uint8Array(response)];
+                          response = new TextDecoder().decode(LZ4.decompress(uint))
 
-			api.withExtensions(socketElt, function (extension) {
-				response = extension.transformResponse(response, null, socketElt);
-			});
+                          if (!api.triggerEvent(socketElt, "htmx:wsBeforeMessage", {
+                                  message: response,
+                                  socketWrapper: socketWrapper.publicInterface
+                          })) {
+                                  return;
+                          }
 
-			var settleInfo = api.makeSettleInfo(socketElt);
-			var fragment = api.makeFragment(response);
+                          api.withExtensions(socketElt, function (extension) {
+                                  response = extension.transformResponse(response, null, socketElt);
+                          });
 
-			if (fragment.children.length) {
-				var children = Array.from(fragment.children);
-				for (var i = 0; i < children.length; i++) {
-					api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
-				}
-			}
+                          var settleInfo = api.makeSettleInfo(socketElt);
+                          var fragment = api.makeFragment(response);
 
-			api.settleImmediately(settleInfo.tasks);
-			api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
+                          if (fragment.children.length) {
+                                  var children = Array.from(fragment.children);
+                                  for (var i = 0; i < children.length; i++) {
+                                          api.oobSwap(api.getAttributeValue(children[i], "hx-swap-oob") || "true", children[i], settleInfo);
+                                  }
+                          }
+
+                          api.settleImmediately(settleInfo.tasks);
+                          api.triggerEvent(socketElt, "htmx:wsAfterMessage", { message: response, socketWrapper: socketWrapper.publicInterface })
+                        })
 		});
 
 		// Put the WebSocket into the HTML Element's custom data.

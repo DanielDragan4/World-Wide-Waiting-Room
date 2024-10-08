@@ -1,7 +1,9 @@
 require "kemal"
+require "lz4"
 require "random"
 require "json"
 require "redis"
+require "base64"
 require "./templates"
 
 alias Secret = String
@@ -444,6 +446,9 @@ ws "/ws" do |socket, context|
       "time_left" => global_time
     }
 
+    #compressed_html = Base64.urlsafe_encode Compress::LZ4.encode(html), padding: true
+    compressed_html = Compress::LZ4.encode(html)
+
     if socket.closed?
       puts "Socket is closed. Ignoring"
       WWWR::Online.delete pub_key
@@ -451,7 +456,7 @@ ws "/ws" do |socket, context|
     end
 
     begin
-      socket.send html
+      socket.send compressed_html
     rescue
       puts "Could not send to socket. Ignoring."
       WWWR::Online.delete pub_key

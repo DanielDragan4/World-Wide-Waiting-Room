@@ -8,21 +8,17 @@ shards:
     git: https://github.com/straight-shoota/crinja.git
     version: 0.8.1
 
-  duktape:
-    git: https://github.com/jessedoyle/duktape.cr.git
-    version: 1.0.1
-
   exception_page:
     git: https://github.com/crystal-loot/exception_page.git
     version: 0.4.1
 
-  html-minifier:
-    git: https://github.com/sam0x17/html-minifier.git
-    version: 0.1.0+git.commit.3913bbf8845ddb2030cbd799f7aa8a40a014c7d2
-
   kemal:
     git: https://github.com/kemalcr/kemal.git
     version: 1.5.0
+
+  lz4:
+    git: https://github.com/naqvis/lz4.cr.git
+    version: 1.0.0
 
   pool:
     git: https://github.com/ysbaddaden/pool.git

@@ -15,8 +15,8 @@ dependencies:
     github: straight-shoota/crinja
   redis:
     github: stefanwille/crystal-redis
-  html-minifier:
-    github: sam0x17/html-minifier
+  lz4:
+    github: naqvis/lz4.cr
 
 crystal: '>= 1.13.3'
 
