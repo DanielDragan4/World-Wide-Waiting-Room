@@ -1,8 +1,9 @@
-<html>
+<!DOCTYPE HTML>
+<html class="text-white">
   <head>
     <script src="/tailwind.js"></script>
     <script src="/htmx.js"></script>
-    <script type="module" src="/ws-with-compression.js"></script>
+    <script type="module" src="/ws.js"></script>
 
     <!-- Place this tag in your head or just before your close body tag. -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
@@ -27,12 +28,7 @@
           <div id="what-is-this" class="w-96 h-96 overflow-y-auto top-10 hidden rounded absolute right-[100%] z-100 bg-[#212126] rounded p-2 text-white border border-white">
             <div class="mx-auto px-2 space-y-4">
               <h1 class="text-center font-bold text-lg mb-4">What is this?</h1>
-              <p>World Wide Waiting Room (WWWR) is a multiplayer idle game about accumulating time.</p>
-              <p>While you are on the site, you will passively accumulate wait time.</p>
-              <p>While you are active, you can steal/give 10 seconds of time from/to other online players.</p>
-              <p>When you go offline you will stop accumulating wait time and start to accumulate <strong>offline time</strong>.</p> 
-              <p>Other players who are online can, once per day, steal wait time from offline players equal to the amount of offline time that they have accumulated. Wait time cannot go in the negative.</p>
-              <p>Your objective is to be the one with the most time accumulated when the game timer ends. At which point the game state will be saved, placed on the global leaderboard, and a new game will begin.</p>
+              <p>PVP Idle Game</p>
             </div>
           </div>
         </div>
@@ -44,9 +40,11 @@
       <div id="notification" class="flex flex-col space-y-2 max-h-64 overflow-y-auto z-100">
       </div>
     </div>
+
     <div hx-ext="ws" ws-connect="/ws">
-      <form ws-send hx-trigger="every 0.5s"></form>
+      <input type="hidden" name="sync" value="sync" ws-send hx-trigger="every 5s">
     </div>
+
     <div class="mx-auto w-full text-center mt-4">
       <!--<img src="/man.png" class="mt-2 mx-auto w-[360px]">-->
       <h1 class="font-bold text-white text-[2em]">World Wide Waiting Room</h1>
@@ -65,40 +63,99 @@
         value="{{ name }}"
       >
 
-      <h1 class="text-white">Card Color</h1>
-      <input 
-        hx-post="/color" 
-        hx-swap="none" 
-        name="color"
-        placeholder="Card Color"
-        class="border-none bg-transparent w-[32px] h-[32px]" 
-        type="color" 
-        value="{{ color }}"
-      >
+      <div class="flex flex-row space-x-8">
+        <div class="flex flex-col items-center">
+          <h1 class="text-white text-sm text-center">Card Background<br>Color</h1>
+          <input 
+            hx-post="/color" 
+            hx-swap="none" 
+            name="bg"
+            class="border-none bg-transparent w-[32px] h-[32px]" 
+            type="color" 
+            id="bg-color"
+            value="{{ bg_color }}"
+          >
+        </div>
+        <div class="flex flex-col items-center">
+          <h1 class="text-white text-sm text-center">Card Text<br>Color</h1>
+          <input 
+            hx-post="/color" 
+            hx-swap="none" 
+            name="text"
+            class="border-none bg-transparent w-[32px] h-[32px]" 
+            type="color" 
+            id="text-color"
+            value="{{ text_color }}"
+          >
+        </div>
+      </div>
     </div>
 
-    <h3 hx-swap-oob="true" id="time-left"></h3>
-    <div id="waiter-card" hx-swap-oob="true"></div>
-    <!--<h1 class="text-center text-white">Do nothing and you win! But be careful, others might steal your time.</h1>-->
-    <div id="compressed-button" class="mx-auto flex justify-center" hx-trigger="load" hx-swap="innerHTML" hx-get="/compressed"></div>
-    <div id="leaderboard" hx-swap-oob="true"></div> 
+    <h3 id="time-left"></h3>
+    <div id="waiter-card" class="flex flex-row justify-center"></div>
+    <h1 class="text-center mt-4">Leaderboard</h1>
+    <div class="flex flex-row justify-center flex-wrap mx-auto max-w-[1200px] space-4" id="leaderboard"></div> 
 
     <script>
-      const notifications = document.querySelector("#notification")
-      function take(e, time) {
-        takeDiv = document.createElement("div") 
-        takeDiv.className = "rounded text-white p-2 bg-red-400"
-        takeDiv.innerHTML = `You took ${time}`
-        notifications.appendChild(takeDiv);
+      const waiterCard = document.querySelector("#waiter-card");
+      const worker = new Worker("/worker.js") 
+      let thisPlayerId = null;
 
-        e.attributes['onclick'] = null;
+      worker.onmessage = ({ data }) => {
+        const leaderboard = document.querySelector("#leaderboard");
+        const newLeaderboardHtml = document.createElement("div");
+        data.forEach((player) => {
+          const card = document.createElement("div");
+          card.innerHTML = `
+          <div 
+            style="background-color: ${player.bg_color}; color: ${player.text_color}" 
+            class="
+              p-4 
+              rounded 
+              m-2 
+              w-[200px]
+              h-[200px]
+              text-white 
+              flex 
+              flex-col 
+              justify-between
+          ">
+            <span class="text-2xl text-center">${escape(player.name)}</span>
+            <div class="text-center my-auto flex flex-col">
+              <span class="font-bold text-xl">
+                ${Math.floor(player.time_units)}
+              </span>
+              <span>Units</span>
+            </div>
+          </div>`
+          newLeaderboardHtml.appendChild(card)
 
-        setTimeout((x) => x.remove(), 3000, takeDiv);
+          if (player.public_key === thisPlayerId) {
+            waiterCard.innerHTML = card.innerHTML
+          }
+        });
+
+        leaderboard.innerHTML = newLeaderboardHtml.innerHTML
       }
 
-      function toggleWhatIsThis() {
-        document.querySelector("#what-is-this").classList.toggle("hidden")
-      }
+      document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
+        const { detail: { message } } = wsMsg;
+
+        if (!message) return
+
+        let jsonMsg;
+
+        try {
+          jsonMsg = JSON.parse(message)
+        } catch (e) {
+          return
+        }
+
+        worker.postMessage(jsonMsg) 
+
+        const { player } = jsonMsg;
+        thisPlayerId = player.public_key
+      })
     </script>
   </body>
 </html>
