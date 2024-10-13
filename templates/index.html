@@ -91,7 +91,31 @@
       </div>
     </div>
 
-    <h3 id="time-left"></h3>
+    <h3 class="absolute top-4 left-4 border border-white rounded" id="time-left"></h3>
+    <div class="fixed left-0 top-10">
+      <h1 class="text-center mb-2 text-xl font-bold">Powerups</h1>
+      <div class="w-[300px] h-[400px] overflow-y-scroll space-y-4 flex flex-col border rounded p-4" id="powerups">
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+      </div>
+    </div>
     <div id="waiter-card" class="flex flex-row justify-center"></div>
     <h1 class="text-center mt-4">Leaderboard</h1>
     <div class="flex flex-row justify-center flex-wrap mx-auto max-w-[1200px] space-4" id="leaderboard"></div> 
@@ -123,7 +147,7 @@
             <span class="text-2xl text-center">${escape(player.name)}</span>
             <div class="text-center my-auto flex flex-col">
               <span class="font-bold text-xl">
-                ${Math.floor(player.time_units)}
+                ${player.time_units.toFixed(2)}
               </span>
               <span>Units</span>
             </div>
@@ -153,7 +177,9 @@
 
         worker.postMessage(jsonMsg) 
 
-        const { player } = jsonMsg;
+        const { player, time_left, powerups } = jsonMsg;
+        console.log(powerups)
+        console.log(time_left)
         thisPlayerId = player.public_key
       })
     </script>

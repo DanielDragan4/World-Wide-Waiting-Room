@@ -3,6 +3,7 @@ require "random"
 require "json"
 require "redis"
 require "base64"
+require "./powerups"
 require "./templates"
 
 alias Secret = String
@@ -23,27 +24,32 @@ module Events
   LOGOUT = "logout"
   PLAYER_UPDATE = "player_update"
 
-  def self.sync (leaderboard, player_data)
+  def self.sync (leaderboard, player_data, powerups, time_left)
     {
       "event" => Events::SYNC,
       "leaderboard" => leaderboard,
-      "player" => player_data
+      "time_left" => time_left,
+      "player" => player_data,
+      "powerups" => powerups
     }
   end
 end
 
 module Keys
-  GAME_END_TIME = "end_time"
+  TIME_LEFT = "time_left"
   COOKIE = "token"
   LAST_FRAME_TIME = "frame_time"
   LEADERBOARD = "online-leaderboard"
   PLAYER_TOKENS = "tokens"
   PLAYER_TIME_UNITS = "time_units"
   PLAYER_TIME_UNITS_PER_SECOND = "time_units_per_second"
-  PLAYER_POWERUPS = "powerups"
   PLAYER_NAME = "name"
   PLAYER_TEXT_COLOR = "bg_color"
   PLAYER_BG_COLOR = "text_color"
+end
+
+module Powerups
+  DOUBLE_TIME = "double_time"
 end
 
 class Game
@@ -65,12 +71,14 @@ class Game
 
     multiplier = dt / 1000.0
 
-    WWWR::R.pipelined do |r|
-      get_leaderboard.each do |player_data|
-        player_public_key = player_data["public_key"]
-        player_tups = get_player_time_units_ps player_public_key
-        inc_time_units player_public_key, player_tups * multiplier
-      end
+    WWWR::R.incrby Keys::TIME_LEFT, -1
+    get_time_left
+
+    get_leaderboard.each do |player_data|
+      player_public_key = player_data["public_key"]
+      do_powerup_actions player_public_key, dt
+      player_tups = get_player_time_units_ps player_public_key
+      inc_time_units player_public_key, player_tups * multiplier
     end
 
     if @sync_next_frame
@@ -79,6 +87,47 @@ class Game
     end
 
     update_frame_time
+  end
+
+  def get_powerup_classes
+    {
+      Powerups::DOUBLE_TIME => PowerupDoubleTime.new self, WWWR::R
+    }
+  end
+
+  def get_time_left
+    tl = WWWR::R.get Keys::TIME_LEFT
+    if !tl || tl.to_i <= 0
+      WWWR::R.set Keys::TIME_LEFT, 604800
+      return 604800
+    else
+      return tl.to_i
+    end
+  end
+
+  def get_serialized_powerups (public_key)
+    powerups = [] of Hash(String, String | Float64)
+
+    get_powerup_classes.each do |key, value|
+      powerups << {
+        "id" => key,
+        "name" => value.get_name,
+        "description" => value.get_description,
+        "price" => value.get_price
+      }
+    end
+
+    powerups
+  end
+
+  def do_powerup_actions (public_key, dt)
+    powerup_classes = get_powerup_classes
+    (get_player_powerups public_key).each do |powerup_name|
+      powerup_class = powerup_classes.fetch powerup_name, nil
+      if powerup_class
+        powerup_class.tick public_key, dt
+      end
+    end
   end
 
   def update_frame_time
@@ -108,11 +157,22 @@ class Game
     WWWR::R.zrem Keys::LEADERBOARD, public_key
   end
 
+  def get_key_value (public_key, key)
+    WWWR::R.hget public_key, key
+  end
+
+  def set_key_value (public_key, key, value)
+    WWWR::R.hset public_key, key, value
+  end
+
   def sync
     WWWR::Channels.each_value do |c|
       spawn do
         next if c.closed?
-        c.send nil
+        begin
+          c.send nil
+        rescue
+        end
       end
     end
   end
@@ -133,7 +193,15 @@ class Game
     sync
   end
 
-  def get_agent_powerups (public_key)
+  def add_powerup (public_key, powerup)
+    WWWR::R.zadd("powerups-#{public_key}", 0, powerup)
+  end
+
+  def remove_powerup (public_key, powerup)
+    WWWR::R.zrem("powerups-#{public_key}", powerup)
+  end
+
+  def get_player_powerups (public_key)
     WWWR::R.zrange("powerups-#{public_key}", 0, -1)
   end
 
@@ -142,7 +210,7 @@ class Game
     secret_token = Random.new.hex
     public_key = Random.new.hex
 
-    WWWR::R.pipelined do |r|
+    p = WWWR::R.pipelined do |r|
       r.hset(Keys::PLAYER_TOKENS, secret_token, public_key)
       r.hset(Keys::PLAYER_TIME_UNITS, public_key, 0)
       r.hset(Keys::PLAYER_NAME, public_key, "Anonymous")
@@ -175,7 +243,8 @@ class Game
       "text_color" => player_text_color.value,
       "time_units" => time_units.value.to_s.to_f64?,
       "time_units_per_second" => tps.value.to_s.to_f64?,
-      "public_key" => public_key
+      "public_key" => public_key,
+      "powerups" => get_player_powerups public_key
     }
   end
 
@@ -217,6 +286,14 @@ class Game
     else
       return Float64.new 0.0
     end
+  end
+
+  def set_player_time_units (public_key, to : Float64)
+    WWWR::R.hset Keys::PLAYER_TIME_UNITS, public_key, to
+  end
+
+  def set_player_time_units_ps (public_key, to : Float64)
+    WWWR::R.hset Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key, to
   end
 
   def get_player_time_units_ps (public_key)
@@ -273,6 +350,10 @@ post "/name" do |ctx|
   end
 end
 
+post "/buy" do |ctx|
+
+end
+
 post "/color" do |ctx|
   public_key = game.get_public_key_from_ctx ctx
 
@@ -307,7 +388,7 @@ ws "/ws" do |socket, context|
 
       select
       when events.receive?
-        sync_data = Events.sync game.get_leaderboard, game.get_data_for public_key
+        sync_data = Events.sync game.get_leaderboard, (game.get_data_for public_key), (game.get_serialized_powerups public_key), (game.get_time_left)
         socket.send sync_data.to_json
       else
       end
