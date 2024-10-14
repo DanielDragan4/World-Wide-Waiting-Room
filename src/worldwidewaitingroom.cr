@@ -358,7 +358,7 @@ end
 
 get "/" do |ctx|
   public_key = game.get_public_key_from_ctx ctx
-  templates.render "index.html", game.get_data_for public_key
+  templates.render "index.html", ({ "data" => (game.get_data_for public_key), "time_left" => game.get_time_left })
 end
 
 post "/name" do |ctx|

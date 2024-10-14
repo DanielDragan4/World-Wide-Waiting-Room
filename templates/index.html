@@ -91,8 +91,8 @@
       </div>
     </div>
 
-    <h3 class="absolute top-4 left-4 border border-white rounded" id="time-left"></h3>
-    <div class="fixed left-0 top-10">
+    <h3 class="absolute top-4 left-4 border border-white rounded p-2 text-xs" id="time-left"></h3>
+    <div class="fixed left-0 top-[10%]">
       <h1 class="text-center mb-2 text-xl font-bold">Powerups</h1>
       <div class="w-[300px] h-[400px] overflow-y-scroll space-y-4 flex bg-[#212126] flex-col border rounded p-4" id="powerups">
         <div id="powerups-error" class="text-center text-orange-400"></div>
@@ -106,8 +106,27 @@
       const powerups = {}
       const waiterCard = document.querySelector("#waiter-card");
       const powerupsContainer = document.querySelector("#powerups");
+      const timeLeftContainer = document.querySelector("#time-left")
 
-      let playerCurrentTimeUnits = {{ time_units }}
+      let timeLeft = {{ time_left }}
+
+      // Time Left Interval
+
+      function timeLeftFunc() {
+        timeLeft--   
+
+        const days = Math.floor(timeLeft / 60 / 60 / 24)
+        const hours = Math.floor(timeLeft / 60 / 60 % 24)
+        const minutes = Math.floor(timeLeft / 60 % 60);
+        const seconds = Math.floor(timeLeft % 60)
+
+        timeLeftContainer.innerText = `${days} days ${hours} hours ${minutes} minutes ${seconds} seconds`
+      }
+
+      setInterval(timeLeftFunc, 1000)
+      timeLeftFunc()
+
+      let playerCurrentTimeUnits = {{ data.time_units }}
 
       const worker = new Worker("/worker.js") 
       let thisPlayerId = null;
@@ -176,6 +195,8 @@
         worker.postMessage(jsonMsg) 
 
         const { player, time_left, powerups } = jsonMsg;
+
+        timeLeft = time_left
 
         powerups.forEach((powerup) => {
           const { id } = powerup
