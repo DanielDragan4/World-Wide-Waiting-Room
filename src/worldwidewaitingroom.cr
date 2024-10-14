@@ -169,6 +169,11 @@ class Game
     end
   end
 
+  def inc_time_units_ps (public_key, by)
+    player_tu_ps = get_player_time_units_ps public_key
+    set_player_time_units_ps (player_tu_ps + by)
+  end
+
   def add_to_leaderboard (public_key)
     WWWR::R.zadd Keys::LEADERBOARD, (get_player_time_units public_key), public_key
   end
