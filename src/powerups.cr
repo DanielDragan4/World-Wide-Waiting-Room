@@ -2,7 +2,7 @@ require "./worldwidewaitingroom"
 require "redis"
 
 class Powerup
-  def initialize (@game : Game, @redis : Redis::PooledClient)
+  def initialize (@game : Game)
 
   end
 
@@ -12,6 +12,10 @@ class Powerup
 
   def get_description : String
     ""
+  end
+
+  def is_available_for_purchase : Bool
+    true
   end
 
   def is_stackable : Bool
@@ -26,15 +30,20 @@ class Powerup
     0.0
   end
 
-  def buy (public_key)
-    price = get_price
+  def get_player_stack_size (public_key) : Int32
+    0
   end
 
   def buy_action (public_key)
-
+    # Will get called upon purchase
   end
 
-  def tick (public_key, dt)
+  def action (public_key, dt)
+    # Will get called before the player's Time Units are updated
+  end
+
+  def cleanup (public_key)
+    # Will get called after the player's Time Units are updated.
   end
 end
 
@@ -51,7 +60,7 @@ class PowerupDoubleTime < Powerup
     1000.0
   end
 
-  def tick (public_key, dt)
+  def action (public_key, dt)
     puts "Ran double time!"
 
     @game.set_player_time_units public_key, (@game.get_player_time_units public_key) * 2

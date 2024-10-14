@@ -76,9 +76,13 @@ class Game
 
     get_leaderboard.each do |player_data|
       player_public_key = player_data["public_key"]
+
       do_powerup_actions player_public_key, dt
+
       player_tups = get_player_time_units_ps player_public_key
       inc_time_units player_public_key, player_tups * multiplier
+
+      do_powerup_cleanup player_public_key
     end
 
     if @sync_next_frame
@@ -91,7 +95,7 @@ class Game
 
   def get_powerup_classes
     {
-      Powerups::DOUBLE_TIME => PowerupDoubleTime.new self, WWWR::R
+      Powerups::DOUBLE_TIME => PowerupDoubleTime.new self
     }
   end
 
@@ -106,14 +110,19 @@ class Game
   end
 
   def get_serialized_powerups (public_key)
-    powerups = [] of Hash(String, String | Float64)
+    powerups = [] of Hash(String, String | Float64 | Bool | Int32)
+    player_powerups = get_player_powerups public_key
 
     get_powerup_classes.each do |key, value|
       powerups << {
         "id" => key,
         "name" => value.get_name,
         "description" => value.get_description,
-        "price" => value.get_price
+        "price" => value.get_price,
+        "is_stackable" => value.is_stackable,
+        "max_stack_size" => value.max_stack_size,
+        "currently_owns" => (player_powerups.includes? key),
+        "current_stack_size" => (value.get_player_stack_size public_key),
       }
     end
 
@@ -125,10 +134,21 @@ class Game
     (get_player_powerups public_key).each do |powerup_name|
       powerup_class = powerup_classes.fetch powerup_name, nil
       if powerup_class
-        powerup_class.tick public_key, dt
+        powerup_class.action public_key, dt
       end
     end
   end
+
+  def do_powerup_cleanup (public_key)
+    powerup_classes = get_powerup_classes
+    (get_player_powerups public_key).each do |powerup_name|
+      powerup_class = powerup_classes.fetch powerup_name, nil
+      if powerup_class
+        powerup_class.cleanup public_key
+      end
+    end
+  end
+
 
   def update_frame_time
     WWWR::R.set(Keys::LAST_FRAME_TIME, Time.utc.to_unix_ms)
