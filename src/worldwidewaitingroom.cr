@@ -442,6 +442,12 @@ ws "/ws" do |socket, context|
   end
 
   socket.on_message do
+    if public_key && !WWWR::Online.includes? public_key
+      WWWR::Online[public_key] = secret_key
+      WWWR::Channels[channel_key] = events
+      game.broadcast_online public_key
+    end
+
     events.send nil
   end
 
