@@ -34,8 +34,8 @@ class Powerup
     0
   end
 
-  def buy_action (public_key)
-    # Will get called upon purchase
+  def buy_action (public_key) : String | Nil
+    # Will get called upon purchase. If the return type is a String, it will be used as the error shown in the browser to the player.
   end
 
   def action (public_key, dt)
@@ -60,10 +60,15 @@ class PowerupDoubleTime < Powerup
     1000.0
   end
 
-  def action (public_key, dt)
-    puts "Ran double time!"
+  def buy_action (public_key)
+    puts "Purhcased double time!"
 
     @game.set_player_time_units public_key, (@game.get_player_time_units public_key) * 2
-    @game.remove_powerup public_key, Powerups::DOUBLE_TIME
+    @game.inc_time_units public_key, -1000
+
+    nil
+  end
+
+  def action (public_key, dt)
   end
 end

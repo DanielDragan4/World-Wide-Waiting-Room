@@ -94,26 +94,8 @@
     <h3 class="absolute top-4 left-4 border border-white rounded" id="time-left"></h3>
     <div class="fixed left-0 top-10">
       <h1 class="text-center mb-2 text-xl font-bold">Powerups</h1>
-      <div class="w-[300px] h-[400px] overflow-y-scroll space-y-4 flex flex-col border rounded p-4" id="powerups">
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
-        <button class="text-center border rounded hover:bg-white hover:text-black cursor-pointer">abc</button>
+      <div class="w-[300px] h-[400px] overflow-y-scroll space-y-4 flex bg-[#212126] flex-col border rounded p-4" id="powerups">
+        <div id="powerups-error" class="text-center text-orange-400"></div>
       </div>
     </div>
     <div id="waiter-card" class="flex flex-row justify-center"></div>
@@ -121,9 +103,24 @@
     <div class="flex flex-row justify-center flex-wrap mx-auto max-w-[1200px] space-4" id="leaderboard"></div> 
 
     <script>
+      const powerups = {}
       const waiterCard = document.querySelector("#waiter-card");
+      const powerupsContainer = document.querySelector("#powerups");
+
+      let playerCurrentTimeUnits = {{ time_units }}
+
       const worker = new Worker("/worker.js") 
       let thisPlayerId = null;
+
+      function buy(powerup) {
+        const fd = new FormData();
+        fd.append("powerup", powerup)
+        fetch("/buy", { method: "POST", body: fd })
+          .then((x) => x.text())
+          .then((r) => {
+            console.log(r);
+          })
+      }
 
       worker.onmessage = ({ data }) => {
         const leaderboard = document.querySelector("#leaderboard");
@@ -155,7 +152,8 @@
           newLeaderboardHtml.appendChild(card)
 
           if (player.public_key === thisPlayerId) {
-            waiterCard.innerHTML = card.innerHTML
+            waiterCard.innerHTML = card.innerHTML;
+            playerCurrentTimeUnits = player.time_units;
           }
         });
 
@@ -178,7 +176,42 @@
         worker.postMessage(jsonMsg) 
 
         const { player, time_left, powerups } = jsonMsg;
-        console.log(powerups)
+
+        powerups.forEach((powerup) => {
+          const { id } = powerup
+          if (!id) return;
+
+          if (JSON.stringify(powerup) !== powerups[id]) {
+            powerups[id] = powerup
+            const powerupCard = document.createElement("div");
+            const buyButton = powerup.is_available_for_purchase && powerup.price <= playerCurrentTimeUnits
+            ? `
+
+<button 
+    name="powerup"
+    onclick="buy('${id}')"
+    class="text-white bg-[#212126] border w-full mx-auto p-2 rounded cursor-pointer hover:bg-white hover:text-[#212126]" 
+  >Buy</button>
+            ` : `<div class="w-full text-center text-sm">Not Available</div>`
+            powerupCard.id = `powerup-${id}`
+            powerupCard.innerHTML = `
+<div class="border rounded bg-[#212126] p-4">
+  <h1 class="text-center font-bold">${powerup.name}</h1>
+  <h2 class="text-center">${powerup.description}</h1>
+  <h3 class="text-center font-bold my-4">${powerup.price} units</h3>
+  ${buyButton} 
+</div>
+            `;
+
+            const powerupContainer = document.querySelector(`#powerup-${id}`);        
+            if (!powerupContainer) {
+              powerupsContainer.appendChild(powerupCard);
+            } else {
+              powerupContainer.innerHTML = powerupCard.innerHTML;
+            }
+          }
+        })
+
         console.log(time_left)
         thisPlayerId = player.public_key
       })

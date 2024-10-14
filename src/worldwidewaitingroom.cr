@@ -120,6 +120,7 @@ class Game
         "description" => value.get_description,
         "price" => value.get_price,
         "is_stackable" => value.is_stackable,
+        "is_available_for_purchase" => value.is_available_for_purchase,
         "max_stack_size" => value.max_stack_size,
         "currently_owns" => (player_powerups.includes? key),
         "current_stack_size" => (value.get_player_stack_size public_key),
@@ -148,7 +149,6 @@ class Game
       end
     end
   end
-
 
   def update_frame_time
     WWWR::R.set(Keys::LAST_FRAME_TIME, Time.utc.to_unix_ms)
@@ -371,6 +371,18 @@ post "/name" do |ctx|
 end
 
 post "/buy" do |ctx|
+  public_key = game.get_public_key_from_ctx ctx
+  name = ctx.params.body["powerup"]
+
+  powerups = game.get_powerup_classes
+
+  if !(powerups.fetch name, nil)
+    "That powerup does not exist."
+  else
+    resp = powerups[name].buy_action public_key
+    game.sync
+    resp
+  end
 
 end
 
