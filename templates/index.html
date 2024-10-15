@@ -130,6 +130,27 @@
       setInterval(timeLeftFunc, 1000)
       timeLeftFunc()
 
+      function formatTimeUnits(tu) {
+        if (tu < 10000) {
+          return tu.toFixed(2)
+        }
+
+        let power = 0;
+        while (tu > 10) {
+          tu /= 10
+          power++
+        }
+
+        return `<div class="flex flex-row items-center">
+          <div>${tu.toFixed(5)}</div>
+          <div class="font-light text-[0.8em] mx-2">x</div> 
+          <div class="flex flex-row items-start">
+            <div>10</div>
+            <div class="text-[0.7em] ml-1">${power}</div>
+          </div>
+        </div>`
+      }
+
       function toggleWhatIsThis() {
         document.querySelector("#what-is-this").classList.toggle("hidden"); 
       }
@@ -166,7 +187,7 @@
             <span class="text-2xl text-center">${escape(player.name)}</span>
             <div class="text-center my-auto flex flex-col">
               <span class="font-bold text-xl">
-                ${player.time_units.toFixed(2)}
+                ${formatTimeUnits(player.time_units)}
               </span>
               <span>Units</span>
             </div>
