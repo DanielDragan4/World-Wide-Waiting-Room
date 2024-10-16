@@ -10,23 +10,23 @@ class Powerup
     "Powerup"
   end
 
-  def get_description : String
+  def get_description (public_key) : String
     ""
   end
 
-  def is_available_for_purchase : Bool
+  def is_available_for_purchase (public_key) : Bool
     true
   end
 
-  def is_stackable : Bool
+  def is_stackable (public_key) : Bool
     false
   end
 
-  def max_stack_size : Int32
+  def max_stack_size (public_key) : Int32
     0
   end
 
-  def get_price : Float64
+  def get_price (public_key) : Float64
     0.0
   end
 
@@ -52,11 +52,11 @@ class PowerupDoubleTime < Powerup
     "Double Time"
   end
 
-  def get_description
+  def get_description (public_key)
     "Doubles the number of units a player has. Can be used more than once."
   end
 
-  def get_price
+  def get_price (public_key)
     1000.0
   end
 

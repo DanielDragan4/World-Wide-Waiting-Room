@@ -13,8 +13,7 @@ templates = Templates.new
 
 module WWWR
   R = Redis::PooledClient.new
-  Online = Hash(Public, Secret).new
-  Channels = Hash(String, Channel(Nil)).new
+  Channels = Set(Tuple(String, Channel(Nil), Public)).new
 end
 
 module Events
@@ -117,11 +116,11 @@ class Game
       powerups << {
         "id" => key,
         "name" => value.get_name,
-        "description" => value.get_description,
-        "price" => value.get_price,
-        "is_stackable" => value.is_stackable,
-        "is_available_for_purchase" => value.is_available_for_purchase,
-        "max_stack_size" => value.max_stack_size,
+        "description" => (value.get_description public_key),
+        "price" => (value.get_price public_key),
+        "is_stackable" => (value.is_stackable public_key),
+        "is_available_for_purchase" => (value.is_available_for_purchase public_key),
+        "max_stack_size" => (value.max_stack_size public_key),
         "currently_owns" => (player_powerups.includes? key),
         "current_stack_size" => (value.get_player_stack_size public_key),
       }
@@ -190,12 +189,24 @@ class Game
     WWWR::R.hset public_key, key, value
   end
 
-  def sync
-    WWWR::Channels.each_value do |c|
-      spawn do
-        next if c.closed?
+  def sync_player (public_key)
+    WWWR::Channels.each do |c|
+      if c[2] == public_key && !c[1].closed?
         begin
-          c.send nil
+          c[1].send nil
+        rescue
+        end
+      end
+    end
+  end
+
+  def sync
+    WWWR::Channels.each do |c|
+      spawn do
+        channel = c[1]
+        next if channel.closed?
+        begin
+          channel.send nil
         rescue
         end
       end
@@ -436,15 +447,13 @@ ws "/ws" do |socket, context|
 
   if public_key
     puts "#{secret_key} connected."
-    WWWR::Online[public_key] = secret_key
-    WWWR::Channels[channel_key] = events
+    WWWR::Channels.add ({ channel_key, events, public_key })
     game.broadcast_online public_key
   end
 
   socket.on_message do
-    if public_key && !WWWR::Online.includes? public_key
-      WWWR::Online[public_key] = secret_key
-      WWWR::Channels[channel_key] = events
+    if public_key && !WWWR::Channels.find { |v| v[0] == channel_key }
+      WWWR::Channels.add ({ channel_key, events, public_key })
       game.broadcast_online public_key
     end
 
@@ -453,8 +462,7 @@ ws "/ws" do |socket, context|
 
   socket.on_close do
     puts "Socket closed"
-    WWWR::Online.delete public_key
-    WWWR::Channels.delete channel_key
+    WWWR::Channels.delete ({ channel_key, events, public_key })
     events.close
     game.broadcast_offline public_key
   end
