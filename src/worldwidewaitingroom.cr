@@ -181,11 +181,11 @@ class Game
     WWWR::R.zrem Keys::LEADERBOARD, public_key
   end
 
-  def get_key_value (public_key, key)
+  def get_key_value (public_key : String, key : String) : String
     WWWR::R.hget public_key, key
   end
 
-  def set_key_value (public_key, key, value)
+  def set_key_value (public_key : String, key : String, value : String)
     WWWR::R.hset public_key, key, value
   end
 
