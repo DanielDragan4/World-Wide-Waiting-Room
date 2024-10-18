@@ -49,6 +49,7 @@ end
 
 module Powerups
   DOUBLE_TIME = "double_time"
+  UNIT_MULTIPLIER = "unit_multiplier"
 end
 
 class Game
@@ -94,7 +95,8 @@ class Game
 
   def get_powerup_classes
     {
-      Powerups::DOUBLE_TIME => PowerupDoubleTime.new self
+      Powerups::DOUBLE_TIME => PowerupDoubleTime.new(self),
+      Powerups::UNIT_MULTIPLIER => PowerupUnitMultiplier.new(self)
     }
   end
 
