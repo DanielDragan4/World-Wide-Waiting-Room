@@ -49,6 +49,7 @@ end
 
 module Powerups
   DOUBLE_TIME = "double_time"
+  BURST_BOOST = "burst_boost"
 end
 
 class Game
@@ -95,6 +96,7 @@ class Game
   def get_powerup_classes
     {
       Powerups::DOUBLE_TIME => PowerupDoubleTime.new self
+      Powerups::BURST_BOOST => PowerupBurstBoost.new self
     }
   end
 

@@ -72,3 +72,33 @@ class PowerupDoubleTime < Powerup
   def action (public_key, dt)
   end
 end
+
+class PowerupBurstBoost < Powerup
+  def get_name
+    "Burst Boost"
+  end
+
+  def get_description(public_key)
+    "Instantly gives 5000 units to a player. This is a one time use"
+  end
+
+  def get_price (public_key)
+    1.0
+  end
+
+  def max_stack_size (public_key)
+    1.0
+  end
+
+  def buy_action (public_key)
+    puts "Purhcased Burst Boost!"
+
+    @game.set_player_time_units public_key, (@game.get_player_time_units public_key) + 5000
+    @game.inc_time_units public_key, -1
+
+    nil
+  end
+
+  def action (public_key, dt)
+  end
+end
