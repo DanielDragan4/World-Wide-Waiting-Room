@@ -106,17 +106,23 @@ class PowerupUnitMultiplier < Powerup
 
   def buy_action(public_key)
     if public_key
-      current_stack = get_player_stack_size(public_key)
       price = get_price(public_key)
+      units = @game.get_player_time_units(public_key)
+      if units > price
+        current_stack = get_player_stack_size(public_key)
+        price = get_price(public_key)
 
-      @game.inc_time_units(public_key, -price)
-      
-      current_rate = @game.get_player_time_units_ps(public_key)
-      new_rate = current_rate * (MULTIPLIER)
-      @game.set_player_time_units_ps(public_key, new_rate)
+        @game.inc_time_units(public_key, -price)
+        
+        current_rate = @game.get_player_time_units_ps(public_key)
+        new_rate = current_rate * (MULTIPLIER)
+        @game.set_player_time_units_ps(public_key, new_rate)
 
-      new_stack = current_stack + 1
-      @game.set_key_value(public_key, KEY, new_stack.to_s)
+        new_stack = current_stack + 1
+        @game.set_key_value(public_key, KEY, new_stack.to_s)
+      else
+        "You don't have enough point to purchase Unit Multiplier"
+      end
     else
       nil
     end
