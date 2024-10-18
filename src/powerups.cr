@@ -53,7 +53,7 @@ class PowerupDoubleTime < Powerup
   end
 
   def get_description (public_key)
-    "Doubles the number of units a player has. Can be used more than once."
+    "Doubles the number of units a player has. Can be used more than once. test"
   end
 
   def get_price (public_key)
