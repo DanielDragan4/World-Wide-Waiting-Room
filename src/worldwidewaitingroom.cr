@@ -95,8 +95,8 @@ class Game
 
   def get_powerup_classes
     {
-      Powerups::DOUBLE_TIME => PowerupDoubleTime.new self,
-      Powerups::BURST_BOOST => PowerupBurstBoost.new self
+      Powerups::DOUBLE_TIME => PowerupDoubleTime.new(self),
+      Powerups::BURST_BOOST => PowerupBurstBoost.new(self)
     }
   end
 

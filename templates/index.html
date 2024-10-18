@@ -42,7 +42,7 @@
     </div>
 
     <div hx-ext="ws" ws-connect="/ws">
-      <input type="hidden" name="sync" value="sync" ws-send hx-trigger="every 5s">
+      <input type="hidden" name="sync" value="sync" ws-send hx-trigger="sync, every 5s">
     </div>
 
     <div class="mx-auto w-full text-center mt-4">
@@ -60,7 +60,7 @@
         name="name"
         class="outline-none text-[4em] w-full text-center text-white max-w-max mx-auto bg-[#2e2e33] rounded mb-4" 
         type="text" 
-        value="{{ name }}"
+        value="{{ data.name }}"
       >
 
       <div class="flex flex-row space-x-8">
@@ -73,7 +73,7 @@
             class="border-none bg-transparent w-[32px] h-[32px]" 
             type="color" 
             id="bg-color"
-            value="{{ bg_color }}"
+            value="{{ data.bg_color }}"
           >
         </div>
         <div class="flex flex-col items-center">
@@ -85,7 +85,7 @@
             class="border-none bg-transparent w-[32px] h-[32px]" 
             type="color" 
             id="text-color"
-            value="{{ text_color }}"
+            value="{{ data.text_color }}"
           >
         </div>
       </div>
@@ -108,6 +108,10 @@
       const powerupsContainer = document.querySelector("#powerups");
       const timeLeftContainer = document.querySelector("#time-left")
 
+      let playerCurrentTimeUnits = {{ data.time_units }}
+      const worker = new Worker("/worker.js") 
+      let thisPlayerId = null;
+
       let timeLeft = {{ time_left }}
 
       // Time Left Interval
@@ -126,10 +130,30 @@
       setInterval(timeLeftFunc, 1000)
       timeLeftFunc()
 
-      let playerCurrentTimeUnits = {{ data.time_units }}
+      function formatTimeUnits(tu) {
+        if (tu < 10000) {
+          return tu.toFixed(2)
+        }
 
-      const worker = new Worker("/worker.js") 
-      let thisPlayerId = null;
+        let power = 0;
+        while (tu > 10) {
+          tu /= 10
+          power++
+        }
+
+        return `<div class="flex flex-row items-center">
+          <div>${tu.toFixed(5)}</div>
+          <div class="font-light text-[0.8em] mx-2">x</div> 
+          <div class="flex flex-row items-start">
+            <div>10</div>
+            <div class="text-[0.7em] ml-1">${power}</div>
+          </div>
+        </div>`
+      }
+
+      function toggleWhatIsThis() {
+        document.querySelector("#what-is-this").classList.toggle("hidden"); 
+      }
 
       function buy(powerup) {
         const fd = new FormData();
@@ -163,7 +187,7 @@
             <span class="text-2xl text-center">${escape(player.name)}</span>
             <div class="text-center my-auto flex flex-col">
               <span class="font-bold text-xl">
-                ${player.time_units.toFixed(2)}
+                ${formatTimeUnits(player.time_units)}
               </span>
               <span>Units</span>
             </div>
