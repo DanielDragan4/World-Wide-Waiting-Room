@@ -53,7 +53,7 @@ class PowerupDoubleTime < Powerup
   end
 
   def get_description (public_key)
-    "Doubles the number of units a player has. Can be used more than once. test"
+    "Doubles the number of units a player has. Can be used more than once."
   end
 
   def get_price (public_key)
@@ -74,8 +74,14 @@ class PowerupDoubleTime < Powerup
 end
 
 class PowerupBurstBoost < Powerup
+  KEY = "burst_boost_stack"
+
   def get_name
     "Burst Boost"
+  end
+
+  def is_stackable
+    false
   end
 
   def get_description(public_key)
@@ -83,19 +89,60 @@ class PowerupBurstBoost < Powerup
   end
 
   def get_price (public_key)
-    1.0
+    is_renewed = get_player_last_used(public_key)
+
+    if is_renewed
+      1.0
+    else
+      max_value = Int32::MAX
+    end
   end
 
   def max_stack_size (public_key)
-    1.0
+    1
+  end
+
+  def get_current_utc
+    current_time = Time.utc
+  end
+  
+  def get_player_last_used(public_key)
+    if public_key
+      time_string = @game.get_key_value(public_key, KEY)
+      if time_string.nil? 
+        return true
+      else
+        time = Time.parse!(time_string, "%Y-%m-%d %H:%M:%S %z")
+      
+        if (time + 1.day) >= get_current_utc()
+          return true
+        else
+          false
+        end
+        end
+    else
+      false
+    end
   end
 
   def buy_action (public_key)
-    puts "Purhcased Burst Boost!"
 
-    @game.set_player_time_units public_key, (@game.get_player_time_units public_key) + 5000
-    @game.inc_time_units public_key, -1
+    if public_key
+      is_renewed = get_player_last_used(public_key)
 
+      if is_renewed
+        puts "Purhcased Burst Boost!"
+
+        current_utc = get_current_utc()
+
+        @game.set_player_time_units public_key, (@game.get_player_time_units public_key) + 4999
+        @game.set_key_value(public_key, KEY, current_utc.to_s("%Y-%m-%d %H:%M:%S %:z"))
+      else
+        puts "Your out of Burst Boosts today :(. Come back tommorow for another!"
+      end
+    else
+      nil
+    end
     nil
   end
 

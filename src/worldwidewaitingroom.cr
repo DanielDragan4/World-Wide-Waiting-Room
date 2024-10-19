@@ -184,7 +184,7 @@ class Game
   end
 
   def get_key_value (public_key : String, key : String) : String
-    WWWR::R.hget public_key, key
+    (WWWR::R.hget public_key, key).to_s
   end
 
   def set_key_value (public_key : String, key : String, value : String)
