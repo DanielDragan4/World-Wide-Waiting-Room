@@ -92,9 +92,9 @@ class PowerupBurstBoost < Powerup
     is_renewed = get_player_last_used(public_key)
 
     if is_renewed
-      1.0
+      return 1.0
     else
-      max_value = Int32::MAX
+     return 999999999
     end
   end
 
@@ -102,26 +102,28 @@ class PowerupBurstBoost < Powerup
     1
   end
 
-  def get_current_utc
-    current_time = Time.utc
+  def get_unix
+    current_time = Time.uts.to_unix
   end
   
   def get_player_last_used(public_key)
     if public_key
-      time_string = @game.get_key_value(public_key, KEY)
-      if time_string.nil? 
+
+      current_unix = Time.utc.to_unix
+      cooleddown_time = @game.get_key_value(public_key, KEY)
+      if cooleddown_time.to_s.empty? 
+        time = current_unix 
+      else
+        time = cooleddown_time.to_i
+      end
+
+      if current_unix >= time
         return true
       else
-        time = Time.parse!(time_string, "%Y-%m-%d %H:%M:%S %z")
-      
-        if (time + 1.day) >= get_current_utc()
-          return true
-        else
-          false
-        end
-        end
+        return false
+      end
     else
-      false
+      nil
     end
   end
 
@@ -133,10 +135,8 @@ class PowerupBurstBoost < Powerup
       if is_renewed
         puts "Purhcased Burst Boost!"
 
-        current_utc = get_current_utc()
-
         @game.set_player_time_units public_key, (@game.get_player_time_units public_key) + 4999
-        @game.set_key_value(public_key, KEY, current_utc.to_s("%Y-%m-%d %H:%M:%S %:z"))
+        @game.set_key_value(public_key, KEY, (Time.utc.to_unix + 86400).to_s)
       else
         puts "Your out of Burst Boosts today :(. Come back tommorow for another!"
       end
