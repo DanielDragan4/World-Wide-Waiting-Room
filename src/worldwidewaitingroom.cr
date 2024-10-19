@@ -45,10 +45,12 @@ module Keys
   PLAYER_NAME = "name"
   PLAYER_TEXT_COLOR = "bg_color"
   PLAYER_BG_COLOR = "text_color"
+  COOLDOWN = "bootstrap_cooldown"
 end
 
 module Powerups
   DOUBLE_TIME = "double_time"
+  BOOTSTRAP = "bootstrap"
   UNIT_MULTIPLIER = "unit_multiplier"
 end
 
@@ -96,6 +98,7 @@ class Game
   def get_powerup_classes
     {
       Powerups::DOUBLE_TIME => PowerupDoubleTime.new(self),
+      Powerups::BOOTSTRAP => PowerupBootStrap.new(self),
       Powerups::UNIT_MULTIPLIER => PowerupUnitMultiplier.new(self)
     }
   end
@@ -129,6 +132,27 @@ class Game
     end
 
     powerups
+  end
+
+  def get_player_cooldown(public_key : String, key : String) : Bool
+    if public_key
+
+      current_unix = Time.utc.to_unix
+      cooleddown_time = get_key_value(public_key, key)
+      if cooleddown_time.to_s.empty? 
+        time = current_unix 
+      else
+        time = cooleddown_time.to_i
+      end
+
+      if current_unix >= time
+        return true
+      else
+        return false
+      end
+    else
+      return false
+    end
   end
 
   def do_powerup_actions (public_key, dt)
