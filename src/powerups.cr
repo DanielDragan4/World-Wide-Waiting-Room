@@ -74,8 +74,8 @@ class PowerupDoubleTime < Powerup
 end
 
 class PowerupBootStrap < Powerup
-  KEY = "bootstrap_cooldown"
   STACK_KEY = "bootstrap_stack"
+  COOLDOWN_KEY = "bootstrap_cooldown"
   BASEPRICE = 5000
   BASEBURST = 0.05
 
@@ -100,9 +100,13 @@ class PowerupBootStrap < Powerup
   end
   
   def is_available_for_purchase(public_key)
-    cooldown = get_player_last_used(public_key)
+    if public_key
+      cooldown = @game.get_player_cooldown(public_key, COOLDOWN_KEY)
 
-    return cooldown
+      return cooldown
+    else
+      false
+    end
   end
 
   def get_player_stack_size(public_key)
@@ -117,27 +121,6 @@ class PowerupBootStrap < Powerup
   def get_unix
     current_time = Time.uts.to_unix
   end
-  
-  def get_player_last_used(public_key)
-    if public_key
-
-      current_unix = Time.utc.to_unix
-      cooleddown_time = @game.get_key_value(public_key, KEY)
-      if cooleddown_time.to_s.empty? 
-        time = current_unix 
-      else
-        time = cooleddown_time.to_i
-      end
-
-      if current_unix >= time
-        return true
-      else
-        return false
-      end
-    else
-      return false
-    end
-  end
 
   def buy_action (public_key)
 
@@ -149,7 +132,7 @@ class PowerupBootStrap < Powerup
         puts "Purhcased Burst Boost!"
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * 0.9)
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * (1 + (BASEBURST * current_stack)))
-        @game.set_key_value(public_key, KEY, (Time.utc.to_unix + 86400).to_s)
+        @game.set_key_value(public_key, COOLDOWN_KEY, (Time.utc.to_unix + 86400).to_s)
 
         new_stack = current_stack + 1
         @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
