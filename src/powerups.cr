@@ -57,14 +57,14 @@ class PowerupDoubleTime < Powerup
   end
 
   def get_price (public_key)
-    1000.0
+    1.0
   end
 
   def buy_action (public_key)
     puts "Purhcased double time!"
 
     @game.set_player_time_units public_key, (@game.get_player_time_units public_key) * 2
-    @game.inc_time_units public_key, -1000
+    @game.inc_time_units public_key, -1
 
     nil
   end
@@ -73,34 +73,46 @@ class PowerupDoubleTime < Powerup
   end
 end
 
-class PowerupBurstBoost < Powerup
-  KEY = "burst_boost_stack"
+class PowerupBootStrap < Powerup
+  KEY = "bootstrap_cooldown"
+  STACK_KEY = "bootstrap_stack"
+  BASEPRICE = 5000
+  BASEBURST = 0.05
 
   def get_name
-    "Burst Boost"
+    "BootStrap"
   end
 
   def is_stackable
-    false
+    true
   end
 
   def get_description(public_key)
-    "Instantly gives 5000 units to a player. This is a one time use"
+    "Gives 5% of total units Increasing multiplictivly with each purchase. Can only be purchased once every 24 hours. Cost of 10% of your total units.\nNext Amount Earned: #{(1 + (BASEBURST * get_player_stack_size(public_key)))}x points"
   end
 
   def get_price (public_key)
-    is_renewed = get_player_last_used(public_key)
-
-    if is_renewed
-      return 1.0
-    else
-     return 999999999
-    end
+    price = BASEPRICE + ((@game.get_player_time_units public_key) * 0.1)
   end
 
   def max_stack_size (public_key)
-    1
+    7.0
   end
+  
+  def is_available_for_purchase(public_key)
+    cooldown = get_player_last_used(public_key)
+
+    return cooldown
+  end
+
+  def get_player_stack_size(public_key)
+    if public_key
+      size = @game.get_key_value(public_key, STACK_KEY)
+      size.to_s.empty? ? 1 : size.to_i
+    else
+      1
+    end
+  end 
 
   def get_unix
     current_time = Time.uts.to_unix
@@ -123,22 +135,26 @@ class PowerupBurstBoost < Powerup
         return false
       end
     else
-      nil
+      return false
     end
   end
 
   def buy_action (public_key)
 
     if public_key
-      is_renewed = get_player_last_used(public_key)
+      if is_available_for_purchase(public_key)
 
-      if is_renewed
+        current_stack = get_player_stack_size(public_key)
+
         puts "Purhcased Burst Boost!"
-
-        @game.set_player_time_units public_key, (@game.get_player_time_units public_key) + 4999
+        @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * 0.9)
+        @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * (1 + (BASEBURST * current_stack)))
         @game.set_key_value(public_key, KEY, (Time.utc.to_unix + 86400).to_s)
+
+        new_stack = current_stack + 1
+        @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
       else
-        puts "Your out of Burst Boosts today :(. Come back tommorow for another!"
+        puts "Your out of BootStraps today :(. Come back tommorow for another!"
       end
     else
       nil
