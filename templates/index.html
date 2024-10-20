@@ -42,7 +42,7 @@
     </div>
 
     <div hx-ext="ws" ws-connect="/ws">
-      <input type="hidden" name="sync" value="sync" ws-send hx-trigger="sync, every 5s">
+      <input type="hidden" name="sync" value="sync" ws-send hx-trigger="sync, every 1s">
     </div>
 
     <div class="mx-auto w-full text-center mt-4">
@@ -86,7 +86,7 @@
             type="color" 
             id="text-color"
             value="{{ data.text_color }}"
-          >
+          > 
         </div>
       </div>
     </div>
@@ -94,7 +94,7 @@
     <h3 class="absolute top-4 left-4 border border-white rounded p-2 text-xs" id="time-left"></h3>
     <div class="fixed left-0 top-[10%]">
       <h1 class="text-center mb-2 text-xl font-bold">Powerups</h1>
-      <div class="w-[300px] h-[400px] overflow-y-scroll space-y-4 flex bg-[#212126] flex-col border rounded p-4" id="powerups">
+      <div class="ml-2 w-[300px] h-[800px] overflow-y-scroll space-y-4 flex bg-[#212126] flex-col border rounded p-4" id="powerups">
         <div id="powerups-error" class="text-center text-orange-400"></div>
       </div>
     </div>
@@ -125,6 +125,37 @@
         const seconds = Math.floor(timeLeft % 60)
 
         timeLeftContainer.innerText = `${days} days ${hours} hours ${minutes} minutes ${seconds} seconds`
+      }
+
+      function formatTimeString(seconds) {
+        if (!seconds) {
+          return "0 sec"
+        }
+
+        const d = Math.floor(seconds / 60 / 60 / 24)
+        const h = Math.floor(seconds / 60 / 60 % 24)
+        const m = Math.floor(seconds / 60 % 60)
+        const s = Math.floor(seconds % 60)
+
+        let result = ''
+
+        if (d > 0) {
+          result += `${d} day `
+        }
+
+        if (h > 0) {
+          result += `${h} hr `
+        }
+
+        if (m > 0) {
+          result += `${m} min `
+        }
+
+        if (s > 0) {
+          result += `${s} sec`
+        }
+
+        return result;
       }
 
       setInterval(timeLeftFunc, 1000)
@@ -165,6 +196,14 @@
           })
       }
 
+      function notAvailableString(powerup) {
+        if (powerup.cooldown_seconds_left > 0) {
+          return formatTimeString(powerup.cooldown_seconds_left)
+        }
+
+        return "Not Available";
+      }
+
       worker.onmessage = ({ data }) => {
         const leaderboard = document.querySelector("#leaderboard");
         const newLeaderboardHtml = document.createElement("div");
@@ -190,6 +229,11 @@
                 ${formatTimeUnits(player.time_units)}
               </span>
               <span>Units</span>
+              <span class="font-bold text-md mt-2">
+                ${player.time_units_per_second.toFixed(2)}
+              </span>
+              <span>Units/s</span>
+              <span>${player.powerups.join(', ')}</span>
             </div>
           </div>`
           newLeaderboardHtml.appendChild(card)
@@ -237,7 +281,7 @@
     onclick="buy('${id}')"
     class="text-white bg-[#212126] border w-full mx-auto p-2 rounded cursor-pointer hover:bg-white hover:text-[#212126]" 
   >Buy</button>
-            ` : `<div class="w-full text-center text-sm">Not Available</div>`
+            ` : `<div class="w-full text-center text-sm">${notAvailableString(powerup)}</div>`
             powerupCard.id = `powerup-${id}`
             powerupCard.innerHTML = `
 <div class="border rounded bg-[#212126] p-4">
