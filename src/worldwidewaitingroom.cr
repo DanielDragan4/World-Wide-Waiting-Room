@@ -206,14 +206,15 @@ class Game
   def get_player_to_left_and_right (public_key : String) : Tuple(String | Nil, String | Nil)
     player_index = get_leaderboard_index public_key
     raw_leaderboard = get_raw_leaderboard
+    # Leaderboard is in reverse order so left and write are "swapped"
     if player_index
-      left = (raw_leaderboard.fetch (player_index - 1), nil)
+      left = (raw_leaderboard.fetch (player_index + 1), nil)
 
       if left
         left = left.to_s
       end
 
-      right = (raw_leaderboard.fetch (player_index + 1), nil)
+      right = (raw_leaderboard.fetch (player_index - 1), nil)
 
       if right
         right = right.to_s
