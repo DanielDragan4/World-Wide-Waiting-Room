@@ -3,7 +3,9 @@ require "random"
 require "json"
 require "redis"
 require "base64"
-require "./powerups"
+require "./powerups/bootstrap.cr"
+require "./powerups/unit_multiplier.cr"
+require "./powerups/parasite.cr"
 require "./templates"
 
 alias Secret = String
@@ -37,21 +39,19 @@ end
 module Keys
   TIME_LEFT = "time_left"
   COOKIE = "token"
+  GLOBAL_VARS = "global_vars"
   LAST_FRAME_TIME = "frame_time"
   LEADERBOARD = "online-leaderboard"
+  PLAYER_PUBLIC_KEY = "public_key"
+  PLAYER_POWERUPS = "powerups"
+  PLAYER_METADATA = "metadata"
   PLAYER_TOKENS = "tokens"
   PLAYER_TIME_UNITS = "time_units"
   PLAYER_TIME_UNITS_PER_SECOND = "time_units_per_second"
   PLAYER_NAME = "name"
-  PLAYER_TEXT_COLOR = "bg_color"
-  PLAYER_BG_COLOR = "text_color"
+  PLAYER_BG_COLOR = "bg_color"
+  PLAYER_TEXT_COLOR = "text_color"
   COOLDOWN = "bootstrap_cooldown"
-end
-
-module Powerups
-  DOUBLE_TIME = "double_time"
-  BOOTSTRAP = "bootstrap"
-  UNIT_MULTIPLIER = "unit_multiplier"
 end
 
 class Game
@@ -77,7 +77,7 @@ class Game
     get_time_left
 
     get_leaderboard.each do |player_data|
-      player_public_key = player_data["public_key"]
+      player_public_key = player_data["public_key"].to_s
 
       do_powerup_actions player_public_key, dt
 
@@ -97,9 +97,9 @@ class Game
 
   def get_powerup_classes
     {
-      Powerups::DOUBLE_TIME => PowerupDoubleTime.new(self),
-      Powerups::BOOTSTRAP => PowerupBootStrap.new(self),
-      Powerups::UNIT_MULTIPLIER => PowerupUnitMultiplier.new(self)
+      PowerupBootStrap.get_powerup_id => PowerupBootStrap.new(self),
+      PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
+      PowerupParasite.get_powerup_id => PowerupParasite.new(self),
     }
   end
 
@@ -125,6 +125,7 @@ class Game
         "price" => (value.get_price public_key),
         "is_stackable" => (value.is_stackable public_key),
         "is_available_for_purchase" => (value.is_available_for_purchase public_key),
+        "cooldown_seconds_left" => (value.cooldown_seconds_left public_key),
         "max_stack_size" => (value.max_stack_size public_key),
         "currently_owns" => (player_powerups.includes? key),
         "current_stack_size" => (value.get_player_stack_size public_key),
@@ -136,11 +137,10 @@ class Game
 
   def get_player_cooldown(public_key : String, key : String) : Bool
     if public_key
-
       current_unix = Time.utc.to_unix
       cooleddown_time = get_key_value(public_key, key)
-      if cooleddown_time.to_s.empty? 
-        time = current_unix 
+      if cooleddown_time.to_s.empty?
+        time = current_unix
       else
         time = cooleddown_time.to_i
       end
@@ -155,7 +155,7 @@ class Game
     end
   end
 
-  def do_powerup_actions (public_key, dt)
+  def do_powerup_actions (public_key : String, dt)
     powerup_classes = get_powerup_classes
     (get_player_powerups public_key).each do |powerup_name|
       powerup_class = powerup_classes.fetch powerup_name, nil
@@ -165,7 +165,7 @@ class Game
     end
   end
 
-  def do_powerup_cleanup (public_key)
+  def do_powerup_cleanup (public_key : String)
     powerup_classes = get_powerup_classes
     (get_player_powerups public_key).each do |powerup_name|
       powerup_class = powerup_classes.fetch powerup_name, nil
@@ -179,12 +179,53 @@ class Game
     WWWR::R.set(Keys::LAST_FRAME_TIME, Time.utc.to_unix_ms)
   end
 
-  def get_leaderboard
-    leaderboard = WWWR::R.zrange(Keys::LEADERBOARD, 0, -1)
-    leaderboard.map { |public_key| get_data_for public_key }
+  def get_raw_leaderboard
+    WWWR::R.zrange(Keys::LEADERBOARD, 0, -1)
   end
 
-  def inc_time_units (public_key, by)
+  def get_leaderboard
+    get_raw_leaderboard.map { |public_key| get_data_for public_key.to_s }
+  end
+
+  def get_leaderboard_index (public_key : String) : Int32 | Nil
+    get_raw_leaderboard.index do |pk|
+      pk.to_s == public_key
+    end
+  end
+
+  def get_leaderboard_position (public_key : String) : Int32 | Nil
+    i = get_leaderboard_index public_key
+
+    if i
+      i + 1
+    else
+      nil
+    end
+  end
+
+  def get_player_to_left_and_right (public_key : String) : Tuple(String | Nil, String | Nil)
+    player_index = get_leaderboard_index public_key
+    raw_leaderboard = get_raw_leaderboard
+    if player_index
+      left = (raw_leaderboard.fetch (player_index - 1), nil)
+
+      if left
+        left = left.to_s
+      end
+
+      right = (raw_leaderboard.fetch (player_index + 1), nil)
+
+      if right
+        right = right.to_s
+      end
+
+      { left, right }
+    else
+      { nil, nil }
+    end
+  end
+
+  def inc_time_units (public_key : String, by)
     player_tu = get_player_time_units public_key
     updated_tu = player_tu + by
 
@@ -194,28 +235,44 @@ class Game
     end
   end
 
-  def inc_time_units_ps (public_key, by)
+  def inc_time_units_ps (public_key : String, by)
     player_tu_ps = get_player_time_units_ps public_key
     set_player_time_units_ps (player_tu_ps + by)
   end
 
-  def add_to_leaderboard (public_key)
+  def add_to_leaderboard (public_key : String)
     WWWR::R.zadd Keys::LEADERBOARD, (get_player_time_units public_key), public_key
   end
 
-  def remove_from_leaderboard (public_key)
+  def remove_from_leaderboard (public_key : String)
     WWWR::R.zrem Keys::LEADERBOARD, public_key
   end
 
   def get_key_value (public_key : String, key : String) : String
-    (WWWR::R.hget public_key, key).to_s
+    global_vars = WWWR::R.hget Keys::GLOBAL_VARS, public_key
+    global_vars ||= "{}"
+    global_vars = JSON.parse global_vars
+    begin
+      global_vars[key].to_s
+    rescue
+      ""
+    end
+  end
+
+  def get_key_value_as_float (public_key : String , key : String) : Float64 | Nil
+    kv = get_key_value public_key, key
+    kv.to_f64?
   end
 
   def set_key_value (public_key : String, key : String, value : String)
-    WWWR::R.hset public_key, key, value
+    gv = WWWR::R.hget Keys::GLOBAL_VARS, public_key
+    gv ||= "{}"
+    gv = Hash(String, String).from_json gv
+    gv[key] = value
+    WWWR::R.hset Keys::GLOBAL_VARS, public_key, gv.to_json
   end
 
-  def sync_player (public_key)
+  def sync_player (public_key : String)
     WWWR::Channels.each do |c|
       if c[2] == public_key && !c[1].closed?
         begin
@@ -243,27 +300,27 @@ class Game
     @sync_next_frame = true
   end
 
-  def broadcast_online (public_key)
+  def broadcast_online (public_key : String)
     add_to_leaderboard public_key
     puts "Broadcase online from #{public_key}"
     sync
   end
 
-  def broadcast_offline (public_key)
+  def broadcast_offline (public_key : String)
     remove_from_leaderboard public_key
     puts "Broadcase offline from #{public_key}"
     sync
   end
 
-  def add_powerup (public_key, powerup)
+  def add_powerup (public_key : String, powerup)
     WWWR::R.zadd("powerups-#{public_key}", 0, powerup)
   end
 
-  def remove_powerup (public_key, powerup)
+  def remove_powerup (public_key : String, powerup)
     WWWR::R.zrem("powerups-#{public_key}", powerup)
   end
 
-  def get_player_powerups (public_key)
+  def get_player_powerups (public_key : String)
     WWWR::R.zrange("powerups-#{public_key}", 0, -1)
   end
 
@@ -284,12 +341,13 @@ class Game
     secret_token
   end
 
-  def get_data_for (public_key)
+  def get_data_for (public_key : String)
     time_units = Redis::Future.new
     player_name = Redis::Future.new
     player_bg_color = Redis::Future.new
     player_text_color = Redis::Future.new
     tps = Redis::Future.new
+    metadata = Redis::Future.new
 
     WWWR::R.pipelined do |r|
       time_units = r.hget(Keys::PLAYER_TIME_UNITS, public_key)
@@ -297,29 +355,35 @@ class Game
       player_bg_color = r.hget(Keys::PLAYER_BG_COLOR, public_key)
       player_text_color = r.hget(Keys::PLAYER_TEXT_COLOR, public_key)
       tps = r.hget(Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key)
+      metadata = r.hget(Keys::GLOBAL_VARS, public_key)
     end
 
     return {
-      "name" => player_name.value,
-      "bg_color" => player_bg_color.value,
-      "text_color" => player_text_color.value,
-      "time_units" => time_units.value.to_s.to_f64?,
-      "time_units_per_second" => tps.value.to_s.to_f64?,
-      "public_key" => public_key,
-      "powerups" => get_player_powerups public_key
+      Keys::PLAYER_NAME => player_name.value,
+      Keys::PLAYER_BG_COLOR => player_bg_color.value,
+      Keys::PLAYER_TEXT_COLOR => player_text_color.value,
+      Keys::PLAYER_TIME_UNITS => time_units.value.to_s.to_f64?,
+      Keys::PLAYER_TIME_UNITS_PER_SECOND => tps.value.to_s.to_f64?,
+      Keys::PLAYER_PUBLIC_KEY => public_key,
+      Keys::PLAYER_POWERUPS => (get_player_powerups public_key),
+      Keys::PLAYER_METADATA => metadata.value,
     }
   end
 
-  def set_bg_color_for (public_key, color)
+  def set_bg_color_for (public_key : String, color)
     WWWR::R.hset(Keys::PLAYER_BG_COLOR, public_key, color)
   end
 
-  def set_text_color_for (public_key, color)
+  def set_text_color_for (public_key : String, color)
     WWWR::R.hset(Keys::PLAYER_TEXT_COLOR, public_key, color)
   end
 
-  def set_name_for (public_key, name)
+  def set_name_for (public_key : String, name)
     WWWR::R.hset(Keys::PLAYER_NAME, public_key, name)
+  end
+
+  def ts
+    Time.utc.to_unix
   end
 
   def frame_dt_ms
@@ -333,15 +397,16 @@ class Game
 
   end
 
-  def update_for (public_key)
+  def update_for (public_key : String)
     data = get_data_for public_key
   end
 
   def secret_to_public (secret_key)
-    WWWR::R.hget Keys::PLAYER_TOKENS, secret_key
+    pk = WWWR::R.hget Keys::PLAYER_TOKENS, secret_key
+    pk == nil ? nil : pk.to_s
   end
 
-  def get_player_time_units (public_key)
+  def get_player_time_units (public_key : String)
     result = WWWR::R.hget Keys::PLAYER_TIME_UNITS, public_key
     if result
       return result.to_f64
@@ -350,15 +415,15 @@ class Game
     end
   end
 
-  def set_player_time_units (public_key, to : Float64)
+  def set_player_time_units (public_key : String, to : Float64)
     WWWR::R.hset Keys::PLAYER_TIME_UNITS, public_key, to
   end
 
-  def set_player_time_units_ps (public_key, to : Float64)
+  def set_player_time_units_ps (public_key : String, to : Float64)
     WWWR::R.hset Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key, to
   end
 
-  def get_player_time_units_ps (public_key)
+  def get_player_time_units_ps (public_key : String)
     result = WWWR::R.hget Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key
     if result
       return result.to_f64
@@ -370,7 +435,7 @@ class Game
   def get_public_key_from_ctx (ctx)
     secret_key = ctx.request.cookies[Keys::COOKIE].value
     public_key = secret_to_public secret_key
-    public_key
+    public_key == nil ? nil : public_key.to_s
   end
 end
 
@@ -400,7 +465,12 @@ end
 
 get "/" do |ctx|
   public_key = game.get_public_key_from_ctx ctx
-  templates.render "index.html", ({ "data" => (game.get_data_for public_key), "time_left" => game.get_time_left })
+
+  if !public_key
+    "Error."
+  else
+    templates.render "index.html", ({ "data" => (game.get_data_for public_key), "time_left" => game.get_time_left })
+  end
 end
 
 post "/name" do |ctx|
@@ -421,9 +491,11 @@ post "/buy" do |ctx|
   if !(powerups.fetch name, nil)
     "That powerup does not exist."
   else
-    resp = powerups[name].buy_action public_key
-    game.sync
-    resp
+    if public_key
+      resp = powerups[name].buy_action public_key
+      game.sync
+      resp
+    end
   end
 
 end
@@ -450,6 +522,12 @@ end
 ws "/ws" do |socket, context|
   secret_key = context.request.cookies["token"].value
   public_key = game.secret_to_public secret_key
+
+  if !public_key
+    socket.close
+    next
+  end
+
   channel_key = Random.new.hex
 
   events = Channel(Nil).new

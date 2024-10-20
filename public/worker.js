@@ -37,8 +37,16 @@ function syncProcedure(e) {
   const { leaderboard } = e
 
   leaderboard.forEach((p) => {
+    let metadata = p.metadata ?? '{}';
+    try {
+      metadata = JSON.parse(metadata)
+    } catch (e) {
+      metadata = {};
+    }
+
     players[p.public_key] = {
-      ...p
+      ...p,
+      metadata
     }
   })
 }
