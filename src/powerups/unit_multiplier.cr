@@ -2,7 +2,7 @@ require "../powerup.cr"
 
 class PowerupUnitMultiplier < Powerup
   BASE_PRICE = 1000.0
-  MULTIPLIER = 1.05
+  MULTIPLIER = 1.3
   KEY = "unit_multiplier_stack"
 
   def self.get_powerup_id
@@ -14,7 +14,7 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def get_description (public_key)
-    "Permanently increases units/s by 5%. Can be purchased multiple times with escalating costs."
+    "Permanently increases units/s by 30%. Can be purchased multiple times with escalating costs."
   end
 
   def is_stackable
