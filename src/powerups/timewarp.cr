@@ -104,39 +104,34 @@ class PowerupTimeWarp < Powerup
   end
 
   def action (public_key, dt)
-    if public_key
-        durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
-
-        a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
-        active_stack = a_s.nil? ? 0 : @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
-
-        if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
-            duration = durations[0].to_i
-            current_time = @game.ts
-            
-            if (duration < current_time)
-                durations.delete_at(0)
-                @game.set_key_value public_key, KEY_DURATION,  durations.to_json
-
-                unit_rate = @game.get_player_time_units_ps(public_key)
-                timewarp_rate = unit_rate / UNIT_MULTIPLIER
-                @game.set_player_time_units_ps(public_key, timewarp_rate)
-
-                
-                new_active_stack = active_stack - 1  
-                @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
-            else
-                nil
-            end
-        end
-    end
   end
 
   def cleanup (public_key)
-    duration = @game.get_key_value_as_float public_key, KEY_DURATION
+    if public_key
+      durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
 
-    if duration && @game.ts > duration
-      @game.remove_powerup public_key, PowerupParasite.get_powerup_id
-    end
+      a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+      active_stack = a_s.nil? ? 0 : @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+
+      if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
+          duration = durations[0].to_i
+          current_time = @game.ts
+          
+          if (duration < current_time)
+              durations.delete_at(0)
+              @game.set_key_value public_key, KEY_DURATION,  durations.to_json
+
+              unit_rate = @game.get_player_time_units_ps(public_key)
+              timewarp_rate = unit_rate / UNIT_MULTIPLIER
+              @game.set_player_time_units_ps(public_key, timewarp_rate)
+
+              
+              new_active_stack = active_stack - 1  
+              @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
+          else
+              nil
+          end
+      end
+  end
   end
 end
