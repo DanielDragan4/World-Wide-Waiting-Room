@@ -4,6 +4,7 @@ require "json"
 require "redis"
 require "base64"
 require "./powerups/bootstrap.cr"
+require "./powerups/timewarp.cr"
 require "./powerups/unit_multiplier.cr"
 require "./powerups/parasite.cr"
 require "./templates"
@@ -98,6 +99,7 @@ class Game
   def get_powerup_classes
     {
       PowerupBootStrap.get_powerup_id => PowerupBootStrap.new(self),
+      PowerupTimeWarp.get_powerup_id => PowerupTimeWarp.new(self),
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
     }
