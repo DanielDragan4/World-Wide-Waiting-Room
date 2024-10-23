@@ -6,6 +6,7 @@ require "base64"
 require "./powerups/bootstrap.cr"
 require "./powerups/unit_multiplier.cr"
 require "./powerups/parasite.cr"
+require "./powerups/compound_interest"
 require "./templates"
 
 alias Secret = String
@@ -100,6 +101,7 @@ class Game
       PowerupBootStrap.get_powerup_id => PowerupBootStrap.new(self),
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
+      PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
     }
   end
 
