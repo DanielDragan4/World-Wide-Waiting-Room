@@ -7,10 +7,15 @@ require "./powerups/bootstrap.cr"
 require "./powerups/timewarp.cr"
 require "./powerups/unit_multiplier.cr"
 require "./powerups/parasite.cr"
+<<<<<<< HEAD
+require "./powerups/compound_interest.cr"
+require "./powerups/synergy_matrix.cr"
+=======
 require "./powerups/compound_interest"
 require "./powerups/force_field"
 require "./powerups/breach"
 require "./powerups/signal_jammer"
+>>>>>>> origin/main
 require "./templates"
 
 alias Secret = String
@@ -108,9 +113,13 @@ class Game
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
       PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
+<<<<<<< HEAD
+      PowerupSynergyMatrix.get_powerup_id => PowerupSynergyMatrix.new(self),
+=======
       PowerupSignalJammer.get_powerup_id => PowerupSignalJammer.new(self),
       PowerupForceField.get_powerup_id => PowerupForceField.new(self),
       PowerupBreach.get_powerup_id => PowerupBreach.new(self),
+>>>>>>> origin/main
     }
   end
 

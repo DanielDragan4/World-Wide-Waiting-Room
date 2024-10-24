@@ -6,6 +6,10 @@ class PowerupBootStrap < Powerup
   BASEPRICE = 5000
   BASEBURST = 0.05
 
+  def new_baseburst(public_key) : Float64
+    get_synergy_boosted_multiplier(public_key, BASEBURST)
+  end
+
   def self.get_powerup_id
     "bootstrap"
   end
@@ -19,7 +23,8 @@ class PowerupBootStrap < Powerup
   end
 
   def get_description(public_key)
-    "Gives 5% of total units Increasing multiplictivly with each purchase. Can only be purchased once every 24 hours. Cost of 10% of your total units.\nNext Amount Earned: #{(1 + (BASEBURST * get_player_stack_size(public_key)))}x points"
+    new_baseburst = new_baseburst(public_key)
+    "Gives #{(new_baseburst * 100).round}% of total units Increasing multiplictivly with each purchase. Can only be purchased once every 24 hours. Cost of 5000 + 10% of your total units.\nNext Amount Earned: #{(1 + (new_baseburst * get_player_stack_size(public_key))).round(2)}x points"
   end
 
   def get_price (public_key)
@@ -58,7 +63,7 @@ class PowerupBootStrap < Powerup
 
         puts "Purhcased Burst Boost!"
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * 0.9)
-        @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * (1 + (BASEBURST * current_stack)))
+        @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * (1 + (new_baseburst(public_key) * current_stack)))
         @game.set_key_value(public_key, COOLDOWN_KEY, (@game.ts + 86400).to_s)
 
         new_stack = current_stack + 1
