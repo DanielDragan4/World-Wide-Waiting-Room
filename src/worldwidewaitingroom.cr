@@ -7,7 +7,8 @@ require "./powerups/bootstrap.cr"
 require "./powerups/timewarp.cr"
 require "./powerups/unit_multiplier.cr"
 require "./powerups/parasite.cr"
-require "./powerups/compound_interest"
+require "./powerups/compound_interest.cr"
+require "./powerups/synergy_matrix.cr"
 require "./templates"
 
 alias Secret = String
@@ -104,6 +105,7 @@ class Game
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
       PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
+      PowerupSynergyMatrix.get_powerup_id => PowerupSynergyMatrix.new(self),
     }
   end
 

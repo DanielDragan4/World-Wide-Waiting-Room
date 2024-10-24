@@ -53,4 +53,11 @@ class Powerup
   def cleanup (public_key : String)
     # Will get called after the player's Time Units are updated.
   end
+
+  # base_multiplier assumes boost in addition to base generation. So if multiplier is 5%, base_multiplier should be 0.05
+  # returns in the same format (ex. 0.05 for a 5% boost) 
+  def get_synergy_boosted_multiplier(public_key : String, base_multiplier : Float64) : Float64
+    synergy_boost = PowerupSynergyMatrix.get_boost_multiplier(@game, public_key, self.class.get_powerup_id)
+    (base_multiplier) * synergy_boost
+  end
 end
