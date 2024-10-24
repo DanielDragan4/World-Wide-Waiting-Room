@@ -42,6 +42,7 @@ module Events
 end
 
 module Keys
+  NUMBER_OF_ACTIVES = "number_of_actives_purchased_ever"
   TIME_LEFT = "time_left"
   COOKIE = "token"
   GLOBAL_VARS = "global_vars"
@@ -324,6 +325,16 @@ class Game
     remove_from_leaderboard public_key
     puts "Broadcase offline from #{public_key}"
     sync
+  end
+
+  def get_actives (public_key : String) : Int32
+    na = get_key_value(public_key, Keys::NUMBER_OF_ACTIVES).to_i?
+    na ||= 0
+    na
+  end
+
+  def add_active (public_key : String)
+    set_key_value public_key, Keys::NUMBER_OF_ACTIVES, ((get_actives public_key) + 1).to_s
   end
 
   def add_powerup (public_key : String, powerup)
