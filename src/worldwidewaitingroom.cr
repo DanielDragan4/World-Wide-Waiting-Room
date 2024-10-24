@@ -13,7 +13,7 @@ require "./powerups/signal_jammer.cr"
 require "./powerups/force_field.cr"
 require "./powerups/afflict_breach.cr"
 require "./powerups/afflict_signal_jammer.cr"
-
+require "./powerups/synergy_matrix.cr"
 require "./powerups/compound_interest"
 require "./powerups/force_field"
 require "./powerups/breach"
@@ -115,6 +115,7 @@ class Game
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
       PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
+      PowerupSynergyMatrix.get_powerup_id => PowerupSynergyMatrix.new(self),
       PowerupSignalJammer.get_powerup_id => PowerupSignalJammer.new(self),
       PowerupForceField.get_powerup_id => PowerupForceField.new(self),
       PowerupBreach.get_powerup_id => PowerupBreach.new(self),

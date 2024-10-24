@@ -4,6 +4,11 @@ class PowerupCompoundInterest < Powerup
   BASE_PRICE = 10000.0
   KEY = "compound_interest_stack"
   LAST_BONUS_KEY = "compound_interest_bonus"
+  BASE_BONUS_PER_10K = 1.01
+
+  def new_multiplier(public_key) : Float64
+    get_synergy_boosted_multiplier(public_key, BASE_BONUS_PER_10K - 1) + 1
+  end
 
   def self.get_powerup_id
     "compound_interest"
@@ -14,9 +19,11 @@ class PowerupCompoundInterest < Powerup
   end
 
   def get_description (public_key)
-    "Your units/s increases by 1% for every 10,000 units you currently have. One time purchase.\n
-    Current bonus: #{(get_bonus(public_key)).round(2)}x"
+    base_percent = new_multiplier(public_key)
+    "Your units/s increases by #{((base_percent - 1) * 100).round(2)}% for every 10,000 units you currently have. One time purchase.\n
+    Current bonus: #{get_bonus(public_key).round(2)}x"
   end
+
 
   def is_stackable
     false
@@ -42,8 +49,9 @@ class PowerupCompoundInterest < Powerup
   def get_bonus(public_key)
     return 1.0 unless is_purchased(public_key)
     units = @game.get_player_time_units(public_key)
+    bonus_multiplier = new_multiplier(public_key)
     bonus = (units / 10000).floor
-    1.0 + (bonus * 0.01)
+    1.0 + (bonus * bonus_multiplier)
   end
 
   def buy_action(public_key)
@@ -57,7 +65,7 @@ class PowerupCompoundInterest < Powerup
         puts "Purchased Compound Interest"
         apply_bonus(public_key)
       else
-        puts "Already Purchased"
+        return "Already Purchased"
       end
     else
       Nil

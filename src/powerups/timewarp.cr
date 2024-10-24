@@ -9,6 +9,10 @@ class PowerupTimeWarp < Powerup
   DURATION = 600
   KEY_DURATION = "timewarp_duration"
 
+  def new_multiplier(public_key) : Float64
+    get_synergy_boosted_multiplier(public_key, UNIT_MULTIPLIER)
+  end
+
   def self.get_powerup_id
     "timewarp"
   end
@@ -22,7 +26,8 @@ class PowerupTimeWarp < Powerup
   end
 
   def get_description(public_key)
-    "Doubles your units per second for the next 10 minutes. Stacks multiplicatively with other buffs. Prices increase with each additional purchase"
+    new_multiplier = new_multiplier(public_key)
+    "Multiplies unit generation by #{new_multiplier}x for the next 10 minutes. Stacks multiplicatively with other buffs. Prices increase with each additional purchase"
   end
 
   def get_price (public_key)
@@ -83,7 +88,7 @@ class PowerupTimeWarp < Powerup
         @game.set_key_value public_key, KEY_DURATION,  durations.to_json
 
         unit_rate = @game.get_player_time_units_ps(public_key)
-        timewarp_rate = unit_rate * UNIT_MULTIPLIER
+        timewarp_rate = unit_rate * new_multiplier(public_key)
         @game.set_player_time_units_ps(public_key, timewarp_rate)
 
         new_stack = current_stack + 1
@@ -122,7 +127,7 @@ class PowerupTimeWarp < Powerup
               @game.set_key_value public_key, KEY_DURATION,  durations.to_json
 
               unit_rate = @game.get_player_time_units_ps(public_key)
-              timewarp_rate = unit_rate / UNIT_MULTIPLIER
+              timewarp_rate = unit_rate / new_multiplier(public_key)
               @game.set_player_time_units_ps(public_key, timewarp_rate)
 
               

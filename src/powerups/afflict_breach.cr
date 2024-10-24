@@ -2,6 +2,8 @@ require "../powerup"
 require "json"
 
 require "./unit_multiplier"
+require "./synergy_matrix.cr"
+require "./compound_interest.cr"
 
 class AfflictPowerupBreach < Powerup
   COOLDOWN = 60 * 60 * 10
@@ -10,7 +12,9 @@ class AfflictPowerupBreach < Powerup
 
   # Should change this with a higher level @game.get_passive_powerups
   PASSIVE_POWERUP_IDS = [
-    PowerupUnitMultiplier.get_powerup_id
+    PowerupUnitMultiplier.get_powerup_id,
+    PowerupCompoundInterest.get_powerup_id,
+    PowerupSynergyMatrix.get_powerup_id,
   ]
 
   def self.get_powerup_id

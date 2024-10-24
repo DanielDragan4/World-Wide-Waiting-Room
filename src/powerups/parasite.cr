@@ -12,6 +12,10 @@ class PowerupParasite < Powerup
   KEY_DURATION = "parasite_duration"
   KEY_ACTIVE_COOLDOWN = "parasite_next_take"
 
+  def new_percentage_steal(public_key)
+    get_synergy_boosted_multiplier(public_key, (PERCENTAGE_STEAL / 100)) * 100
+  end
+  
   def self.get_powerup_id
     "parasite"
   end
@@ -21,7 +25,8 @@ class PowerupParasite < Powerup
   end
 
   def get_description (public_key)
-    "Once every #{ACTIVE_COOLDOWN / 60} minutes for #{DURATION / 60} minutes steal #{PERCENTAGE_STEAL}% of the units from the player directly ahead of your and directly behind you.
+    new_percentage_steal = new_percentage_steal(public_key)
+    "Once every #{ACTIVE_COOLDOWN / 60} minutes for #{DURATION / 60} minutes steal #{new_percentage_steal.round(2)}% of the units from the player directly ahead of you and directly behind you.
 This action can be used once every #{COOLDOWN / 60 / 60} hours."
   end
 
@@ -64,7 +69,7 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
     duration = @game.get_key_value_as_float public_key, KEY_DURATION
     active_cooldown = @game.get_key_value_as_float public_key, KEY_ACTIVE_COOLDOWN
     now = @game.ts
-    percent_steal = PERCENTAGE_STEAL / 100.0
+    percent_steal = new_percentage_steal(public_key) / 100.0
 
     if duration && active_cooldown && duration > now && active_cooldown < now
       puts "Parasite action for #{public_key}"

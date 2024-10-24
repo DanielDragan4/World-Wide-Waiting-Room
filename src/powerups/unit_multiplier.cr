@@ -5,6 +5,10 @@ class PowerupUnitMultiplier < Powerup
   MULTIPLIER = 1.3
   KEY = "unit_multiplier_stack"
 
+  def new_multiplier(public_key) : Float64
+    get_synergy_boosted_multiplier(public_key, MULTIPLIER - 1) + 1
+  end
+
   def self.get_powerup_id
     "unit_multiplier"
   end
@@ -14,7 +18,8 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def get_description (public_key)
-    "Permanently increases units/s by 30%. Can be purchased multiple times with escalating costs."
+    adjusted_multiplier = new_multiplier(public_key)
+    "Permanently increases units/s by #{((adjusted_multiplier - 1) * 100).round(2).floor}%. Can be purchased multiple times with escalating costs."
   end
 
   def is_stackable
@@ -46,13 +51,15 @@ class PowerupUnitMultiplier < Powerup
         @game.inc_time_units(public_key, -price)
 
         current_rate = @game.get_player_time_units_ps(public_key)
-        new_rate = current_rate * (MULTIPLIER)
+        #Changes multiplier based on Synergy Matrix
+        adjusted_multiplier = new_multiplier(public_key)
+        new_rate = current_rate * adjusted_multiplier
         @game.set_player_time_units_ps(public_key, new_rate)
 
         new_stack = current_stack + 1
         @game.set_key_value(public_key, KEY, new_stack.to_s)
       else
-        "You don't have enough point to purchase Unit Multiplier"
+        "You don't have enough points to purchase Unit Multiplier"
       end
     else
       nil
@@ -60,5 +67,6 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def action(public_key, dt)
+    
   end
 end
