@@ -10,6 +10,24 @@ class Powerup
     "powerup"
   end
 
+  def is_afflication_powerup (public_key : String) : Bool
+    # An afflication "powerup" is a way to reuse the powerup system to implement the negative effects
+    # of a powerup. For example, Signal Jammer when used will add the afflict_signal_jammer powerup
+    # to a player which implements the negative features of that powerup.
+    false
+  end
+
+  def is_input_powerup (public_key : String) : Bool
+    # An input powerup gives the player an action that can be performed once
+    # another player card.
+    false
+  end
+
+  def input_button_text (public_key : String) : String
+    # The text shown on the input button.
+    ""
+  end
+
   def get_name : String
     "Powerup"
   end
