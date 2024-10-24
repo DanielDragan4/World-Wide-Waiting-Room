@@ -2,6 +2,8 @@ require "../powerup"
 
 class PowerupForceField < Powerup
   BASE_PRICE = 10_000_000
+  COOLDOWN = 60 * 60
+  COOLDOWN_KEY = "forcefield_cooldown_time"
 
   def self.get_powerup_id
     "forcefield"
@@ -31,11 +33,20 @@ class PowerupForceField < Powerup
     return true
   end
 
+  def get_cooldown_seconds_left (public_key)
+    @game.get_timer_seconds_left public_key, COOLDOWN_KEY
+  end
+
   def buy_action (public_key)
     if !is_available_for_purchase public_key
       return "Not available for purchase."
     end
 
     @game.add_powerup public_key, PowerupForceField.get_powerup_id
+    @game.set_timer public_key, COOLDOWN_KEY, COOLDOWN
+  end
+
+  def cleanup (public_key)
+    @game.is_timer_expired public_key, COOLDOWN_KEY
   end
 end
