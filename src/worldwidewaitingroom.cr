@@ -8,6 +8,9 @@ require "./powerups/timewarp.cr"
 require "./powerups/unit_multiplier.cr"
 require "./powerups/parasite.cr"
 require "./powerups/compound_interest"
+require "./powerups/force_field"
+require "./powerups/breach"
+require "./powerups/signal_jammer"
 require "./templates"
 
 alias Secret = String
@@ -104,6 +107,9 @@ class Game
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
       PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
+      PowerupSignalJammer.get_powerup_id => PowerupSignalJammer.new(self),
+      PowerupForceField.get_powerup_id => PowerupForceField.new(self),
+      PowerupBreach.get_powerup_id => PowerupBreach.new(self),
     }
   end
 
@@ -129,6 +135,9 @@ class Game
         "price" => (value.get_price public_key),
         "is_stackable" => (value.is_stackable public_key),
         "is_available_for_purchase" => (value.is_available_for_purchase public_key),
+        "is_input_powerup" => (value.is_input_powerup public_key),
+        "is_afflication_powerup" => (value.is_afflication_powerup public_key),
+        "input_button_text" => (value.input_button_text public_key),
         "cooldown_seconds_left" => (value.cooldown_seconds_left public_key),
         "max_stack_size" => (value.max_stack_size public_key),
         "currently_owns" => (player_powerups.includes? key),
@@ -321,6 +330,10 @@ class Game
     WWWR::R.zadd("powerups-#{public_key}", 0, powerup)
   end
 
+  def has_powerup (public_key : String, powerup) : Bool
+    (get_player_powerups public_key).find { |x| x == powerup } != nil
+  end
+
   def remove_powerup (public_key : String, powerup)
     WWWR::R.zrem("powerups-#{public_key}", powerup)
   end
@@ -502,7 +515,13 @@ post "/buy" do |ctx|
       resp
     end
   end
+end
 
+post "/use/" do |ctx|
+  public_key = game.get_public_key_from_ctx ctx
+
+  powerup = ctx.params.body["powerup"]
+  on_player_key = ctx.params.body["on_player_key"]
 end
 
 post "/color" do |ctx|
