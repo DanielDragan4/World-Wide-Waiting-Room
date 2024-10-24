@@ -6,7 +6,14 @@ require "base64"
 require "./powerups/bootstrap.cr"
 require "./powerups/timewarp.cr"
 require "./powerups/unit_multiplier.cr"
+
 require "./powerups/parasite.cr"
+require "./powerups/breach.cr"
+require "./powerups/signal_jammer.cr"
+require "./powerups/force_field.cr"
+require "./powerups/afflict_breach.cr"
+require "./powerups/afflict_signal_jammer.cr"
+
 require "./powerups/compound_interest"
 require "./powerups/force_field"
 require "./powerups/breach"
@@ -111,6 +118,9 @@ class Game
       PowerupSignalJammer.get_powerup_id => PowerupSignalJammer.new(self),
       PowerupForceField.get_powerup_id => PowerupForceField.new(self),
       PowerupBreach.get_powerup_id => PowerupBreach.new(self),
+
+      AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
+      AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
     }
   end
 
@@ -129,6 +139,10 @@ class Game
     player_powerups = get_player_powerups public_key
 
     get_powerup_classes.each do |key, value|
+      if value.is_afflication_powerup (public_key)
+        next
+      end
+
       powerups << {
         "id" => key,
         "name" => value.get_name,
@@ -252,7 +266,7 @@ class Game
 
   def inc_time_units_ps (public_key : String, by)
     player_tu_ps = get_player_time_units_ps public_key
-    set_player_time_units_ps (player_tu_ps + by)
+    set_player_time_units_ps public_key, (player_tu_ps + by)
   end
 
   def add_to_leaderboard (public_key : String)
@@ -274,9 +288,27 @@ class Game
     end
   end
 
-  def get_key_value_as_float (public_key : String , key : String) : Float64 | Nil
+  def get_key_value_as_float (public_key : String , key : String) : Float64
     kv = get_key_value public_key, key
-    kv.to_f64?
+    result = kv.to_f64?
+    result ||= 0.0
+    result
+  end
+
+  def set_timer (public_key : String, timer_key : String, seconds : Int64)
+    set_key_value public_key, timer_key, (ts + seconds).to_s
+  end
+
+  def get_timer_seconds_left (public_key : String, timer_key : String) : Float64
+    (get_key_value_as_float public_key, timer_key) - ts
+  end
+
+  def is_timer_expired (public_key : String, timer_key : String) : Bool
+    (get_timer_seconds_left public_key, timer_key) <= 0
+  end
+
+  def remove_powerup_if_timer_expired (public_key : String, timer_key : String, powerup_id : String)
+    remove_powerup public_key, powerup_id if (is_timer_expired public_key, timer_key)
   end
 
   def set_key_value (public_key : String, key : String, value : String)
@@ -337,16 +369,16 @@ class Game
     set_key_value public_key, Keys::NUMBER_OF_ACTIVES, ((get_actives public_key) + 1).to_s
   end
 
-  def add_powerup (public_key : String, powerup)
-    WWWR::R.zadd("powerups-#{public_key}", 0, powerup)
+  def add_powerup (public_key : String, powerup_id : String)
+    WWWR::R.zadd("powerups-#{public_key}", 0, powerup_id)
   end
 
-  def has_powerup (public_key : String, powerup) : Bool
-    (get_player_powerups public_key).find { |x| x == powerup } != nil
+  def has_powerup (public_key : String, powerup_id : String) : Bool
+    (get_player_powerups public_key).find { |x| x == powerup_id } != nil
   end
 
-  def remove_powerup (public_key : String, powerup)
-    WWWR::R.zrem("powerups-#{public_key}", powerup)
+  def remove_powerup (public_key : String, powerup_id : String)
+    WWWR::R.zrem("powerups-#{public_key}", powerup_id)
   end
 
   def get_player_powerups (public_key : String)

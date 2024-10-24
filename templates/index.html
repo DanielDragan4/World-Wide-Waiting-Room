@@ -287,7 +287,7 @@
 <div class="border rounded bg-[#212126] p-4">
   <h1 class="text-center font-bold">${powerup.name}</h1>
   <h2 class="text-center">${powerup.description}</h1>
-  <h3 class="text-center font-bold my-4">${powerup.price} units</h3>
+  <h3 class="text-center font-bold my-4">${powerup.price.toLocaleString('en-US')} units</h3>
   ${buyButton} 
 </div>
             `;
