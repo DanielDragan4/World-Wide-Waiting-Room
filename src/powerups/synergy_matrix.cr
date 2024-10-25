@@ -1,7 +1,7 @@
 require "../powerup.cr"
 
 class PowerupSynergyMatrix < Powerup
-  BASE_PRICE = 1000.0
+  BASE_PRICE = 1 #1000.0
   KEY = "synergy_matrix_stack"
   BOOST_PER_STACK = 0.10
 
@@ -14,7 +14,6 @@ class PowerupSynergyMatrix < Powerup
     end
   end
 
-	#TODO: Implement a way for all powerups to be affected by multiplier value, and adjust when it changes
   def self.get_boost_multiplier(game : Game, public_key : String, powerup_id : String) : Float64
     return 1.0 if powerup_id == get_powerup_id # Prevents from boosting itself
 

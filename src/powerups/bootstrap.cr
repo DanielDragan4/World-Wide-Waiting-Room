@@ -3,7 +3,7 @@ require "../powerup"
 class PowerupBootStrap < Powerup
   STACK_KEY = "bootstrap_stack"
   COOLDOWN_KEY = "bootstrap_cooldown"
-  BASEPRICE = 5000
+  BASEPRICE = 1 #5000
   BASEBURST = 0.05
 
   def new_baseburst(public_key) : Float64
@@ -65,6 +65,7 @@ class PowerupBootStrap < Powerup
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * 0.9)
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * (1 + (new_baseburst(public_key) * current_stack)))
         @game.set_key_value(public_key, COOLDOWN_KEY, (@game.ts + 86400).to_s)
+        @game.add_active public_key
 
         new_stack = current_stack + 1
         @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)

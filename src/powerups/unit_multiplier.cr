@@ -47,9 +47,9 @@ class PowerupUnitMultiplier < Powerup
       if units > price
         current_stack = get_player_stack_size(public_key)
         price = get_price(public_key)
-
+        powerup = PowerupUnitMultiplier.get_powerup_id
         @game.inc_time_units(public_key, -price)
-
+        @game.add_powerup(public_key, powerup)
         current_rate = @game.get_player_time_units_ps(public_key)
         #Changes multiplier based on Synergy Matrix
         adjusted_multiplier = new_multiplier(public_key)
