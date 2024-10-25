@@ -10,6 +10,10 @@ class PowerupForceField < Powerup
     "forcefield"
   end
 
+  def player_card_powerup_active_css_class (public_key)
+    "border border-rounded border-[10px] border-blue-600"
+  end
+
   def get_name
     "Force Field"
   end

@@ -10,7 +10,11 @@ class Powerup
     "powerup"
   end
 
-  def powerup_active_css_class (public_key : String) : String
+  def player_card_powerup_active_css_class (public_key : String) : String
+    ""
+  end
+
+  def player_card_powerup_icon (public_key : String) : String
     ""
   end
 

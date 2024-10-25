@@ -49,6 +49,8 @@ module Events
 end
 
 module Keys
+  PLAYER_POWERUP_ICONS = "player_powerup_icons"
+  PLAYER_CARD_CSS_CLASSES = "player_card_css_classes"
   NUMBER_OF_ACTIVES = "number_of_actives_purchased_ever"
   TIME_LEFT = "time_left"
   COOKIE = "token"
@@ -158,7 +160,6 @@ class Game
         "max_stack_size" => (value.max_stack_size public_key),
         "currently_owns" => (player_powerups.includes? key),
         "current_stack_size" => (value.get_player_stack_size public_key),
-        "powerup_active_css_class" => (value.powerup_active_css_class public_key)
       }
     end
 
@@ -421,6 +422,13 @@ class Game
       metadata = r.hget(Keys::GLOBAL_VARS, public_key)
     end
 
+    powerups = (get_player_powerups public_key)
+    powerup_classes = get_powerup_classes
+
+    powerup_icons = powerups.map { |x| powerup_classes[x].player_card_powerup_icon public_key }
+    css_classes = powerups.map { |x| powerup_classes[x].player_card_powerup_active_css_class public_key }
+    css_classes = css_classes.join " "
+
     return {
       Keys::PLAYER_NAME => player_name.value,
       Keys::PLAYER_BG_COLOR => player_bg_color.value,
@@ -428,8 +436,10 @@ class Game
       Keys::PLAYER_TIME_UNITS => time_units.value.to_s.to_f64?,
       Keys::PLAYER_TIME_UNITS_PER_SECOND => tps.value.to_s.to_f64?,
       Keys::PLAYER_PUBLIC_KEY => public_key,
-      Keys::PLAYER_POWERUPS => (get_player_powerups public_key),
+      Keys::PLAYER_POWERUPS => powerups,
       Keys::PLAYER_METADATA => metadata.value,
+      Keys::PLAYER_CARD_CSS_CLASSES => css_classes,
+      Keys::PLAYER_POWERUP_ICONS => powerup_icons,
     }
   end
 

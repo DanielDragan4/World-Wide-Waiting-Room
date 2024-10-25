@@ -213,9 +213,6 @@
         const newLeaderboardHtml = document.createElement("div");
         data.forEach((player) => {
           const card = document.createElement("div");
-          const additionalCssClasses = player.powerups.reduce((a, b) => {
-            a + (b.powerup_active_css_class || '')
-          }, "")
 
           card.innerHTML = `
           <div 
@@ -230,7 +227,7 @@
               flex 
               flex-col 
               justify-between
-              ${additionalCssClasses}
+              ${player.player_card_css_classes}
           ">
             <span class="text-2xl text-center">${escape(player.name)}</span>
             <div class="text-center my-auto flex flex-col">
