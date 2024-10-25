@@ -38,7 +38,7 @@ class PowerupForceField < Powerup
     return true
   end
 
-  def get_cooldown_seconds_left (public_key)
+  def cooldown_seconds_left (public_key)
     @game.get_timer_seconds_left public_key, COOLDOWN_KEY
   end
 
@@ -52,6 +52,8 @@ class PowerupForceField < Powerup
   end
 
   def cleanup (public_key)
-    @game.is_timer_expired public_key, COOLDOWN_KEY
+    if @game.is_timer_expired public_key, COOLDOWN_KEY
+      @game.remove_powerup public_key, PowerupForceField.get_powerup_id
+    end
   end
 end
