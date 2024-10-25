@@ -5,6 +5,8 @@ require "redis"
 require "base64"
 require "./powerups/bootstrap.cr"
 require "./powerups/timewarp.cr"
+require "./powerups/overcharge.cr"
+require "./powerups/harvest.cr"
 require "./powerups/unit_multiplier.cr"
 require "./powerups/parasite.cr"
 require "./powerups/synergy_matrix.cr"
@@ -106,6 +108,8 @@ class Game
     {
       PowerupBootStrap.get_powerup_id => PowerupBootStrap.new(self),
       PowerupTimeWarp.get_powerup_id => PowerupTimeWarp.new(self),
+      PowerupOverCharge.get_powerup_id => PowerupOverCharge.new(self),
+      PowerupHarvest.get_powerup_id => PowerupHarvest.new(self),
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
       PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
