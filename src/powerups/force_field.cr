@@ -1,4 +1,5 @@
 require "../powerup"
+require "./force_field.cr"
 
 class PowerupForceField < Powerup
   BASE_PRICE = 10_000_000

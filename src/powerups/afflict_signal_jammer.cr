@@ -1,4 +1,5 @@
 require "../powerup"
+require "./force_field.cr"
 
 class AfflictPowerupSignalJammer < Powerup
   COOLDOWN = 60 * 60 * 10
@@ -28,6 +29,10 @@ class AfflictPowerupSignalJammer < Powerup
   end
 
   def action (public_key, dt)
+    if @game.has_powerup public_key, PowerupForceField.get_powerup_id
+      return
+    end
+
     player_tups = @game.get_player_time_units_ps public_key
     amount_dec = player_tups * UPS_PERCENT_DECREASE
 

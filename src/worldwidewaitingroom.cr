@@ -158,6 +158,7 @@ class Game
         "max_stack_size" => (value.max_stack_size public_key),
         "currently_owns" => (player_powerups.includes? key),
         "current_stack_size" => (value.get_player_stack_size public_key),
+        "powerup_active_css_class" => (value.powerup_active_css_class public_key)
       }
     end
 

@@ -4,6 +4,7 @@ require "json"
 require "./unit_multiplier"
 require "./synergy_matrix.cr"
 require "./compound_interest.cr"
+require "./force_field.cr"
 
 class AfflictPowerupBreach < Powerup
   COOLDOWN = 60 * 60 * 10
@@ -39,6 +40,10 @@ class AfflictPowerupBreach < Powerup
   end
 
   def action (public_key, dt)
+    if @game.has_powerup public_key, PowerupForceField.get_powerup_id
+      return
+    end
+
     owned_powerups = PASSIVE_POWERUP_IDS.reject do |p|
       !@game.has_powerup public_key, p
     end

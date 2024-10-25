@@ -10,6 +10,10 @@ class Powerup
     "powerup"
   end
 
+  def powerup_active_css_class (public_key : String) : String
+    ""
+  end
+
   def is_afflication_powerup (public_key : String) : Bool
     # An afflication "powerup" is a way to reuse the powerup system to implement the negative effects
     # of a powerup. For example, Signal Jammer when used will add the afflict_signal_jammer powerup
