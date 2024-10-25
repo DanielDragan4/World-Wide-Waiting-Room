@@ -29,7 +29,7 @@ class PowerupHarvest < Powerup
   end
 
   def get_description(public_key)
-    "Collects the next hour's worth of units instantly, but pauses unit generation for that hour #{get_harvest_amount(public_key).round(2)}"
+    "Collects the next hour's worth of units with the current units per second including boosts, but pauses unit generation for that hour #{get_harvest_amount(public_key).round(2)}"
   end
 
   def get_harvest_amount (public_key)
