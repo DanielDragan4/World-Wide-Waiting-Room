@@ -74,6 +74,7 @@ class PowerupTimeWarp < Powerup
         puts "Purhcased Time Warp!"
         @game.add_powerup public_key, PowerupTimeWarp.get_powerup_id
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) - price)
+        @game.add_active public_key
 
         a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
         active_stack = a_s.nil? ? 0 : @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
