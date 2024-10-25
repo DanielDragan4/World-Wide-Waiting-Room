@@ -18,6 +18,7 @@ require "./powerups/compound_interest"
 require "./powerups/force_field"
 require "./powerups/breach"
 require "./powerups/signal_jammer"
+require "./powerups/automation-upgrade.cr"
 require "./templates"
 
 alias Secret = String
@@ -121,9 +122,9 @@ class Game
       PowerupSignalJammer.get_powerup_id => PowerupSignalJammer.new(self),
       PowerupForceField.get_powerup_id => PowerupForceField.new(self),
       PowerupBreach.get_powerup_id => PowerupBreach.new(self),
-
       AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
       AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
+      PowerupAutomationUpgrade.get_powerup_id => PowerupAutomationUpgrade.new(self),
     }
   end
 

@@ -65,6 +65,7 @@ class PowerupBootStrap < Powerup
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * 0.9)
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) * (1 + (new_baseburst(public_key) * current_stack)))
         @game.set_key_value(public_key, COOLDOWN_KEY, (@game.ts + 86400).to_s)
+        @game.add_active public_key
 
         new_stack = current_stack + 1
         @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
