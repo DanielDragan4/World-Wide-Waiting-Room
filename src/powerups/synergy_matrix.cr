@@ -1,7 +1,7 @@
 require "../powerup.cr"
 
 class PowerupSynergyMatrix < Powerup
-  BASE_PRICE = 1 #1000.0
+  BASE_PRICE = 1000.0
   KEY = "synergy_matrix_stack"
   BOOST_PER_STACK = 0.10
 

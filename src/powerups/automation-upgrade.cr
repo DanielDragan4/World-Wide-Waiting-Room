@@ -1,7 +1,7 @@
 require "../powerup.cr"
 
 class PowerupAutomationUpgrade < Powerup
-  BASE_PRICE = 1 #1000.0
+  BASE_PRICE = 1000.0
   MULTIPLIER = 0.05
   KEY = "automation_upgrade_stack"
   PURCHASE_TIME_KEY = "automation_upgrade_purchase_time"

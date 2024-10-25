@@ -3,7 +3,7 @@ require "../powerup"
 class PowerupBootStrap < Powerup
   STACK_KEY = "bootstrap_stack"
   COOLDOWN_KEY = "bootstrap_cooldown"
-  BASEPRICE = 1 #5000
+  BASEPRICE = 5000
   BASEBURST = 0.05
 
   def new_baseburst(public_key) : Float64
