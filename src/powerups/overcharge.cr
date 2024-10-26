@@ -6,7 +6,7 @@ require "./compound_interest"
 class PowerupOverCharge < Powerup
   STACK_KEY = "overcharge_stack"
   ACTIVE_STACK_KEY = "overcharge_active_stack"
-  BASE_PRICE = 2.0
+  BASE_PRICE = 200.0
   UNIT_MULTIPLIER = 5.0
   DURATION = 120
   KEY_DURATION = "overcharge_duration"
