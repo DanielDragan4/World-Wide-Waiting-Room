@@ -76,17 +76,38 @@ class PowerupCompoundInterest < Powerup
     current_rate = @game.get_player_time_units_ps(public_key)
     old_bonus = get_last_bonus(public_key)
     new_bonus = get_bonus(public_key)
+  
     if old_bonus != new_bonus
-      old_rate = current_rate / old_bonus
+      old_rate = old_bonus.zero? ? current_rate : current_rate / old_bonus
       new_rate = old_rate * new_bonus
+  
       @game.set_player_time_units_ps(public_key, new_rate)
       @game.set_key_value(public_key, LAST_BONUS_KEY, new_bonus.to_s)
     end
   end
 
+  def remove_bonus(public_key)
+    current_rate = @game.get_player_time_units_ps(public_key)
+    last_bonus = get_last_bonus(public_key)
+  
+    if last_bonus > 1.0
+      # Calculate the rate before the bonus was applied
+      previous_rate = current_rate / last_bonus
+      @game.set_player_time_units_ps(public_key, previous_rate)
+      @game.set_key_value(public_key, LAST_BONUS_KEY, "1.0") # Reset to no bonus
+    end
+  end
+  
+
   def action(public_key, dt)
     if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id)
         apply_bonus(public_key)
+    end
+  end
+
+  def cleanup(public_key)
+    if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id)
+      remove_bonus(public_key)
     end
   end
 end
