@@ -31,7 +31,7 @@ function intervalFunc(public_key) {
 }
 
 function syncProcedure(e) {
-  console.log("Syncing", e);
+  // console.log("Syncing", e);
   players = {}
 
   const { leaderboard } = e

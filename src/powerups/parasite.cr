@@ -1,4 +1,5 @@
 require "../powerup"
+require "./force_field.cr"
 
 class PowerupParasite < Powerup
   BASE_PRICE = 10_000
@@ -15,13 +16,17 @@ class PowerupParasite < Powerup
   def new_percentage_steal(public_key)
     get_synergy_boosted_multiplier(public_key, (PERCENTAGE_STEAL / 100)) * 100
   end
-  
+
   def self.get_powerup_id
     "parasite"
   end
 
   def get_name
     "Parasite"
+  end
+
+  def player_card_powerup_icon (public_key)
+    "/parasite.png"
   end
 
   def get_description (public_key)
@@ -80,7 +85,7 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
 
       puts "#{public_key} LEFT #{left} RIGHT #{right}"
 
-      if left
+      if left && !@game.has_powerup left, PowerupForceField.get_powerup_id
         left_units = @game.get_player_time_units left
         amount = left_units * percent_steal
 
@@ -88,9 +93,10 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
 
         @game.inc_time_units left, -amount
         @game.inc_time_units public_key, amount
+        @game.send_animation_event left, Animation::NUMBER_FLOAT, { "value" => "Parasite #{amount.round(2)}", "color" => "#CFE9A0" }
       end
 
-      if right
+      if right && !@game.has_powerup right, PowerupForceField.get_powerup_id
         right_units = @game.get_player_time_units right
         amount = right_units * percent_steal
 
@@ -98,6 +104,7 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
 
         @game.inc_time_units right, -amount
         @game.inc_time_units public_key, amount
+        @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => "Parasite #{amount.round(2)}", "color" => "#CFE9A0" }
       end
 
       @game.set_key_value public_key, KEY_ACTIVE_COOLDOWN, (@game.ts + ACTIVE_COOLDOWN).to_s
@@ -105,9 +112,10 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
   end
 
   def cleanup (public_key)
-    duration = @game.get_key_value_as_float public_key, KEY_COOLDOWN
+    duration = @game.get_key_value_as_float public_key, KEY_DURATION
 
     if duration && @game.ts > duration
+      puts "Removing parasite from", public_key
       @game.remove_powerup public_key, PowerupParasite.get_powerup_id
     end
   end
