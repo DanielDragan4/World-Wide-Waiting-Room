@@ -131,7 +131,7 @@ class PowerupOverCharge < Powerup
         overcharge_rate = unit_rate / (new_multiplier(public_key) ** active_stack.to_i)
         @game.set_player_time_units_ps(public_key, overcharge_rate)
         end
-        
+
         durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
 
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
