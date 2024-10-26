@@ -8,7 +8,13 @@ require "./powerups/timewarp.cr"
 require "./powerups/overcharge.cr"
 require "./powerups/harvest.cr"
 require "./powerups/unit_multiplier.cr"
+
 require "./powerups/parasite.cr"
+require "./powerups/breach.cr"
+require "./powerups/signal_jammer.cr"
+require "./powerups/force_field.cr"
+require "./powerups/afflict_breach.cr"
+require "./powerups/afflict_signal_jammer.cr"
 require "./powerups/synergy_matrix.cr"
 require "./powerups/compound_interest"
 require "./powerups/force_field"
@@ -19,33 +25,43 @@ require "./templates"
 
 alias Secret = String
 alias Public = String
+alias ChannelValueType = String
 
 templates = Templates.new
 
 module WWWR
   R = Redis::PooledClient.new
-  Channels = Set(Tuple(String, Channel(Nil), Public)).new
+  Channels = Set(Tuple(String, Channel(ChannelValueType), Public)).new
+end
+
+enum Animation
+  NUMBER_FLOAT
 end
 
 module Events
-  SYNC = "sync"
-  LOGIN = "login"
-  ORDER_CHANGED = "order_change"
-  LOGOUT = "logout"
-  PLAYER_UPDATE = "player_update"
-
-  def self.sync (leaderboard, player_data, powerups, time_left)
+  def self.animation (public_key : String, animation : Animation, data) : String
     {
-      "event" => Events::SYNC,
+      "event" => "animation",
+      "player_public_key" => public_key,
+      "animation" => animation.to_s,
+      "data" => data
+    }.to_json
+  end
+
+  def self.sync (leaderboard, player_data, powerups, time_left) : String
+    {
+      "event" => "sync",
       "leaderboard" => leaderboard,
       "time_left" => time_left,
       "player" => player_data,
       "powerups" => powerups
-    }
+    }.to_json
   end
 end
 
 module Keys
+  PLAYER_POWERUP_ICONS = "player_powerup_icons"
+  PLAYER_CARD_CSS_CLASSES = "player_card_css_classes"
   NUMBER_OF_ACTIVES = "number_of_actives_purchased_ever"
   TIME_LEFT = "time_left"
   COOKIE = "token"
@@ -57,7 +73,15 @@ module Keys
   PLAYER_METADATA = "metadata"
   PLAYER_TOKENS = "tokens"
   PLAYER_TIME_UNITS = "time_units"
+
+  # PLAYER_FRAME_TUPS is the value that is visually present in the UI. PLAYER_TIME_UNITS_PER_SECOND is the manipulatable value
+  # The reason for needing both is that at the end of a frame the PLAYER_TIME_UNITS_PER_SECOND is not an accurate representation
+  # of the player's TUPS for that frame.
+  # PLAYER_FRAME_TUPS contains the correct value for that frame.
+
+  PLAYER_FRAME_TUPS = "frame_time_units_per_second"
   PLAYER_TIME_UNITS_PER_SECOND = "time_units_per_second"
+
   PLAYER_NAME = "name"
   PLAYER_BG_COLOR = "bg_color"
   PLAYER_TEXT_COLOR = "text_color"
@@ -92,6 +116,7 @@ class Game
       do_powerup_actions player_public_key, dt
 
       player_tups = get_player_time_units_ps player_public_key
+      WWWR::R.hset Keys::PLAYER_FRAME_TUPS, player_public_key, player_tups
       inc_time_units player_public_key, player_tups * multiplier
 
       do_powerup_cleanup player_public_key
@@ -118,6 +143,8 @@ class Game
       PowerupSignalJammer.get_powerup_id => PowerupSignalJammer.new(self),
       PowerupForceField.get_powerup_id => PowerupForceField.new(self),
       PowerupBreach.get_powerup_id => PowerupBreach.new(self),
+      AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
+      AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
       PowerupAutomationUpgrade.get_powerup_id => PowerupAutomationUpgrade.new(self),
     }
   end
@@ -137,6 +164,10 @@ class Game
     player_powerups = get_player_powerups public_key
 
     get_powerup_classes.each do |key, value|
+      if value.is_afflication_powerup (public_key)
+        next
+      end
+
       powerups << {
         "id" => key,
         "name" => value.get_name,
@@ -260,7 +291,7 @@ class Game
 
   def inc_time_units_ps (public_key : String, by)
     player_tu_ps = get_player_time_units_ps public_key
-    set_player_time_units_ps (player_tu_ps + by)
+    set_player_time_units_ps public_key, (player_tu_ps + by)
   end
 
   def add_to_leaderboard (public_key : String)
@@ -282,9 +313,27 @@ class Game
     end
   end
 
-  def get_key_value_as_float (public_key : String , key : String) : Float64 | Nil
+  def get_key_value_as_float (public_key : String , key : String) : Float64
     kv = get_key_value public_key, key
-    kv.to_f64?
+    result = kv.to_f64?
+    result ||= 0.0
+    result
+  end
+
+  def set_timer (public_key : String, timer_key : String, seconds : Int64)
+    set_key_value public_key, timer_key, (ts + seconds).to_s
+  end
+
+  def get_timer_seconds_left (public_key : String, timer_key : String) : Float64
+    (get_key_value_as_float public_key, timer_key) - ts
+  end
+
+  def is_timer_expired (public_key : String, timer_key : String) : Bool
+    (get_timer_seconds_left public_key, timer_key) <= 0
+  end
+
+  def remove_powerup_if_timer_expired (public_key : String, timer_key : String, powerup_id : String)
+    remove_powerup public_key, powerup_id if (is_timer_expired public_key, timer_key)
   end
 
   def set_key_value (public_key : String, key : String, value : String)
@@ -299,7 +348,8 @@ class Game
     WWWR::Channels.each do |c|
       if c[2] == public_key && !c[1].closed?
         begin
-          c[1].send nil
+          sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), (get_time_left)
+          c[1].send sync_data
         rescue
         end
       end
@@ -310,9 +360,26 @@ class Game
     WWWR::Channels.each do |c|
       spawn do
         channel = c[1]
+        public_key = c[2]
         next if channel.closed?
         begin
-          channel.send nil
+          sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), get_time_left
+          channel.send sync_data
+        rescue
+        end
+      end
+    end
+  end
+
+  def send_animation_event (public_key : String, animation : Animation, data)
+    animation = Events.animation public_key, animation, data
+    WWWR::Channels.each do |c|
+      spawn do
+        channel = c[1]
+        public_key = c[2]
+        next if channel.closed?
+        begin
+          channel.send animation
         rescue
         end
       end
@@ -321,6 +388,9 @@ class Game
 
   def defer_sync
     @sync_next_frame = true
+  end
+
+  def broadcast_animation_event (public_key : String)
   end
 
   def broadcast_online (public_key : String)
@@ -345,16 +415,16 @@ class Game
     set_key_value public_key, Keys::NUMBER_OF_ACTIVES, ((get_actives public_key) + 1).to_s
   end
 
-  def add_powerup (public_key : String, powerup)
-    WWWR::R.zadd("powerups-#{public_key}", 0, powerup)
+  def add_powerup (public_key : String, powerup_id : String)
+    WWWR::R.zadd("powerups-#{public_key}", 0, powerup_id)
   end
 
-  def has_powerup (public_key : String, powerup) : Bool
-    (get_player_powerups public_key).find { |x| x == powerup } != nil
+  def has_powerup (public_key : String, powerup_id : String) : Bool
+    (get_player_powerups public_key).find { |x| x == powerup_id } != nil
   end
 
-  def remove_powerup (public_key : String, powerup)
-    WWWR::R.zrem("powerups-#{public_key}", powerup)
+  def remove_powerup (public_key : String, powerup_id : String)
+    WWWR::R.zrem("powerups-#{public_key}", powerup_id)
   end
 
   def get_player_powerups (public_key : String)
@@ -391,9 +461,16 @@ class Game
       player_name = r.hget(Keys::PLAYER_NAME, public_key)
       player_bg_color = r.hget(Keys::PLAYER_BG_COLOR, public_key)
       player_text_color = r.hget(Keys::PLAYER_TEXT_COLOR, public_key)
-      tps = r.hget(Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key)
+      tps = r.hget(Keys::PLAYER_FRAME_TUPS, public_key)
       metadata = r.hget(Keys::GLOBAL_VARS, public_key)
     end
+
+    powerups = (get_player_powerups public_key)
+    powerup_classes = get_powerup_classes
+
+    powerup_icons = powerups.map { |x| powerup_classes[x].player_card_powerup_icon public_key }
+    css_classes = powerups.map { |x| powerup_classes[x].player_card_powerup_active_css_class public_key }
+    css_classes = css_classes.join " "
 
     return {
       Keys::PLAYER_NAME => player_name.value,
@@ -402,8 +479,10 @@ class Game
       Keys::PLAYER_TIME_UNITS => time_units.value.to_s.to_f64?,
       Keys::PLAYER_TIME_UNITS_PER_SECOND => tps.value.to_s.to_f64?,
       Keys::PLAYER_PUBLIC_KEY => public_key,
-      Keys::PLAYER_POWERUPS => (get_player_powerups public_key),
+      Keys::PLAYER_POWERUPS => powerups,
       Keys::PLAYER_METADATA => metadata.value,
+      Keys::PLAYER_CARD_CSS_CLASSES => css_classes,
+      Keys::PLAYER_POWERUP_ICONS => powerup_icons,
     }
   end
 
@@ -573,7 +652,7 @@ ws "/ws" do |socket, context|
 
   channel_key = Random.new.hex
 
-  events = Channel(Nil).new
+  events = Channel(ChannelValueType).new
 
   spawn do
     loop do
@@ -582,9 +661,10 @@ ws "/ws" do |socket, context|
       end
 
       select
-      when events.receive?
-        sync_data = Events.sync game.get_leaderboard, (game.get_data_for public_key), (game.get_serialized_powerups public_key), (game.get_time_left)
-        socket.send sync_data.to_json
+      when event_data = events.receive?
+        if event_data
+          socket.send event_data
+        end
       else
       end
 
@@ -604,7 +684,7 @@ ws "/ws" do |socket, context|
       game.broadcast_online public_key
     end
 
-    events.send nil
+    game.sync_player public_key
   end
 
   socket.on_close do
