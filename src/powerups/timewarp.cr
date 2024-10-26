@@ -4,9 +4,9 @@ require "json"
 class PowerupTimeWarp < Powerup
   STACK_KEY = "timewarp_stack"
   ACTIVE_STACK_KEY = "active_stack"
-  BASE_PRICE = 10.0
+  BASE_PRICE = 50.0
   UNIT_MULTIPLIER = 2.0
-  DURATION = 12
+  DURATION = 600
   KEY_DURATION = "timewarp_duration"
 
   def new_multiplier(public_key) : Float64
