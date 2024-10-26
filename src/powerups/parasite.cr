@@ -89,7 +89,7 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
 
         @game.inc_time_units left, -amount
         @game.inc_time_units public_key, amount
-        @game.send_animation_event left, Animation::NUMBER_FLOAT, { "value" => -amount, "color" => "red" }
+        @game.send_animation_event left, Animation::NUMBER_FLOAT, { "value" => "Parasite #{amount.round(2)}", "color" => "#CFE9A0" }
       end
 
       if right && !@game.has_powerup right, PowerupForceField.get_powerup_id
@@ -100,7 +100,7 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
 
         @game.inc_time_units right, -amount
         @game.inc_time_units public_key, amount
-        @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => -amount, "color" => "red" }
+        @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => "Parasite #{amount.round(2)}", "color" => "#CFE9A0" }
       end
 
       @game.set_key_value public_key, KEY_ACTIVE_COOLDOWN, (@game.ts + ACTIVE_COOLDOWN).to_s

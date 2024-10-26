@@ -444,6 +444,13 @@ class Game
     secret_token
   end
 
+  def get_player_name (public_key : String) : String
+    name = WWWR::R.hget(Keys::PLAYER_NAME, public_key)
+    name = name.to_s?
+    name ||= "Anonymous"
+    name
+  end
+
   def get_data_for (public_key : String)
     time_units = Redis::Future.new
     player_name = Redis::Future.new
