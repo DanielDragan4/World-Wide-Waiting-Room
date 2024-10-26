@@ -75,7 +75,29 @@ function formatTimeUnits(tu) {
 }
 
 function performAnimation(jsonMsg) {
-  console.log("ANIMATION", jsonMsg)
+  const { animation, data, player_public_key } = jsonMsg;
+
+  switch (animation) {
+    case "NUMBER_FLOAT": {
+      const { value, color } = data;
+      const playerElm = document.getElementById(player_public_key); 
+      const br = playerElm.getBoundingClientRect();
+      floater = document.createElement("div")
+      floater.innerText = `${value ?? 0}`;
+      let yPos = br.y
+      let steps = 100;
+      const r = setInterval(() => {
+        floater.style.cssText = `position: absolute; color: ${color ?? 'white'}; top: ${yPos}px; left: ${br.x + br.width / 2}px; z-index: 1000000; opacity: ${steps / 50}`
+        yPos -= 0.5;
+        steps--;
+        if (steps <= 0) {
+          floater.remove();
+          clearInterval(r); 
+        }
+      }, 1/30)
+      document.body.appendChild(floater);
+    }
+  }
 }
 
 function toggleWhatIsThis() {
@@ -105,11 +127,12 @@ worker.onmessage = ({ data }) => {
   const newLeaderboardHtml = document.createElement("div");
   data.forEach((player) => {
     const card = document.createElement("div");
-
+    card.id = player.public_key
     card.innerHTML = `
     <div 
       style="background-color: ${player.bg_color}; color: ${player.text_color}" 
       class="
+        relative
         p-4 
         rounded 
         m-2 
@@ -207,6 +230,5 @@ ${buyButton}
     }
   })
 
-  console.log(time_left)
   thisPlayerId = player.public_key
 })

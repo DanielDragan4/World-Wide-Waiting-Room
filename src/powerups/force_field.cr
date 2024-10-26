@@ -1,6 +1,8 @@
 require "../powerup"
 require "./force_field.cr"
 
+require "../worldwidewaitingroom.cr"
+
 class PowerupForceField < Powerup
   BASE_PRICE = 10_000_000
   COOLDOWN = 60 * 60

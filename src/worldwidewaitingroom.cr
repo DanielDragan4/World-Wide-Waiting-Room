@@ -23,29 +23,37 @@ require "./templates"
 
 alias Secret = String
 alias Public = String
+alias ChannelValueType = String
 
 templates = Templates.new
 
 module WWWR
   R = Redis::PooledClient.new
-  Channels = Set(Tuple(String, Channel(Nil), Public)).new
+  Channels = Set(Tuple(String, Channel(ChannelValueType), Public)).new
+end
+
+enum Animation
+  NUMBER_FLOAT
 end
 
 module Events
-  SYNC = "sync"
-  LOGIN = "login"
-  ORDER_CHANGED = "order_change"
-  LOGOUT = "logout"
-  PLAYER_UPDATE = "player_update"
-
-  def self.sync (leaderboard, player_data, powerups, time_left)
+  def self.animation (public_key : String, animation : Animation, data) : String
     {
-      "event" => Events::SYNC,
+      "event" => "animation",
+      "player_public_key" => public_key,
+      "animation" => animation.to_s,
+      "data" => data
+    }.to_json
+  end
+
+  def self.sync (leaderboard, player_data, powerups, time_left) : String
+    {
+      "event" => "sync",
       "leaderboard" => leaderboard,
       "time_left" => time_left,
       "player" => player_data,
       "powerups" => powerups
-    }
+    }.to_json
   end
 end
 
@@ -63,7 +71,15 @@ module Keys
   PLAYER_METADATA = "metadata"
   PLAYER_TOKENS = "tokens"
   PLAYER_TIME_UNITS = "time_units"
+
+  # PLAYER_FRAME_TUPS is the value that is visually present in the UI. PLAYER_TIME_UNITS_PER_SECOND is the manipulatable value
+  # The reason for needing both is that at the end of a frame the PLAYER_TIME_UNITS_PER_SECOND is not an accurate representation
+  # of the player's TUPS for that frame.
+  # PLAYER_FRAME_TUPS contains the correct value for that frame.
+
+  PLAYER_FRAME_TUPS = "frame_time_units_per_second"
   PLAYER_TIME_UNITS_PER_SECOND = "time_units_per_second"
+
   PLAYER_NAME = "name"
   PLAYER_BG_COLOR = "bg_color"
   PLAYER_TEXT_COLOR = "text_color"
@@ -98,6 +114,7 @@ class Game
       do_powerup_actions player_public_key, dt
 
       player_tups = get_player_time_units_ps player_public_key
+      WWWR::R.hset Keys::PLAYER_FRAME_TUPS, player_public_key, player_tups
       inc_time_units player_public_key, player_tups * multiplier
 
       do_powerup_cleanup player_public_key
@@ -327,7 +344,8 @@ class Game
     WWWR::Channels.each do |c|
       if c[2] == public_key && !c[1].closed?
         begin
-          c[1].send nil
+          sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), (get_time_left)
+          c[1].send sync_data
         rescue
         end
       end
@@ -338,9 +356,26 @@ class Game
     WWWR::Channels.each do |c|
       spawn do
         channel = c[1]
+        public_key = c[2]
         next if channel.closed?
         begin
-          channel.send nil
+          sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), get_time_left
+          channel.send sync_data
+        rescue
+        end
+      end
+    end
+  end
+
+  def send_animation_event (public_key : String, animation : Animation, data)
+    animation = Events.animation public_key, animation, data
+    WWWR::Channels.each do |c|
+      spawn do
+        channel = c[1]
+        public_key = c[2]
+        next if channel.closed?
+        begin
+          channel.send animation
         rescue
         end
       end
@@ -349,6 +384,9 @@ class Game
 
   def defer_sync
     @sync_next_frame = true
+  end
+
+  def broadcast_animation_event (public_key : String)
   end
 
   def broadcast_online (public_key : String)
@@ -419,7 +457,7 @@ class Game
       player_name = r.hget(Keys::PLAYER_NAME, public_key)
       player_bg_color = r.hget(Keys::PLAYER_BG_COLOR, public_key)
       player_text_color = r.hget(Keys::PLAYER_TEXT_COLOR, public_key)
-      tps = r.hget(Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key)
+      tps = r.hget(Keys::PLAYER_FRAME_TUPS, public_key)
       metadata = r.hget(Keys::GLOBAL_VARS, public_key)
     end
 
@@ -610,7 +648,7 @@ ws "/ws" do |socket, context|
 
   channel_key = Random.new.hex
 
-  events = Channel(Nil).new
+  events = Channel(ChannelValueType).new
 
   spawn do
     loop do
@@ -619,9 +657,10 @@ ws "/ws" do |socket, context|
       end
 
       select
-      when events.receive?
-        sync_data = Events.sync game.get_leaderboard, (game.get_data_for public_key), (game.get_serialized_powerups public_key), (game.get_time_left)
-        socket.send sync_data.to_json
+      when event_data = events.receive?
+        if event_data
+          socket.send event_data
+        end
       else
       end
 
@@ -641,7 +680,7 @@ ws "/ws" do |socket, context|
       game.broadcast_online public_key
     end
 
-    events.send nil
+    game.sync_player public_key
   end
 
   socket.on_close do
