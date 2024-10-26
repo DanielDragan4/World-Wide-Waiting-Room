@@ -63,9 +63,9 @@ class PowerupOverCharge < Powerup
   end
 
   def player_card_powerup_active_css_class(public_key)
-    "border-8 border-red-600 rounded-2xl animate-pulse"
+    "border-8 border-red-600 rounded-2xl"
   end
-  
+
   def buy_action (public_key)
     if public_key
       if is_available_for_purchase(public_key)
@@ -84,10 +84,10 @@ class PowerupOverCharge < Powerup
         durations = Array(String)
         passive_powerups = Array(Bool)
 
-        if (!active_stack.nil?) && (active_stack > 0) 
+        if (!active_stack.nil?) && (active_stack > 0)
             durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
             durations << ((@game.ts + DURATION).to_s)
-        else 
+        else
             durations = [(@game.ts + DURATION).to_s]
         end
 
@@ -97,7 +97,7 @@ class PowerupOverCharge < Powerup
         @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
 
         if !active_stack.nil?
-            new_active_stack = active_stack + 1 
+            new_active_stack = active_stack + 1
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
         else
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, "1")
@@ -111,7 +111,7 @@ class PowerupOverCharge < Powerup
     end
   end
 
-  def action (public_key, dt)   
+  def action (public_key, dt)
     if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
         a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
         active_stack = a_s.nil? ? 0 : a_s
@@ -126,7 +126,7 @@ class PowerupOverCharge < Powerup
     if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
       a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
       active_stack = a_s.nil? ? 0 : a_s
-    
+
         unit_rate = @game.get_player_time_units_ps(public_key)
         overcharge_rate = unit_rate / (new_multiplier(public_key) ** active_stack.to_i)
         @game.set_player_time_units_ps(public_key, overcharge_rate)
@@ -140,8 +140,8 @@ class PowerupOverCharge < Powerup
           if (duration < current_time)
             durations.delete_at(0)
             @game.set_key_value public_key, KEY_DURATION,  durations.to_json
-              
-            new_active_stack = active_stack - 1  
+
+            new_active_stack = active_stack - 1
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
 
             if(durations.size == 0)

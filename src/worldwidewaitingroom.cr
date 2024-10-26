@@ -475,7 +475,7 @@ class Game
     powerups = (get_player_powerups public_key)
     powerup_classes = get_powerup_classes
 
-    powerup_icons = powerups.map { |x| powerup_classes[x].player_card_powerup_icon public_key }
+    powerup_icons = powerups.map { |x| powerup_classes[x].player_card_powerup_icon public_key }.reject { |x| x == "" }
     css_classes = powerups.map { |x| powerup_classes[x].player_card_powerup_active_css_class public_key }
     css_classes = css_classes.join " "
 
