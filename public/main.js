@@ -133,6 +133,11 @@ function escape(text) {
 worker.onmessage = ({ data }) => {
   const leaderboard = document.querySelector("#leaderboard");
   const newLeaderboardHtml = document.createElement("div");
+
+  // const thisPlayerData = data.find((player) => {
+  //   return player.public_key === thisPlayerId
+  // })
+
   data.forEach((player) => {
     const card = document.createElement("div");
     card.id = player.public_key
@@ -171,12 +176,15 @@ worker.onmessage = ({ data }) => {
         </span>
         <span>Units/s</span>
       </div>
-      <!--
-      <div class="flex flex-row space-x-2 justify-center" id="action-buttons">
-        <button class="border rounded px-1 bg-white text-black hover:bg-black hover:text-white">Breach</button>
-      </div>
-      -->
-    </div>`
+    </div>
+    `
+    //`
+    //  <div class="flex flex-row space-x-2 justify-center" id="action-buttons">
+    //    ${
+    //      thisPlayerData.input_button_text.map((x) => '<button hx-post="/buy" name="powerup" value="' + x + '" class="border rounded px-1 bg-white text-black hover:bg-black hover:text-white">' + x +  '</button>').join('\n')
+    //    }
+    //  </div>
+    //</div>`
     newLeaderboardHtml.appendChild(card)
 
     if (player.public_key === thisPlayerId) {
