@@ -25,6 +25,10 @@ class PowerupParasite < Powerup
     "Parasite"
   end
 
+  def player_card_powerup_icon (public_key)
+    "/parasite.png"
+  end
+
   def get_description (public_key)
     new_percentage_steal = new_percentage_steal(public_key)
     "Once every #{ACTIVE_COOLDOWN / 60} minutes for #{DURATION / 60} minutes steal #{new_percentage_steal.round(2)}% of the units from the player directly ahead of you and directly behind you.
@@ -89,7 +93,7 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
 
         @game.inc_time_units left, -amount
         @game.inc_time_units public_key, amount
-        @game.send_animation_event left, Animation::NUMBER_FLOAT, { "value" => -amount, "color" => "red" }
+        @game.send_animation_event left, Animation::NUMBER_FLOAT, { "value" => "Parasite #{amount.round(2)}", "color" => "#CFE9A0" }
       end
 
       if right && !@game.has_powerup right, PowerupForceField.get_powerup_id
@@ -100,7 +104,7 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
 
         @game.inc_time_units right, -amount
         @game.inc_time_units public_key, amount
-        @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => -amount, "color" => "red" }
+        @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => "Parasite #{amount.round(2)}", "color" => "#CFE9A0" }
       end
 
       @game.set_key_value public_key, KEY_ACTIVE_COOLDOWN, (@game.ts + ACTIVE_COOLDOWN).to_s
@@ -108,9 +112,10 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
   end
 
   def cleanup (public_key)
-    duration = @game.get_key_value_as_float public_key, KEY_COOLDOWN
+    duration = @game.get_key_value_as_float public_key, KEY_DURATION
 
     if duration && @game.ts > duration
+      puts "Removing parasite from", public_key
       @game.remove_powerup public_key, PowerupParasite.get_powerup_id
     end
   end

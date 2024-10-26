@@ -416,7 +416,8 @@ class Game
   end
 
   def add_powerup (public_key : String, powerup_id : String)
-    WWWR::R.zadd("powerups-#{public_key}", 0, powerup_id)
+    remove_powerup public_key, powerup_id
+    WWWR::R.rpush("powerups-#{public_key}", powerup_id)
   end
 
   def has_powerup (public_key : String, powerup_id : String) : Bool
@@ -424,11 +425,11 @@ class Game
   end
 
   def remove_powerup (public_key : String, powerup_id : String)
-    WWWR::R.zrem("powerups-#{public_key}", powerup_id)
+    WWWR::R.lrem("powerups-#{public_key}", 0, powerup_id)
   end
 
   def get_player_powerups (public_key : String)
-    WWWR::R.zrange("powerups-#{public_key}", 0, -1)
+    WWWR::R.lrange("powerups-#{public_key}", 0, -1)
   end
 
   def setup_new_waiter
@@ -446,6 +447,13 @@ class Game
     end
 
     secret_token
+  end
+
+  def get_player_name (public_key : String) : String
+    name = WWWR::R.hget(Keys::PLAYER_NAME, public_key)
+    name = name.to_s?
+    name ||= "Anonymous"
+    name
   end
 
   def get_data_for (public_key : String)
@@ -468,7 +476,7 @@ class Game
     powerups = (get_player_powerups public_key)
     powerup_classes = get_powerup_classes
 
-    powerup_icons = powerups.map { |x| powerup_classes[x].player_card_powerup_icon public_key }
+    powerup_icons = powerups.map { |x| powerup_classes[x].player_card_powerup_icon public_key }.reject { |x| x == "" }
     css_classes = powerups.map { |x| powerup_classes[x].player_card_powerup_active_css_class public_key }
     css_classes = css_classes.join " "
 

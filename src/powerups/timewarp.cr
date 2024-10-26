@@ -66,9 +66,9 @@ class PowerupTimeWarp < Powerup
   end
 
   def player_card_powerup_active_css_class(public_key)
-    "border-8 border-purple-700 rounded-2xl animate-pulse"
+    "border-8 border-purple-700 rounded-2xl"
   end
-  
+
   def buy_action (public_key)
 
     if public_key
@@ -86,7 +86,7 @@ class PowerupTimeWarp < Powerup
         active_stack = a_s.nil? ? 0 : a_s
 
         durations = Array(String)
-        if (!active_stack.nil?) && (active_stack > 0) 
+        if (!active_stack.nil?) && (active_stack > 0)
             durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
             durations << ((@game.ts + DURATION).to_s)
         else
@@ -98,7 +98,7 @@ class PowerupTimeWarp < Powerup
         @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
 
         if !active_stack.nil?
-            new_active_stack = active_stack + 1 
+            new_active_stack = active_stack + 1
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
         end
 
@@ -132,7 +132,7 @@ class PowerupTimeWarp < Powerup
         @game.set_player_time_units_ps(public_key, timewarp_rate)
       end
       durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
-    
+
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
           duration = durations[0].to_i
           current_time = @game.ts
@@ -145,7 +145,7 @@ class PowerupTimeWarp < Powerup
               durations.delete_at(0)
               @game.set_key_value public_key, KEY_DURATION,  durations.to_json
 
-              new_active_stack = active_stack - 1  
+              new_active_stack = active_stack - 1
               @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
           else
               nil

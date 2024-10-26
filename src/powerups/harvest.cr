@@ -21,7 +21,7 @@ class PowerupHarvest < Powerup
   end
 
   def get_description(public_key)
-    "Collects the next hour's worth of units with the current units per second including boosts, but pauses unit generation for that hour #{get_harvest_amount(public_key).round(2)}"
+    "Collects the next hour's worth of units with the current units per second including boosts in the units per second for the hour, but pauses unit generation for that hour | #{get_harvest_amount(public_key).round(2)} units"
   end
 
   def get_harvest_amount (public_key)
@@ -85,7 +85,7 @@ class PowerupHarvest < Powerup
 
         @game.set_key_value(public_key, DURATION_KEY, (@game.ts + HARVEST_TIME).to_s)
 
-        
+
       end
     else
       nil
@@ -94,10 +94,12 @@ class PowerupHarvest < Powerup
   end
 
   def action (public_key, dt)
+    puts "HARVEST ACTION #{@game.ts}"
   end
 
   def cleanup (public_key)
     if @game.get_player_cooldown public_key, DURATION_KEY
+        puts "HARVEST CLEANUP #{@game.ts}"
         @game.set_player_time_units_ps(public_key, 1)
         @game.remove_powerup public_key, PowerupHarvest.get_powerup_id
     end

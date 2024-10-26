@@ -1,4 +1,5 @@
 const powerups = {}
+// const powerupIcons = {}
 const waiterCard = document.querySelector("#waiter-card");
 const powerupsContainer = document.querySelector("#powerups");
 const timeLeftContainer = document.querySelector("#time-left")
@@ -64,7 +65,7 @@ function formatTimeUnits(tu) {
     power++
   }
 
-  return `<div class="flex flex-row items-center">
+  return `<div class="flex flex-row items-center justify-center">
     <div>${tu.toFixed(5)}</div>
     <div class="font-light text-[0.8em] mx-2">x</div> 
     <div class="flex flex-row items-start">
@@ -82,7 +83,7 @@ function performAnimation(jsonMsg) {
       const { value, color } = data;
       const playerElm = document.getElementById(player_public_key); 
       const br = playerElm.getBoundingClientRect();
-      floater = document.createElement("div")
+      const floater = document.createElement("div")
       floater.innerText = `${value ?? 0}`;
       let yPos = br.y
       let steps = 100;
@@ -122,22 +123,37 @@ function notAvailableString(powerup) {
   return "Not Available";
 }
 
+function escape(text) {
+  const s = document.createElement("span")
+  const tn = document.createTextNode(text)
+  s.appendChild(tn)
+  return s.innerHTML;
+}
+
 worker.onmessage = ({ data }) => {
   const leaderboard = document.querySelector("#leaderboard");
   const newLeaderboardHtml = document.createElement("div");
+
+  // const thisPlayerData = data.find((player) => {
+  //   return player.public_key === thisPlayerId
+  // })
+
   data.forEach((player) => {
     const card = document.createElement("div");
     card.id = player.public_key
+
     card.innerHTML = `
     <div 
       style="background-color: ${player.bg_color}; color: ${player.text_color}" 
       class="
+        overflow-x-hidden
+        overflow-y-hidden
         relative
-        p-4 
+        p-2
         rounded 
         m-2 
-        w-[200px]
-        h-[200px]
+        w-[250px]
+        h-[250px]
         text-white 
         flex 
         flex-col 
@@ -145,6 +161,11 @@ worker.onmessage = ({ data }) => {
         ${player.player_card_css_classes}
     ">
       <span class="text-2xl text-center">${escape(player.name)}</span>
+      <div class="flex flex-row space-x-2 justify-center">
+        ${
+          player.player_powerup_icons.map((x) => '<img class="w-[15px]" src="' + x + '"/>').join('\n')
+        }
+      </div>
       <div class="text-center my-auto flex flex-col">
         <span class="font-bold text-xl">
           ${formatTimeUnits(player.time_units)}
@@ -154,19 +175,26 @@ worker.onmessage = ({ data }) => {
           ${player.time_units_per_second.toFixed(2)}
         </span>
         <span>Units/s</span>
-        <span>${player.powerups.join(', ')}</span>
       </div>
-    </div>`
+    </div>
+    `
+    //`
+    //  <div class="flex flex-row space-x-2 justify-center" id="action-buttons">
+    //    ${
+    //      thisPlayerData.input_button_text.map((x) => '<button hx-post="/buy" name="powerup" value="' + x + '" class="border rounded px-1 bg-white text-black hover:bg-black hover:text-white">' + x +  '</button>').join('\n')
+    //    }
+    //  </div>
+    //</div>`
     newLeaderboardHtml.appendChild(card)
 
     if (player.public_key === thisPlayerId) {
-      waiterCard.innerHTML = card.innerHTML;
+      Idiomorph.morph(waiterCard, card.outerHTML, { morphStyle: 'innerHTML' });
       // Defined in index.html originally
       playerCurrentTimeUnits = player.time_units;
     }
   });
 
-  leaderboard.innerHTML = newLeaderboardHtml.innerHTML
+  Idiomorph.morph(leaderboard, newLeaderboardHtml.innerHTML, { morphStyle: 'innerHTML' });
 }
 
 document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
@@ -225,7 +253,7 @@ ${buyButton}
       if (!powerupContainer) {
         powerupsContainer.appendChild(powerupCard);
       } else {
-        powerupContainer.innerHTML = powerupCard.innerHTML;
+        Idiomorph.morph(powerupContainer, powerupCard, { morphStyle: 'innerHTML' });
       }
     }
   })
