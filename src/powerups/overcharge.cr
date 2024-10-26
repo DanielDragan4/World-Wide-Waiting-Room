@@ -112,6 +112,7 @@ class PowerupOverCharge < Powerup
   end
 
   def action (public_key, dt)
+    puts "OVERCHARGE ACTION #{@game.ts}"
     if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
         a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
         active_stack = a_s.nil? ? 0 : a_s
@@ -123,6 +124,7 @@ class PowerupOverCharge < Powerup
   end
 
   def cleanup (public_key)
+    puts "OVERCHARGE CLEANUP #{@game.ts}"
     if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
       a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
       active_stack = a_s.nil? ? 0 : a_s

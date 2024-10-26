@@ -416,7 +416,8 @@ class Game
   end
 
   def add_powerup (public_key : String, powerup_id : String)
-    WWWR::R.zadd("powerups-#{public_key}", 0, powerup_id)
+    remove_powerup public_key, powerup_id
+    WWWR::R.rpush("powerups-#{public_key}", powerup_id)
   end
 
   def has_powerup (public_key : String, powerup_id : String) : Bool
@@ -424,11 +425,11 @@ class Game
   end
 
   def remove_powerup (public_key : String, powerup_id : String)
-    WWWR::R.zrem("powerups-#{public_key}", powerup_id)
+    WWWR::R.lrem("powerups-#{public_key}", 0, powerup_id)
   end
 
   def get_player_powerups (public_key : String)
-    WWWR::R.zrange("powerups-#{public_key}", 0, -1)
+    WWWR::R.lrange("powerups-#{public_key}", 0, -1)
   end
 
   def setup_new_waiter

@@ -85,7 +85,7 @@ class PowerupHarvest < Powerup
 
         @game.set_key_value(public_key, DURATION_KEY, (@game.ts + HARVEST_TIME).to_s)
 
-        
+
       end
     else
       nil
@@ -94,10 +94,12 @@ class PowerupHarvest < Powerup
   end
 
   def action (public_key, dt)
+    puts "HARVEST ACTION #{@game.ts}"
   end
 
   def cleanup (public_key)
     if @game.get_player_cooldown public_key, DURATION_KEY
+        puts "HARVEST CLEANUP #{@game.ts}"
         @game.set_player_time_units_ps(public_key, 1)
         @game.remove_powerup public_key, PowerupHarvest.get_powerup_id
     end
