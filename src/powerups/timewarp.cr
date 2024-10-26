@@ -4,9 +4,9 @@ require "json"
 class PowerupTimeWarp < Powerup
   STACK_KEY = "timewarp_stack"
   ACTIVE_STACK_KEY = "active_stack"
-  BASE_PRICE = 100.0
+  BASE_PRICE = 10.0
   UNIT_MULTIPLIER = 2.0
-  DURATION = 600
+  DURATION = 12
   KEY_DURATION = "timewarp_duration"
 
   def new_multiplier(public_key) : Float64
@@ -77,7 +77,7 @@ class PowerupTimeWarp < Powerup
         @game.add_active public_key
 
         a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
-        active_stack = a_s.nil? ? 0 : @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+        active_stack = a_s.nil? ? 0 : a_s
 
         durations = Array(String)
         if (!active_stack.nil?) && (active_stack > 0) 
@@ -87,10 +87,6 @@ class PowerupTimeWarp < Powerup
             durations = [(@game.ts + DURATION).to_s]
         end
         @game.set_key_value public_key, KEY_DURATION,  durations.to_json
-
-        unit_rate = @game.get_player_time_units_ps(public_key)
-        timewarp_rate = unit_rate * new_multiplier(public_key)
-        @game.set_player_time_units_ps(public_key, timewarp_rate)
 
         new_stack = current_stack + 1
         @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
@@ -110,34 +106,46 @@ class PowerupTimeWarp < Powerup
   end
 
   def action (public_key, dt)
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
+        a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+        active_stack = a_s.nil? ? 0 : a_s
+
+        unit_rate = @game.get_player_time_units_ps(public_key)
+        timewarp_rate = unit_rate * (new_multiplier(public_key) ** active_stack.to_i)
+        puts timewarp_rate
+        @game.set_player_time_units_ps(public_key, timewarp_rate)
+    end
   end
 
   def cleanup (public_key)
-    if public_key
-      durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
-
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
       a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
-      active_stack = a_s.nil? ? 0 : @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+      active_stack = a_s.nil? ? 0 : a_s
 
+        unit_rate = @game.get_player_time_units_ps(public_key)
+        timewarp_rate = unit_rate / (new_multiplier(public_key) ** active_stack.to_i)
+        @game.set_player_time_units_ps(public_key, timewarp_rate)
+      
+      durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
+    
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
           duration = durations[0].to_i
           current_time = @game.ts
-          
+
           if (duration < current_time)
+            if(active_stack <= 1)
+              @game.remove_powerup public_key, PowerupTimeWarp.get_powerup_id
+            end
+
               durations.delete_at(0)
               @game.set_key_value public_key, KEY_DURATION,  durations.to_json
 
-              unit_rate = @game.get_player_time_units_ps(public_key)
-              timewarp_rate = unit_rate / new_multiplier(public_key)
-              @game.set_player_time_units_ps(public_key, timewarp_rate)
-
-              
               new_active_stack = active_stack - 1  
               @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
           else
               nil
           end
       end
-  end
+    end
   end
 end

@@ -6,17 +6,10 @@ require "./compound_interest"
 class PowerupOverCharge < Powerup
   STACK_KEY = "overcharge_stack"
   ACTIVE_STACK_KEY = "overcharge_active_stack"
-  BASE_PRICE = 100.0
+  BASE_PRICE = 10.0
   UNIT_MULTIPLIER = 5.0
-  DURATION = 120
+  DURATION = 12
   KEY_DURATION = "overcharge_duration"
-  OVERCHARGE_OWENED_KEY = "overcharge_owned"
-
-  PASSIVE_POWERUP_KEYS = [
-    PowerupUnitMultiplier.get_powerup_id,
-    PowerupCompoundInterest.get_powerup_id
-  ]
-
 
   def self.get_powerup_id
     "overcharge"
@@ -53,6 +46,10 @@ class PowerupOverCharge < Powerup
     500
   end
 
+  def new_multiplier(public_key) : Float64
+    get_synergy_boosted_multiplier(public_key, UNIT_MULTIPLIER)
+  end
+
   def get_player_stack_size(public_key)
     if public_key
       size = @game.get_key_value(public_key, STACK_KEY)
@@ -75,7 +72,7 @@ class PowerupOverCharge < Powerup
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) - price)
 
         a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
-        active_stack = a_s.nil? ? 0 : @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+        active_stack = a_s.nil? ? 0 : a_s
 
         durations = Array(String)
         passive_powerups = Array(Bool)
@@ -83,27 +80,9 @@ class PowerupOverCharge < Powerup
         if (!active_stack.nil?) && (active_stack > 0) 
             durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
             durations << ((@game.ts + DURATION).to_s)
-
         else 
             durations = [(@game.ts + DURATION).to_s]
-
-            if(active_stack == 0)
-                owned_powerups = [] of String
-                PASSIVE_POWERUP_KEYS.each do |p|
-                    if  @game.has_powerup public_key, p
-                        owned_powerups << p
-                        @game.remove_powerup public_key, p
-                    end
-                end
-    
-                puts owned_powerups
-              
-                @game.set_key_value public_key, OVERCHARGE_OWENED_KEY, owned_powerups.to_json 
-            end
         end
-        unit_rate = @game.get_player_time_units_ps(public_key)
-        overcharge_rate = unit_rate * UNIT_MULTIPLIER
-        @game.set_player_time_units_ps(public_key, overcharge_rate)
 
         @game.set_key_value public_key, KEY_DURATION,  durations.to_json
 
@@ -126,41 +105,41 @@ class PowerupOverCharge < Powerup
   end
 
   def action (public_key, dt)   
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
+        a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+        active_stack = a_s.nil? ? 0 : a_s
+
+        unit_rate = @game.get_player_time_units_ps(public_key)
+        overcharge_rate = unit_rate * (new_multiplier(public_key) ** active_stack.to_i)
+        puts overcharge_rate
+        @game.set_player_time_units_ps(public_key, overcharge_rate)
+    end
   end
 
   def cleanup (public_key)
-    if public_key
-      durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
-
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
       a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
-      active_stack = a_s.nil? ? 0 : @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+      active_stack = a_s.nil? ? 0 : a_s
+    
+        unit_rate = @game.get_player_time_units_ps(public_key)
+        overcharge_rate = unit_rate / (new_multiplier(public_key) ** active_stack.to_i)
+        @game.set_player_time_units_ps(public_key, overcharge_rate)
+
+        durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
 
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
           duration = durations[0].to_i
           current_time = @game.ts
-          unit_rate = @game.get_player_time_units_ps(public_key)
 
           if (duration < current_time)
             durations.delete_at(0)
             @game.set_key_value public_key, KEY_DURATION,  durations.to_json
-
-            overcharge_rate = unit_rate / UNIT_MULTIPLIER
-            @game.set_player_time_units_ps(public_key, overcharge_rate)
-
               
             new_active_stack = active_stack - 1  
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
 
             if(durations.size == 0)
-                saved_powerups = @game.get_key_value public_key, OVERCHARGE_OWENED_KEY 
                 @game.remove_powerup public_key, PowerupOverCharge.get_powerup_id
-
-                if (!saved_powerups.nil?) && (!saved_powerups.empty?)
-                    pu_array = Array(String).from_json saved_powerups
-                    pu_array.each do |p|
-                    @game.add_powerup public_key, p
-                    end
-                end
             end
             @game.set_key_value public_key, ACTIVE_STACK_KEY, (active_stack -1).to_s
         else

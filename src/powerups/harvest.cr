@@ -11,14 +11,6 @@ class PowerupHarvest < Powerup
   DURATION_KEY = "harvest_duration"
   BASE_PRICE = 100.0
   HARVEST_TIME = 3600
-  OWENED_KEY = "harvest_owned"
-
-  PASSIVE_POWERUP_KEYS = [
-    PowerupOverCharge.get_powerup_id,
-    PowerupTimeWarp.get_powerup_id,
-    PowerupUnitMultiplier.get_powerup_id,
-    PowerupCompoundInterest.get_powerup_id
-  ]
 
   def self.get_powerup_id
     "harvest"
@@ -53,7 +45,7 @@ class PowerupHarvest < Powerup
   end
 
   def max_stack_size (public_key)
-    500
+    1
   end
 
   def get_player_stack_size(public_key)
@@ -70,7 +62,7 @@ class PowerupHarvest < Powerup
     if public_key
       if is_available_for_purchase(public_key)
 
-        current_stack = get_player_stack_size(public_key)
+        c_s = get_player_stack_size(public_key)
         price = get_price(public_key)
 
         puts "Purhcased Harvest!"
@@ -81,23 +73,12 @@ class PowerupHarvest < Powerup
         duration = (@game.ts + HARVEST_TIME).to_s
         @game.set_key_value public_key, DURATION_KEY,  duration.to_s
 
-
+        current_stack = c_s.nil? ? 0 : c_s
+        
         new_stack = current_stack + 1
         @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
 
         @game.set_key_value(public_key, DURATION_KEY, (@game.ts + HARVEST_TIME).to_s)
-
-        owned_powerups = [] of String
-            PASSIVE_POWERUP_KEYS.each do |p|
-                if  @game.has_powerup public_key, p
-                    owned_powerups << p
-                    @game.remove_powerup public_key, p
-                end
-            end
-    
-        puts owned_powerups
-              
-        @game.set_key_value public_key, OWENED_KEY, owned_powerups.to_json 
       end
     else
       nil
@@ -110,17 +91,8 @@ class PowerupHarvest < Powerup
 
   def cleanup (public_key)
     if @game.get_player_cooldown public_key, DURATION_KEY
-        saved_powerups = @game.get_key_value public_key, OWENED_KEY 
-        @game.remove_powerup public_key, PowerupHarvest.get_powerup_id
-
         @game.set_player_time_units_ps(public_key, 1)
-
-        if (!saved_powerups.nil?) && (!saved_powerups.empty?)
-            pu_array = Array(String).from_json saved_powerups
-            pu_array.each do |p|
-            @game.add_powerup public_key, p
-            end
-        end
+        @game.remove_powerup public_key, PowerupHarvest.get_powerup_id
     end
   end
 end
