@@ -9,7 +9,7 @@ class PowerupHarvest < Powerup
   STACK_KEY = "harvest_stack"
   ACTIVE_STACK_KEY = "active_stack"
   DURATION_KEY = "harvest_duration"
-  BASE_PRICE = 100.0
+  BASE_PRICE = 500.0
   HARVEST_TIME = 3600
 
   def self.get_powerup_id
@@ -57,6 +57,10 @@ class PowerupHarvest < Powerup
     end
   end
 
+  def player_card_powerup_active_css_class(public_key)
+    "border border-rounded border-[10px] border-transparent bg-[#e0f7ff] bg-opacity-80 shadow-[inset_0_0_10px_rgba(173,216,230,0.5),_0_0_15px_rgba(173,216,230,0.8),_0_0_20px_rgba(30,144,255,0.6)] hover:bg-[#d6f0ff] transition-all duration-200 ease-in-out"
+  end
+
   def buy_action (public_key)
 
     if public_key
@@ -67,6 +71,7 @@ class PowerupHarvest < Powerup
 
         puts "Purhcased Harvest!"
         @game.add_powerup public_key, PowerupHarvest.get_powerup_id
+        @game.send_animation_event public_key, Animation::NUMBER_FLOAT, {"value" => "Harvested #{get_harvest_amount(public_key).round(2)} units!","color" => "#CFE9A0"}
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) + ( get_harvest_amount(public_key) - price))
         @game.set_player_time_units_ps(public_key, 0)
 
@@ -74,11 +79,13 @@ class PowerupHarvest < Powerup
         @game.set_key_value public_key, DURATION_KEY,  duration.to_s
 
         current_stack = c_s.nil? ? 0 : c_s
-        
+
         new_stack = current_stack + 1
         @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
 
         @game.set_key_value(public_key, DURATION_KEY, (@game.ts + HARVEST_TIME).to_s)
+
+        
       end
     else
       nil

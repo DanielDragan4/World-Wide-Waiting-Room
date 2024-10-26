@@ -6,7 +6,7 @@ require "./compound_interest"
 class PowerupOverCharge < Powerup
   STACK_KEY = "overcharge_stack"
   ACTIVE_STACK_KEY = "overcharge_active_stack"
-  BASE_PRICE = 50.0
+  BASE_PRICE = 2.0
   UNIT_MULTIPLIER = 5.0
   DURATION = 120
   KEY_DURATION = "overcharge_duration"
@@ -62,6 +62,10 @@ class PowerupOverCharge < Powerup
     end
   end
 
+  def player_card_powerup_active_css_class(public_key)
+    "border-8 border-red-600 rounded-2xl animate-pulse"
+  end
+  
   def buy_action (public_key)
     if public_key
       if is_available_for_purchase(public_key)

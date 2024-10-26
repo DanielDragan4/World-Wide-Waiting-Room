@@ -4,7 +4,7 @@ require "json"
 class PowerupTimeWarp < Powerup
   STACK_KEY = "timewarp_stack"
   ACTIVE_STACK_KEY = "active_stack"
-  BASE_PRICE = 50.0
+  BASE_PRICE = 100.0
   UNIT_MULTIPLIER = 2.0
   DURATION = 600
   KEY_DURATION = "timewarp_duration"
@@ -65,6 +65,10 @@ class PowerupTimeWarp < Powerup
     end
   end
 
+  def player_card_powerup_active_css_class(public_key)
+    "border-8 border-purple-700 rounded-2xl animate-pulse"
+  end
+  
   def buy_action (public_key)
 
     if public_key
