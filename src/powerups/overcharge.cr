@@ -19,16 +19,19 @@ class PowerupOverCharge < Powerup
     "Over Charge"
   end
 
-  def is_afflication_powerup(public_key)
-    true
-  end
-
   def is_stackable
     true
   end
 
   def get_description(public_key)
-    "Increases Unit production by 5x but disables all passive powerups for 2 minutes. Prices increase with each additional purchase"
+    if public_key
+        a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+        active_stack = a_s.nil? ? 1 : a_s + 1
+        amount = (new_multiplier(public_key) ** active_stack.to_i)
+        "Increases Unit production by #{amount}x but disables all passive powerups for 2 minutes. Prices increase with each additional purchase"
+    else
+        "Increases Unit production by 5x but disables all passive powerups for 2 minutes. Prices increase with each additional purchase"
+    end
   end
 
   def get_price (public_key)
@@ -111,7 +114,6 @@ class PowerupOverCharge < Powerup
 
         unit_rate = @game.get_player_time_units_ps(public_key)
         overcharge_rate = unit_rate * (new_multiplier(public_key) ** active_stack.to_i)
-        puts overcharge_rate
         @game.set_player_time_units_ps(public_key, overcharge_rate)
     end
   end

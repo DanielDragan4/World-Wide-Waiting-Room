@@ -26,8 +26,10 @@ class PowerupTimeWarp < Powerup
   end
 
   def get_description(public_key)
-    new_multiplier = new_multiplier(public_key)
-    "Multiplies unit generation by #{new_multiplier}x for the next 10 minutes. Stacks multiplicatively with other buffs. Prices increase with each additional purchase"
+    a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
+    active_stack = a_s.nil? ? 1 : a_s + 1
+    amount = (new_multiplier(public_key) ** active_stack.to_i)
+    "Multiplies unit generation by #{amount}x for the next 10 minutes. Stacks multiplicatively with other buffs. Prices increase with each additional purchase"
   end
 
   def get_price (public_key)
@@ -112,7 +114,6 @@ class PowerupTimeWarp < Powerup
 
         unit_rate = @game.get_player_time_units_ps(public_key)
         timewarp_rate = unit_rate * (new_multiplier(public_key) ** active_stack.to_i)
-        puts timewarp_rate
         @game.set_player_time_units_ps(public_key, timewarp_rate)
     end
   end
