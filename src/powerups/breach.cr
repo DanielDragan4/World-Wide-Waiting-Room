@@ -1,4 +1,5 @@
 require "../powerup"
+require "./afflict_breach.cr"
 
 class PowerupBreach < Powerup
   BASE_PRICE = 3_000_000
@@ -9,6 +10,10 @@ class PowerupBreach < Powerup
 
   def is_input_powerup (public_key)
     true
+  end
+
+  def input_activates (public_key)
+    AfflictPowerupBreach.get_powerup_id
   end
 
   def input_button_text (public_key)

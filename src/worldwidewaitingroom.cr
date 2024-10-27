@@ -84,6 +84,7 @@ module Keys
   PLAYER_TIME_UNITS_PER_SECOND = "time_units_per_second"
 
   PLAYER_NAME = "name"
+  PLAYER_INPUT_BUTTONS = "input_buttons"
   PLAYER_BG_COLOR = "bg_color"
   PLAYER_TEXT_COLOR = "text_color"
   COOLDOWN = "bootstrap_cooldown"
@@ -448,8 +449,8 @@ class Game
 
   def get_player_name (public_key : String) : String
     name = WWWR::R.hget(Keys::PLAYER_NAME, public_key)
-    name = name.to_s?
     name ||= "Anonymous"
+    name = name.to_s
     name
   end
 
@@ -473,6 +474,17 @@ class Game
     powerups = (get_player_powerups public_key)
     powerup_classes = get_powerup_classes
 
+    player_input_buttons = Array(Hash(String, String)).new
+
+    powerups.each do |pu|
+      pc = powerup_classes.fetch pu.to_s, nil
+      if !pc || !(pc.is_input_powerup public_key)
+        next
+      end
+
+      player_input_buttons << ({ "name" => (pc.input_button_text public_key), "value" => pu.to_s })
+    end
+
     powerup_icons = powerups.map { |x| powerup_classes[x].player_card_powerup_icon public_key }.reject { |x| x == "" }
     css_classes = powerups.map { |x| powerup_classes[x].player_card_powerup_active_css_class public_key }
     css_classes = css_classes.join " "
@@ -483,6 +495,7 @@ class Game
       Keys::PLAYER_TEXT_COLOR => player_text_color.value,
       Keys::PLAYER_TIME_UNITS => time_units.value.to_s.to_f64?,
       Keys::PLAYER_TIME_UNITS_PER_SECOND => tps.value.to_s.to_f64?,
+      Keys::PLAYER_INPUT_BUTTONS => player_input_buttons,
       Keys::PLAYER_PUBLIC_KEY => public_key,
       Keys::PLAYER_POWERUPS => powerups,
       Keys::PLAYER_METADATA => metadata.value,
@@ -607,7 +620,15 @@ post "/buy" do |ctx|
   public_key = game.get_public_key_from_ctx ctx
   name = ctx.params.body["powerup"]
 
+  if !public_key
+    next
+  end
+
+  player_name = game.get_player_name public_key
+
   powerups = game.get_powerup_classes
+
+  puts "#{player_name} (#{public_key}) purchased #{name}"
 
   if !(powerups.fetch name, nil)
     "That powerup does not exist."
@@ -620,11 +641,30 @@ post "/buy" do |ctx|
   end
 end
 
-post "/use/" do |ctx|
+post "/use" do |ctx|
   public_key = game.get_public_key_from_ctx ctx
 
   powerup = ctx.params.body["powerup"]
   on_player_key = ctx.params.body["on_player_key"]
+
+  if !public_key || !on_player_key
+    next
+  end
+
+  player_name = game.get_player_name public_key
+  on_player_name = game.get_player_name on_player_key
+
+  puts "#{player_name} (#{public_key}) used #{powerup} on #{on_player_name} (#{on_player_key})"
+
+  pu_classes = game.get_powerup_classes
+  pu_class = pu_classes.fetch powerup, nil
+
+  if pu_class
+    activates = pu_class.input_activates public_key
+    puts "Powerup will activate #{activates}"
+    pu_classes[activates].buy_action on_player_key
+    game.remove_powerup public_key, powerup
+  end
 end
 
 post "/color" do |ctx|

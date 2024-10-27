@@ -1,4 +1,5 @@
 require "../powerup"
+require "./afflict_signal_jammer.cr"
 
 class PowerupSignalJammer < Powerup
   BASE_PRICE = 1_000_000
@@ -15,6 +16,10 @@ class PowerupSignalJammer < Powerup
 
   def input_button_text (public_key)
     "Jam"
+  end
+
+  def input_activates (public_key)
+    AfflictPowerupSignalJammer.get_powerup_id
   end
 
   def get_name

@@ -19,6 +19,10 @@ class AfflictPowerupSignalJammer < Powerup
     false
   end
 
+  def player_card_powerup_icon (public_key)
+    "/jam.png"
+  end
+
   def get_cooldown_seconds_left (public_key)
     @game.get_timer_seconds_left public_key, COOLDOWN_KEY
   end
