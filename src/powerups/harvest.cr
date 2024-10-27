@@ -71,6 +71,7 @@ class PowerupHarvest < Powerup
 
         puts "Purhcased Harvest!"
         @game.add_powerup public_key, PowerupHarvest.get_powerup_id
+        @game.add_active public_key
         @game.send_animation_event public_key, Animation::NUMBER_FLOAT, {"value" => "Harvested #{get_harvest_amount(public_key).round(2)} units!","color" => "#CFE9A0"}
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) + ( get_harvest_amount(public_key) - price))
         @game.set_player_time_units_ps(public_key, 0)

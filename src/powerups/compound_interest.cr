@@ -91,10 +91,9 @@ class PowerupCompoundInterest < Powerup
     last_bonus = get_last_bonus(public_key)
   
     if last_bonus > 1.0
-      # Calculate the rate before the bonus was applied
       previous_rate = current_rate / last_bonus
       @game.set_player_time_units_ps(public_key, previous_rate)
-      @game.set_key_value(public_key, LAST_BONUS_KEY, "1.0") # Reset to no bonus
+      @game.set_key_value(public_key, LAST_BONUS_KEY, "1.0") 
     end
   end
   
