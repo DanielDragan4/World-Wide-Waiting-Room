@@ -21,7 +21,11 @@ class PowerupHarvest < Powerup
   end
 
   def get_description(public_key)
-    "Collects the next hour's worth of units with the current units per second including boosts in the units per second for the hour, but pauses unit generation for that hour | #{get_harvest_amount(public_key).round(2)} units"
+    "Collects the next hour's worth of units with the current units per second including boosts in the units per second for the hour, but pauses unit generation for that hour: #{get_harvest_amount(public_key).round(2)} units. Can only be used once per hour."
+  end
+
+  def cooldown_seconds_left(public_key)
+    @game.get_timer_seconds_left public_key, DURATION_KEY
   end
 
   def get_harvest_amount (public_key)
@@ -36,12 +40,9 @@ class PowerupHarvest < Powerup
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
 
-    cooldown = @game.get_player_cooldown public_key, DURATION_KEY
+    timer_expired = @game.is_timer_expired public_key, DURATION_KEY
 
-    cooldown = cooldown.nil? ? true : cooldown
-
-
-    return (((@game.get_player_time_units public_key) >= price) && (cooldown))
+    return ((@game.get_player_time_units public_key) >= price) && timer_expired
   end
 
   def max_stack_size (public_key)
@@ -49,12 +50,10 @@ class PowerupHarvest < Powerup
   end
 
   def get_player_stack_size(public_key)
-    if public_key
-      size = @game.get_key_value(public_key, STACK_KEY)
-      size.to_s.empty? ? 1 : size.to_i
-    else
-      1
-    end
+    size = @game.get_key_value(public_key, STACK_KEY)
+    size_i = size.to_i?
+    size_i ||= 1
+    size_i
   end
 
   def player_card_powerup_active_css_class(public_key)
@@ -62,35 +61,25 @@ class PowerupHarvest < Powerup
   end
 
   def buy_action (public_key)
+    if is_available_for_purchase(public_key)
+      c_s = get_player_stack_size(public_key)
+      c_s ||= 0
+      new_stack = c_s + 1
 
-    if public_key
-      if is_available_for_purchase(public_key)
+      price = get_price(public_key)
 
-        c_s = get_player_stack_size(public_key)
-        price = get_price(public_key)
+      puts "Purhcased Harvest!"
+      @game.add_powerup public_key, PowerupHarvest.get_powerup_id
+      @game.add_active public_key
+      @game.inc_time_units public_key, (get_harvest_amount public_key)
+      @game.disable_unit_generation public_key
+      @game.set_timer public_key, DURATION_KEY, HARVEST_TIME
+      @game.set_key_value public_key, STACK_KEY, new_stack
+      @game.send_animation_event public_key,
+        Animation::NUMBER_FLOAT,
+        {"value" => "Harvested #{get_harvest_amount(public_key).round(2)} units!","color" => "#CFE9A0"}
 
-        puts "Purhcased Harvest!"
-        @game.add_powerup public_key, PowerupHarvest.get_powerup_id
-        @game.send_animation_event public_key, Animation::NUMBER_FLOAT, {"value" => "Harvested #{get_harvest_amount(public_key).round(2)} units!","color" => "#CFE9A0"}
-        @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) + ( get_harvest_amount(public_key) - price))
-        @game.set_player_time_units_ps(public_key, 0)
-
-        duration = (@game.ts + HARVEST_TIME).to_s
-        @game.set_key_value public_key, DURATION_KEY,  duration.to_s
-
-        current_stack = c_s.nil? ? 0 : c_s
-
-        new_stack = current_stack + 1
-        @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
-
-        @game.set_key_value(public_key, DURATION_KEY, (@game.ts + HARVEST_TIME).to_s)
-
-
-      end
-    else
-      nil
     end
-    nil
   end
 
   def action (public_key, dt)
@@ -98,10 +87,10 @@ class PowerupHarvest < Powerup
   end
 
   def cleanup (public_key)
-    if @game.get_player_cooldown public_key, DURATION_KEY
-        puts "HARVEST CLEANUP #{@game.ts}"
-        @game.set_player_time_units_ps(public_key, 1)
-        @game.remove_powerup public_key, PowerupHarvest.get_powerup_id
+    if @game.is_timer_expired public_key, DURATION_KEY
+      puts "HARVEST CLEANUP #{@game.ts}"
+      @game.enable_unit_generation public_key
+      @game.remove_powerup public_key, PowerupHarvest.get_powerup_id
     end
   end
 end

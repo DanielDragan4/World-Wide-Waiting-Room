@@ -63,6 +63,7 @@ module Keys
   PLAYER_POWERUP_ICONS = "player_powerup_icons"
   PLAYER_CARD_CSS_CLASSES = "player_card_css_classes"
   NUMBER_OF_ACTIVES = "number_of_actives_purchased_ever"
+  UNIT_GEN_DISABLED = "unit_gen_disabled"
   TIME_LEFT = "time_left"
   COOKIE = "token"
   GLOBAL_VARS = "global_vars"
@@ -115,9 +116,13 @@ class Game
 
       do_powerup_actions player_public_key, dt
 
-      player_tups = get_player_time_units_ps player_public_key
-      WWWR::R.hset Keys::PLAYER_FRAME_TUPS, player_public_key, player_tups
-      inc_time_units player_public_key, player_tups * multiplier
+      if !(is_unit_generation_disabled_for player_public_key)
+        player_tups = get_player_time_units_ps player_public_key
+        WWWR::R.hset Keys::PLAYER_FRAME_TUPS, player_public_key, player_tups
+        inc_time_units player_public_key, player_tups * multiplier
+      else
+        WWWR::R.hset Keys::PLAYER_FRAME_TUPS, player_public_key, 0
+      end
 
       do_powerup_cleanup player_public_key
     end
@@ -188,24 +193,16 @@ class Game
     powerups
   end
 
-  def get_player_cooldown(public_key : String, key : String) : Bool
-    if public_key
-      current_unix = Time.utc.to_unix
-      cooleddown_time = get_key_value(public_key, key)
-      if cooleddown_time.to_s.empty?
-        time = current_unix
-      else
-        time = cooleddown_time.to_i
-      end
+  def is_unit_generation_disabled_for(public_key : String) : Bool
+    !!(WWWR::R.hget Keys::UNIT_GEN_DISABLED, public_key)
+  end
 
-      if current_unix >= time
-        return true
-      else
-        return false
-      end
-    else
-      return false
-    end
+  def enable_unit_generation(public_key : String)
+    WWWR::R.hdel Keys::UNIT_GEN_DISABLED, public_key
+  end
+
+  def disable_unit_generation(public_key : String)
+    WWWR::R.hset Keys::UNIT_GEN_DISABLED, public_key, 1
   end
 
   def do_powerup_actions (public_key : String, dt)
@@ -324,8 +321,8 @@ class Game
     set_key_value public_key, timer_key, (ts + seconds).to_s
   end
 
-  def get_timer_seconds_left (public_key : String, timer_key : String) : Float64
-    (get_key_value_as_float public_key, timer_key) - ts
+  def get_timer_seconds_left (public_key : String, timer_key : String) : Int32
+    ((get_key_value_as_float public_key, timer_key) - ts).to_i
   end
 
   def is_timer_expired (public_key : String, timer_key : String) : Bool
@@ -336,10 +333,10 @@ class Game
     remove_powerup public_key, powerup_id if (is_timer_expired public_key, timer_key)
   end
 
-  def set_key_value (public_key : String, key : String, value : String)
+  def set_key_value (public_key : String, key : String, value : String | Int64 | Int32 | Float32 | Float64)
     gv = WWWR::R.hget Keys::GLOBAL_VARS, public_key
     gv ||= "{}"
-    gv = Hash(String, String).from_json gv
+    gv = Hash(String, String | Int64 | Int32 | Float32 | Float64).from_json gv
     gv[key] = value
     WWWR::R.hset Keys::GLOBAL_VARS, public_key, gv.to_json
   end
@@ -550,9 +547,9 @@ class Game
   def get_player_time_units_ps (public_key : String)
     result = WWWR::R.hget Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key
     if result
-      return result.to_f64
+      result.to_f64
     else
-      return Float64.new 0.0
+      Float64.new 0.0
     end
   end
 
