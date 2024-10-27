@@ -20,7 +20,7 @@ require "./powerups/compound_interest"
 require "./powerups/force_field"
 require "./powerups/breach"
 require "./powerups/signal_jammer"
-require "./powerups/automation-upgrade.cr"
+require "./powerups/automation_upgrade.cr"
 require "./templates"
 
 alias Secret = String
