@@ -6,6 +6,7 @@ class PowerupAutomationUpgrade < Powerup
   KEY = "automation_upgrade_stack"
   PURCHASE_TIME_KEY = "automation_upgrade_purchase_time"
   PROCESSED_ACTIVES_KEY = "automation_upgrade_processed_actives"
+  BONUS_APPLIED_KEY = "automation_upgrade_bonus_applied"
 
   def new_multiplier(public_key) : Float64
     get_synergy_boosted_multiplier(public_key, MULTIPLIER)
@@ -27,11 +28,11 @@ class PowerupAutomationUpgrade < Powerup
       actives_since_purchase = [current_actives - actives_at_purchase, 0].max
       current_bonus = (adjusted_multiplier * actives_since_purchase * 100).round(2)
       
-      "Adds an extra #{(adjusted_multiplier * 100).round(2)}% units/s for each active powerup purchased since this powerup was purchased (One time purchase).\n
+      "Adds an extra #{(adjusted_multiplier * 100).round}% units/s for each active powerup purchased since this powerup was purchased (One time purchase).\n
       Current boost: #{current_bonus}% from #{actives_since_purchase} purchases."
     else
       adjusted_multiplier = new_multiplier(public_key)
-      "Adds an extra #{(adjusted_multiplier * 100).round(2)}% units/s for each active powerup purchased after this powerup is purchased (One time purchase)."
+      "Adds an extra #{(adjusted_multiplier * 100).round}% units/s for each active powerup purchased after this powerup is purchased (One time purchase)."
     end
   end
 
@@ -101,24 +102,45 @@ class PowerupAutomationUpgrade < Powerup
   end
 
   def action(public_key, dt)
-    if public_key && @game.has_powerup(public_key, self.class.get_powerup_id)
+    if public_key && is_purchased(public_key)
       actives_at_purchase = get_actives_at_purchase(public_key)
-      processed_actives = get_processed_actives(public_key)
+      puts "actives at purchase: #{actives_at_purchase}"
       current_actives = @game.get_actives(public_key)
-
-      new_actives = current_actives - processed_actives
-
-      # if current number of active powerups differs from number processed, an active powerup was purchase since last check
-      if new_actives > 0
+      
+      # Calculate number of actives purchased since automation upgrade
+      actives_since_purchase = [current_actives - actives_at_purchase, 0].max
+      
+      # Only apply the bonus if neither harvest nor overcharge is active
+      if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id))
         multiplier = new_multiplier(public_key)
         current_units_ps = @game.get_player_time_units_ps(public_key)
-
-        bonus = 1 + (new_actives * multiplier)
+        
+        # Apply bonus based on total actives since purchase
+        bonus = 1 + (actives_since_purchase * multiplier)
         @game.set_player_time_units_ps(public_key, current_units_ps * bonus)
+      end
       
-        # Saves new number of processed powerups
-        @game.set_key_value(public_key, PROCESSED_ACTIVES_KEY, current_actives.to_s)
-      end     
+      # Update processed actives to current state
+      @game.set_key_value(public_key, PROCESSED_ACTIVES_KEY, current_actives.to_s)
+    end
+  end
+
+  def cleanup(public_key)
+    if public_key && is_purchased(public_key)
+      # Only restore units/s if neither harvest nor overcharge is active
+      if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id))
+        current_units_ps = @game.get_player_time_units_ps(public_key)
+        actives_at_purchase = get_actives_at_purchase(public_key)
+        current_actives = @game.get_actives(public_key)
+        actives_since_purchase = [current_actives - actives_at_purchase, 0].max
+        multiplier = new_multiplier(public_key)
+
+        # Remove the bonus that was applied in action
+        previous_units_ps = current_units_ps / (1 + (actives_since_purchase * multiplier))
+        @game.set_player_time_units_ps(public_key, previous_units_ps)
+
+        puts "Cleanup: Restored units/s to #{previous_units_ps}"
+      end
     end
   end
 end

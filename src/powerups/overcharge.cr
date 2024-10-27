@@ -70,6 +70,7 @@ class PowerupOverCharge < Powerup
     if public_key
       if is_available_for_purchase(public_key)
         @game.add_powerup public_key, PowerupOverCharge.get_powerup_id
+        @game.add_active public_key
 
         current_stack = get_player_stack_size(public_key)
         price = get_price(public_key)

@@ -78,7 +78,6 @@ class PowerupHarvest < Powerup
       @game.send_animation_event public_key,
         Animation::NUMBER_FLOAT,
         {"value" => "Harvested #{get_harvest_amount(public_key).round(2)} units!","color" => "#CFE9A0"}
-
     end
   end
 
