@@ -1,7 +1,7 @@
 require "../powerup.cr"
 
 class PowerupSynergyMatrix < Powerup
-  BASE_PRICE = 1000.0
+  BASE_PRICE = 1 #1000.0
   KEY = "synergy_matrix_stack"
   BOOST_PER_STACK = 0.10
 
@@ -16,6 +16,7 @@ class PowerupSynergyMatrix < Powerup
 
   def self.get_boost_multiplier(game : Game, public_key : String, powerup_id : String) : Float64
     return 1.0 if powerup_id == get_powerup_id # Prevents from boosting itself
+    return 1.0 if game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)
 
     stack_size = get_stack_size(game, public_key)
     1.0 + (stack_size * BOOST_PER_STACK)
@@ -32,7 +33,7 @@ class PowerupSynergyMatrix < Powerup
   def get_description(public_key)
     stack_size = get_player_stack_size(public_key)
     boost_percent = (stack_size * BOOST_PER_STACK * 100).to_i
-    "Increases the effectiveness of all other powerups by 10%. The effect stacks additively with each purchase.\n Purchasing does not affect active powerups currently in use.
+    "Increases the effectiveness of all other powerups (with the exceoption of Overcharge) by 10%. The effect stacks additively with each purchase.\n Purchasing does not affect active powerups currently in use.
     Current boost: #{boost_percent}%"
   end
 
@@ -69,5 +70,8 @@ class PowerupSynergyMatrix < Powerup
   end
 
   def action(public_key, dt)
+  end
+
+  def cleanup(public_key)
   end
 end
