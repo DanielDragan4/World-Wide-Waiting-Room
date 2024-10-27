@@ -16,7 +16,6 @@ class PowerupSynergyMatrix < Powerup
 
   def self.get_boost_multiplier(game : Game, public_key : String, powerup_id : String) : Float64
     return 1.0 if powerup_id == get_powerup_id # Prevents from boosting itself
-    return 1.0 if game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)
 
     stack_size = get_stack_size(game, public_key)
     1.0 + (stack_size * BOOST_PER_STACK)
