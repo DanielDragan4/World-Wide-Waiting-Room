@@ -187,7 +187,7 @@ worker.onmessage = ({ data }) => {
         </span>
         <span>Units/s</span>
       </div>
-      <div class="flex flex-row space-x-2 justify-center" id="action-buttons">
+      <div class="flex flex-row space-x-2 justify-center overflow-x-auto w-full pb-2" id="action-buttons">
         ${inputButtons}
       </div>
     </div>`
