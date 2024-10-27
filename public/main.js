@@ -55,8 +55,8 @@ setInterval(timeLeftFunc, 1000)
 timeLeftFunc()
 
 function formatTimeUnits(tu) {
-  if (tu < 10000) {
-    return tu.toFixed(2)
+  if (tu < 100_000_000) {
+    return tu.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
   let power = 0;
