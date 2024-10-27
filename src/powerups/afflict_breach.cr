@@ -7,7 +7,7 @@ require "./compound_interest.cr"
 require "./force_field.cr"
 
 class AfflictPowerupBreach < Powerup
-  COOLDOWN = 60 * 60 * 10
+  COOLDOWN = 60 * 10
   COOLDOWN_KEY = "afflict_signal_jammer_cooldown"
 
   def self.get_powerup_id
@@ -40,6 +40,7 @@ class AfflictPowerupBreach < Powerup
   end
 
   def action (public_key, dt)
+    puts "Afflict Breach action run for #{public_key} #{@game.get_timer_seconds_left public_key, COOLDOWN_KEY}"
   end
 
   def cleanup (public_key)

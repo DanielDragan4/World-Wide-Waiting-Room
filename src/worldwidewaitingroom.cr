@@ -430,6 +430,20 @@ class Game
     WWWR::R.lrange("powerups-#{public_key}", 0, -1)
   end
 
+  def inc_powerup_stack (public_key : String, powerup_id : String)
+    current_size = (get_key_value_as_float public_key, "stack-#{powerup_id}").to_i
+    set_powerup_stack public_key, powerup_id, current_size + 1
+  end
+
+  def get_powerup_stack (public_key : String, powerup_id : String) : Int32
+    stack_size = (get_key_value_as_float public_key, "stack-#{powerup_id}")
+    stack_size.to_i
+  end
+
+  def set_powerup_stack (public_key : String, powerup_id : String, stack_size : Int32)
+    set_key_value public_key, "stack-#{powerup_id}", stack_size
+  end
+
   def setup_new_waiter
     puts "Setting up new waiter."
     secret_token = Random.new.hex
