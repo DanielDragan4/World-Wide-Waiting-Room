@@ -1,12 +1,12 @@
 require "../powerup.cr"
 
 class PowerupUnitMultiplier < Powerup
-  BASE_PRICE = 1000.0
+  BASE_PRICE = 1_000.0
   MULTIPLIER = 1.3
   KEY = "unit_multiplier_stack"
 
   def new_multiplier(public_key) : Float64
-    get_synergy_boosted_multiplier(public_key, MULTIPLIER - 1) + 1
+    (MULTIPLIER) * get_synergy_boosted_multiplier(public_key, 1.0)
   end
 
   def self.get_powerup_id
@@ -44,22 +44,18 @@ class PowerupUnitMultiplier < Powerup
     if public_key
       price = get_price(public_key)
       units = @game.get_player_time_units(public_key)
-      if units > price
+      if units >= price
         current_stack = get_player_stack_size(public_key)
-        price = get_price(public_key)
         powerup = PowerupUnitMultiplier.get_powerup_id
-        current_rate = @game.get_player_time_units_ps(public_key)
-        #Changes multiplier based on Synergy Matrix
-        adjusted_multiplier = new_multiplier(public_key)
-        new_rate = current_rate * adjusted_multiplier
+        
         @game.inc_time_units(public_key, -price)
         @game.add_powerup(public_key, powerup)
-        @game.set_player_time_units_ps(public_key, new_rate)
 
         new_stack = current_stack + 1
         @game.set_key_value(public_key, KEY, new_stack.to_s)
+
       else
-        "You don't have enough points to purchase Unit Multiplier"
+        "You don't have enough units to purchase Unit Multiplier"
       end
     else
       nil
@@ -67,6 +63,22 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def action(public_key, dt)
-    
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id)
+      current_rate = @game.get_player_time_units_ps(public_key)
+      stack_size = get_player_stack_size(public_key)
+      adjusted_multiplier = new_multiplier(public_key)
+      new_rate = current_rate * adjusted_multiplier ** stack_size
+      @game.set_player_time_units_ps(public_key, new_rate)
+    end
+  end
+
+  def cleanup(public_key)
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id)
+      current_rate = @game.get_player_time_units_ps(public_key)
+      stack_size = get_player_stack_size(public_key)
+      adjusted_multiplier = new_multiplier(public_key)
+      new_rate = current_rate / adjusted_multiplier ** stack_size
+      @game.set_player_time_units_ps(public_key, new_rate)
+    end
   end
 end
