@@ -55,8 +55,8 @@ setInterval(timeLeftFunc, 1000)
 timeLeftFunc()
 
 function formatTimeUnits(tu) {
-  if (tu < 10000) {
-    return tu.toFixed(2)
+  if (tu < 100_000_000) {
+    return tu.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
   let power = 0;
@@ -130,17 +130,28 @@ function escape(text) {
   return s.innerHTML;
 }
 
+function usePowerup(powerup, onPlayerKey) {
+  const body = new FormData();
+  body.append('powerup', powerup);
+  body.append('on_player_key', onPlayerKey);
+  fetch('/use', { method: 'POST', body }).then();
+}
+
 worker.onmessage = ({ data }) => {
   const leaderboard = document.querySelector("#leaderboard");
   const newLeaderboardHtml = document.createElement("div");
 
-  // const thisPlayerData = data.find((player) => {
-  //   return player.public_key === thisPlayerId
-  // })
+  const thisPlayerData = data.find((player) => {
+    return player.public_key === thisPlayerId
+  })
 
   data.forEach((player) => {
     const card = document.createElement("div");
     card.id = player.public_key
+
+    const inputButtons = thisPlayerData.input_buttons.map((x) => {
+      return `<button onclick="usePowerup('${x.value}', '${player.public_key}')" class="border rounded px-1 bg-white text-black hover:bg-black hover:text-white">${escape(x.name)}</button>` 
+    }).join('\n')
 
     card.innerHTML = `
     <div 
@@ -163,7 +174,7 @@ worker.onmessage = ({ data }) => {
       <span class="text-2xl text-center">${escape(player.name)}</span>
       <div class="flex flex-row space-x-2 justify-center">
         ${
-          player.player_powerup_icons.map((x) => '<img class="w-[15px]" src="' + x + '"/>').join('\n')
+          player.player_powerup_icons.map((x) => '<img class="w-[25px]" src="' + x + '"/>').join('\n')
         }
       </div>
       <div class="text-center my-auto flex flex-col">
@@ -176,15 +187,10 @@ worker.onmessage = ({ data }) => {
         </span>
         <span>Units/s</span>
       </div>
-    </div>
-    `
-    //`
-    //  <div class="flex flex-row space-x-2 justify-center" id="action-buttons">
-    //    ${
-    //      thisPlayerData.input_button_text.map((x) => '<button hx-post="/buy" name="powerup" value="' + x + '" class="border rounded px-1 bg-white text-black hover:bg-black hover:text-white">' + x +  '</button>').join('\n')
-    //    }
-    //  </div>
-    //</div>`
+      <div class="flex flex-row space-x-2 justify-center" id="action-buttons">
+        ${inputButtons}
+      </div>
+    </div>`
     newLeaderboardHtml.appendChild(card)
 
     if (player.public_key === thisPlayerId) {

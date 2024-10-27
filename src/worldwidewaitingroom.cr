@@ -20,7 +20,7 @@ require "./powerups/compound_interest"
 require "./powerups/force_field"
 require "./powerups/breach"
 require "./powerups/signal_jammer"
-require "./powerups/automation-upgrade.cr"
+require "./powerups/automation_upgrade.cr"
 require "./templates"
 
 alias Secret = String
@@ -63,6 +63,7 @@ module Keys
   PLAYER_POWERUP_ICONS = "player_powerup_icons"
   PLAYER_CARD_CSS_CLASSES = "player_card_css_classes"
   NUMBER_OF_ACTIVES = "number_of_actives_purchased_ever"
+  UNIT_GEN_DISABLED = "unit_gen_disabled"
   TIME_LEFT = "time_left"
   COOKIE = "token"
   GLOBAL_VARS = "global_vars"
@@ -83,6 +84,7 @@ module Keys
   PLAYER_TIME_UNITS_PER_SECOND = "time_units_per_second"
 
   PLAYER_NAME = "name"
+  PLAYER_INPUT_BUTTONS = "input_buttons"
   PLAYER_BG_COLOR = "bg_color"
   PLAYER_TEXT_COLOR = "text_color"
   COOLDOWN = "bootstrap_cooldown"
@@ -115,9 +117,13 @@ class Game
 
       do_powerup_actions player_public_key, dt
 
-      player_tups = get_player_time_units_ps player_public_key
-      WWWR::R.hset Keys::PLAYER_FRAME_TUPS, player_public_key, player_tups
-      inc_time_units player_public_key, player_tups * multiplier
+      if !(is_unit_generation_disabled_for player_public_key)
+        player_tups = get_player_time_units_ps player_public_key
+        WWWR::R.hset Keys::PLAYER_FRAME_TUPS, player_public_key, player_tups
+        inc_time_units player_public_key, player_tups * multiplier
+      else
+        WWWR::R.hset Keys::PLAYER_FRAME_TUPS, player_public_key, 0
+      end
 
       do_powerup_cleanup player_public_key
     end
@@ -188,24 +194,16 @@ class Game
     powerups
   end
 
-  def get_player_cooldown(public_key : String, key : String) : Bool
-    if public_key
-      current_unix = Time.utc.to_unix
-      cooleddown_time = get_key_value(public_key, key)
-      if cooleddown_time.to_s.empty?
-        time = current_unix
-      else
-        time = cooleddown_time.to_i
-      end
+  def is_unit_generation_disabled_for(public_key : String) : Bool
+    !!(WWWR::R.hget Keys::UNIT_GEN_DISABLED, public_key)
+  end
 
-      if current_unix >= time
-        return true
-      else
-        return false
-      end
-    else
-      return false
-    end
+  def enable_unit_generation(public_key : String)
+    WWWR::R.hdel Keys::UNIT_GEN_DISABLED, public_key
+  end
+
+  def disable_unit_generation(public_key : String)
+    WWWR::R.hset Keys::UNIT_GEN_DISABLED, public_key, 1
   end
 
   def do_powerup_actions (public_key : String, dt)
@@ -324,8 +322,8 @@ class Game
     set_key_value public_key, timer_key, (ts + seconds).to_s
   end
 
-  def get_timer_seconds_left (public_key : String, timer_key : String) : Float64
-    (get_key_value_as_float public_key, timer_key) - ts
+  def get_timer_seconds_left (public_key : String, timer_key : String) : Int32
+    ((get_key_value_as_float public_key, timer_key) - ts).to_i
   end
 
   def is_timer_expired (public_key : String, timer_key : String) : Bool
@@ -336,10 +334,10 @@ class Game
     remove_powerup public_key, powerup_id if (is_timer_expired public_key, timer_key)
   end
 
-  def set_key_value (public_key : String, key : String, value : String)
+  def set_key_value (public_key : String, key : String, value : String | Int64 | Int32 | Float32 | Float64)
     gv = WWWR::R.hget Keys::GLOBAL_VARS, public_key
     gv ||= "{}"
-    gv = Hash(String, String).from_json gv
+    gv = Hash(String, String | Int64 | Int32 | Float32 | Float64).from_json gv
     gv[key] = value
     WWWR::R.hset Keys::GLOBAL_VARS, public_key, gv.to_json
   end
@@ -432,6 +430,20 @@ class Game
     WWWR::R.lrange("powerups-#{public_key}", 0, -1)
   end
 
+  def inc_powerup_stack (public_key : String, powerup_id : String)
+    current_size = (get_key_value_as_float public_key, "stack-#{powerup_id}").to_i
+    set_powerup_stack public_key, powerup_id, current_size + 1
+  end
+
+  def get_powerup_stack (public_key : String, powerup_id : String) : Int32
+    stack_size = (get_key_value_as_float public_key, "stack-#{powerup_id}")
+    stack_size.to_i
+  end
+
+  def set_powerup_stack (public_key : String, powerup_id : String, stack_size : Int32)
+    set_key_value public_key, "stack-#{powerup_id}", stack_size
+  end
+
   def setup_new_waiter
     puts "Setting up new waiter."
     secret_token = Random.new.hex
@@ -451,8 +463,8 @@ class Game
 
   def get_player_name (public_key : String) : String
     name = WWWR::R.hget(Keys::PLAYER_NAME, public_key)
-    name = name.to_s?
     name ||= "Anonymous"
+    name = name.to_s
     name
   end
 
@@ -476,6 +488,17 @@ class Game
     powerups = (get_player_powerups public_key)
     powerup_classes = get_powerup_classes
 
+    player_input_buttons = Array(Hash(String, String)).new
+
+    powerups.each do |pu|
+      pc = powerup_classes.fetch pu.to_s, nil
+      if !pc || !(pc.is_input_powerup public_key)
+        next
+      end
+
+      player_input_buttons << ({ "name" => (pc.input_button_text public_key), "value" => pu.to_s })
+    end
+
     powerup_icons = powerups.map { |x| powerup_classes[x].player_card_powerup_icon public_key }.reject { |x| x == "" }
     css_classes = powerups.map { |x| powerup_classes[x].player_card_powerup_active_css_class public_key }
     css_classes = css_classes.join " "
@@ -486,6 +509,7 @@ class Game
       Keys::PLAYER_TEXT_COLOR => player_text_color.value,
       Keys::PLAYER_TIME_UNITS => time_units.value.to_s.to_f64?,
       Keys::PLAYER_TIME_UNITS_PER_SECOND => tps.value.to_s.to_f64?,
+      Keys::PLAYER_INPUT_BUTTONS => player_input_buttons,
       Keys::PLAYER_PUBLIC_KEY => public_key,
       Keys::PLAYER_POWERUPS => powerups,
       Keys::PLAYER_METADATA => metadata.value,
@@ -550,9 +574,9 @@ class Game
   def get_player_time_units_ps (public_key : String)
     result = WWWR::R.hget Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key
     if result
-      return result.to_f64
+      result.to_f64
     else
-      return Float64.new 0.0
+      Float64.new 0.0
     end
   end
 
@@ -610,7 +634,15 @@ post "/buy" do |ctx|
   public_key = game.get_public_key_from_ctx ctx
   name = ctx.params.body["powerup"]
 
+  if !public_key
+    next
+  end
+
+  player_name = game.get_player_name public_key
+
   powerups = game.get_powerup_classes
+
+  puts "#{player_name} (#{public_key}) purchased #{name}"
 
   if !(powerups.fetch name, nil)
     "That powerup does not exist."
@@ -623,11 +655,30 @@ post "/buy" do |ctx|
   end
 end
 
-post "/use/" do |ctx|
+post "/use" do |ctx|
   public_key = game.get_public_key_from_ctx ctx
 
   powerup = ctx.params.body["powerup"]
   on_player_key = ctx.params.body["on_player_key"]
+
+  if !public_key || !on_player_key
+    next
+  end
+
+  player_name = game.get_player_name public_key
+  on_player_name = game.get_player_name on_player_key
+
+  puts "#{player_name} (#{public_key}) used #{powerup} on #{on_player_name} (#{on_player_key})"
+
+  pu_classes = game.get_powerup_classes
+  pu_class = pu_classes.fetch powerup, nil
+
+  if pu_class
+    activates = pu_class.input_activates public_key
+    puts "Powerup will activate #{activates}"
+    pu_classes[activates].buy_action on_player_key
+    game.remove_powerup public_key, powerup
+  end
 end
 
 post "/color" do |ctx|

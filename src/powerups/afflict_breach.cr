@@ -7,19 +7,15 @@ require "./compound_interest.cr"
 require "./force_field.cr"
 
 class AfflictPowerupBreach < Powerup
-  COOLDOWN = 60 * 60 * 10
+  COOLDOWN = 60 * 10
   COOLDOWN_KEY = "afflict_signal_jammer_cooldown"
-  BREACH_POWERUPS_OWNED_KEY = "afflict_breah_powerups_owned"
-
-  # Should change this with a higher level @game.get_passive_powerups
-  PASSIVE_POWERUP_IDS = [
-    PowerupUnitMultiplier.get_powerup_id,
-    PowerupCompoundInterest.get_powerup_id,
-    PowerupSynergyMatrix.get_powerup_id,
-  ]
 
   def self.get_powerup_id
     "afflict_breach"
+  end
+
+  def player_card_powerup_icon (public_key)
+    "/breach.png"
   end
 
   def is_afflication_powerup (public_key)
@@ -35,32 +31,19 @@ class AfflictPowerupBreach < Powerup
   end
 
   def buy_action (public_key)
+    if @game.has_powerup public_key, PowerupForceField.get_powerup_id
+      return
+    end
+
     @game.add_powerup public_key, AfflictPowerupBreach.get_powerup_id
     @game.set_timer public_key, COOLDOWN_KEY, COOLDOWN
   end
 
   def action (public_key, dt)
-    if @game.has_powerup public_key, PowerupForceField.get_powerup_id
-      return
-    end
-
-    owned_powerups = PASSIVE_POWERUP_IDS.reject do |p|
-      !@game.has_powerup public_key, p
-    end
-
-    @game.set_key_value public_key, BREACH_POWERUPS_OWNED_KEY, owned_powerups.to_json
+    puts "Afflict Breach action run for #{public_key} #{@game.get_timer_seconds_left public_key, COOLDOWN_KEY}"
   end
 
   def cleanup (public_key)
-    if @game.is_timer_expired public_key, COOLDOWN_KEY
-      @game.remove_powerup public_key, AfflictPowerupBreach.get_powerup_id
-      saved_powerups = @game.get_key_value public_key, BREACH_POWERUPS_OWNED_KEY
-      if saved_powerups
-        pu_array = Array(String).from_json saved_powerups
-        pu_array.each do |p|
-          @game.add_powerup public_key, p
-        end
-      end
-    end
+    @game.remove_powerup_if_timer_expired public_key, COOLDOWN_KEY, AfflictPowerupBreach.get_powerup_id
   end
 end

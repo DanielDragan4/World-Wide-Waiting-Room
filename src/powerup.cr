@@ -31,6 +31,12 @@ class Powerup
     false
   end
 
+  def input_activates (public_key : String) : String
+    # Returns the powerup ID of the powerup that gets activated
+    # when the input button is pressed
+    ""
+  end
+
   def input_button_text (public_key : String) : String
     # The text shown on the input button.
     ""

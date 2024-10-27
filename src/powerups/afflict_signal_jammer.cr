@@ -2,7 +2,7 @@ require "../powerup"
 require "./force_field.cr"
 
 class AfflictPowerupSignalJammer < Powerup
-  COOLDOWN = 60 * 60 * 10
+  COOLDOWN = 60 * 10
   UPS_PERCENT_DECREASE = 0.5
   AMOUNT_DEC_KEY = "afflict_signal_jammer_tups_diff"
   COOLDOWN_KEY = "afflict_signal_jammer_cooldown"
@@ -19,6 +19,10 @@ class AfflictPowerupSignalJammer < Powerup
     false
   end
 
+  def player_card_powerup_icon (public_key)
+    "/jam.png"
+  end
+
   def get_cooldown_seconds_left (public_key)
     @game.get_timer_seconds_left public_key, COOLDOWN_KEY
   end
@@ -32,6 +36,8 @@ class AfflictPowerupSignalJammer < Powerup
     if @game.has_powerup public_key, PowerupForceField.get_powerup_id
       return
     end
+
+    puts "Afflict Signal Jammer action run for #{public_key} #{@game.get_timer_seconds_left public_key, COOLDOWN_KEY}"
 
     player_tups = @game.get_player_time_units_ps public_key
     amount_dec = player_tups * UPS_PERCENT_DECREASE

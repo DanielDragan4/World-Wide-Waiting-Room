@@ -4,7 +4,7 @@ require "./force_field.cr"
 class PowerupParasite < Powerup
   BASE_PRICE = 10_000
   COOLDOWN = 60 * 60 * 12
-  ACTIVE_COOLDOWN = 60
+  ACTIVE_COOLDOWN = 1
   DURATION = 60 * 10
 
   PERCENTAGE_STEAL = 2
@@ -31,8 +31,8 @@ class PowerupParasite < Powerup
 
   def get_description (public_key)
     new_percentage_steal = new_percentage_steal(public_key)
-    "Once every #{ACTIVE_COOLDOWN / 60} minutes for #{DURATION / 60} minutes steal #{new_percentage_steal.round(2)}% of the units from the player directly ahead of you and directly behind you.
-This action can be used once every #{COOLDOWN / 60 / 60} hours."
+    "Over the course of #{DURATION / 60} minutes, steal #{new_percentage_steal.round(2)}% of the units from the player directly ahead of you and directly behind you every minute.
+This action can be used once every #{COOLDOWN / 60 / 60} hours. "
   end
 
   def get_price (public_key)
@@ -63,20 +63,17 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
     @game.add_powerup public_key, PowerupParasite.get_powerup_id
     @game.inc_time_units public_key, -BASE_PRICE
 
-    @game.set_key_value public_key, KEY_COOLDOWN,  (@game.ts + COOLDOWN).to_s
-    @game.set_key_value public_key, KEY_DURATION,  (@game.ts + DURATION).to_s
-    @game.set_key_value public_key, KEY_ACTIVE_COOLDOWN, (@game.ts + ACTIVE_COOLDOWN).to_s
+    @game.set_timer public_key, KEY_COOLDOWN, COOLDOWN
+    @game.set_timer public_key, KEY_DURATION, DURATION
+    @game.set_timer public_key, KEY_ACTIVE_COOLDOWN, ACTIVE_COOLDOWN
 
     nil
   end
 
   def action (public_key, dt)
-    duration = @game.get_key_value_as_float public_key, KEY_DURATION
-    active_cooldown = @game.get_key_value_as_float public_key, KEY_ACTIVE_COOLDOWN
-    now = @game.ts
-    percent_steal = new_percentage_steal(public_key) / 100.0
+    percent_steal = (new_percentage_steal(public_key) / 100.0) / 60.0 # /60.0 because we are taking per second, but the amount is 2% per minute.
 
-    if duration && active_cooldown && duration > now && active_cooldown < now
+    if !(@game.is_timer_expired public_key, KEY_DURATION) && (@game.is_timer_expired public_key, KEY_ACTIVE_COOLDOWN)
       puts "Parasite action for #{public_key}"
       player_left_and_right = @game.get_player_to_left_and_right public_key
 
@@ -93,7 +90,7 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
 
         @game.inc_time_units left, -amount
         @game.inc_time_units public_key, amount
-        @game.send_animation_event left, Animation::NUMBER_FLOAT, { "value" => "Parasite #{amount.round(2)}", "color" => "#CFE9A0" }
+        @game.send_animation_event left, Animation::NUMBER_FLOAT, { "value" => "Parasite -#{amount.round(2)}", "color" => "#E9CFA0" }
       end
 
       if right && !@game.has_powerup right, PowerupForceField.get_powerup_id
@@ -104,10 +101,11 @@ This action can be used once every #{COOLDOWN / 60 / 60} hours."
 
         @game.inc_time_units right, -amount
         @game.inc_time_units public_key, amount
-        @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => "Parasite #{amount.round(2)}", "color" => "#CFE9A0" }
+        @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => "Parasite -#{amount.round(2)}", "color" => "#E9CFA0" }
       end
 
       @game.set_key_value public_key, KEY_ACTIVE_COOLDOWN, (@game.ts + ACTIVE_COOLDOWN).to_s
+      @game.set_timer public_key, KEY_ACTIVE_COOLDOWN, ACTIVE_COOLDOWN
     end
   end
 

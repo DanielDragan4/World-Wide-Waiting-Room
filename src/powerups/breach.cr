@@ -1,4 +1,5 @@
 require "../powerup"
+require "./afflict_breach.cr"
 
 class PowerupBreach < Powerup
   BASE_PRICE = 3_000_000
@@ -11,6 +12,10 @@ class PowerupBreach < Powerup
     true
   end
 
+  def input_activates (public_key)
+    AfflictPowerupBreach.get_powerup_id
+  end
+
   def input_button_text (public_key)
     "Breach"
   end
@@ -20,11 +25,12 @@ class PowerupBreach < Powerup
   end
 
   def get_description (public_key)
-    "Disabled all of a player's passive powerups for 10 minutes."
+    "Disabled all of a player's passive powerups for 10 minutes. The price doubles with every purchase."
   end
 
   def get_price (public_key)
-    BASE_PRICE
+    mult = ((@game.get_powerup_stack public_key, PowerupBreach.get_powerup_id) * 2)
+    BASE_PRICE * (mult == 0 ? 1 : mult)
   end
 
   def is_available_for_purchase (public_key)
@@ -40,10 +46,10 @@ class PowerupBreach < Powerup
   end
 
   def buy_action (public_key)
-    if !is_available_for_purchase public_key
-      return "Not available for purchase."
+    if is_available_for_purchase public_key
+      @game.add_powerup public_key, PowerupBreach.get_powerup_id
+      @game.inc_time_units public_key, -(get_price public_key)
+      @game.inc_powerup_stack public_key, PowerupBreach.get_powerup_id
     end
-
-    @game.add_powerup public_key, PowerupBreach.get_powerup_id
   end
 end
