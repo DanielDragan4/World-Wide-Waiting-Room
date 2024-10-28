@@ -21,7 +21,7 @@ class PowerupForceField < Powerup
   end
 
   def get_description (public_key)
-    "Blocks all sabotoge effects for 1 hour."
+    "Blocks all sabotoge effects for 1 hour. Can be used every 3 hours"
   end
 
   def get_price (public_key)

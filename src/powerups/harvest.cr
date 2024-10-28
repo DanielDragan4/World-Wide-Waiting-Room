@@ -21,7 +21,7 @@ class PowerupHarvest < Powerup
   end
 
   def get_description(public_key)
-    "Collects the next hour's worth of units with the current units per second including boosts in the units per second for the hour, but pauses unit generation for that hour: #{get_harvest_amount(public_key).round(2)} units. Can only be used once per hour."
+    "Collects the next hour's worth of units with the current unit production for the hour, but pauses unit generation for that hour: #{get_harvest_amount(public_key).round(2)} units. Can only be used once per hour."
   end
 
   def cooldown_seconds_left(public_key)
@@ -34,7 +34,7 @@ class PowerupHarvest < Powerup
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    price = (BASE_PRICE * (stack_size ** 5)).round(2)
+    price = (BASE_PRICE * (stack_size ** 1.5)).round(2)
   end
 
   def is_available_for_purchase(public_key)

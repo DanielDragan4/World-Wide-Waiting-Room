@@ -20,7 +20,7 @@ class PowerupCompoundInterest < Powerup
 
   def get_description (public_key)
     base_percent = new_multiplier(public_key)
-    "Your units/s increases by #{((base_percent - 1) * 100).round(2)}% for every 10,000 units you currently have. One time purchase.\n
+    "For every 10,000 units you currently have, your unit production increases by #{((base_percent - 1) * 100).round(2)}%. One time purchase.\n
     Current bonus: #{get_bonus(public_key).round(2)}x"
   end
 
@@ -50,7 +50,7 @@ class PowerupCompoundInterest < Powerup
     return 1.0 unless is_purchased(public_key)
     units = @game.get_player_time_units(public_key)
     bonus_multiplier = new_multiplier(public_key) - 1
-    bonus = (units / 10).floor
+    bonus = (units / 10_000).floor
     1 + bonus * bonus_multiplier
   end
 
@@ -99,13 +99,13 @@ class PowerupCompoundInterest < Powerup
   
 
   def action(public_key, dt)
-    if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id)
+    if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
         apply_bonus(public_key)
     end
   end
 
   def cleanup(public_key)
-    if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id)
+    if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
       remove_bonus(public_key)
     end
   end

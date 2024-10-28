@@ -29,7 +29,7 @@ class PowerupTimeWarp < Powerup
     a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
     active_stack = a_s.nil? ? 1 : a_s + 1
     amount = (new_multiplier(public_key) ** active_stack.to_i).round(2)
-    "Multiplies unit generation by #{amount}x for the next 10 minutes. Stacks multiplicatively with other buffs. Prices increase with each additional purchase"
+    "Multiplies unit production by #{amount}x for the next 10 minutes. Price increases exponentially."
   end
 
   def get_price (public_key)
@@ -63,10 +63,6 @@ class PowerupTimeWarp < Powerup
     else
       0
     end
-  end
-
-  def player_card_powerup_active_css_class(public_key)
-    "border-8 border-purple-700 rounded-2xl"
   end
 
   def buy_action (public_key)

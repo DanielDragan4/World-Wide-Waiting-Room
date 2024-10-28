@@ -28,9 +28,9 @@ class PowerupOverCharge < Powerup
         a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
         active_stack = a_s.nil? ? 1 : a_s + 1
         amount = (new_multiplier(public_key) ** active_stack.to_i)
-        "Increases Unit production by #{amount}x but disables all passive powerups for 2 minutes. Prices increase with each additional purchase"
+        "Increases unit production by #{amount}x for 2 min, but disables all passive powerups while active. Price increases exponentially."
     else
-        "Increases Unit production by 5x but disables all passive powerups for 2 minutes. Prices increase with each additional purchase"
+        "Increases unit production by 5x for 2 min, but disables all passive powerups while active. Price increases exponentially."
     end
   end
 
@@ -60,10 +60,6 @@ class PowerupOverCharge < Powerup
     else
       1
     end
-  end
-
-  def player_card_powerup_active_css_class(public_key)
-    "border-8 border-red-600 rounded-2xl"
   end
 
   def buy_action (public_key)
