@@ -2,7 +2,7 @@ require "../powerup"
 require "./afflict_breach.cr"
 
 class PowerupBreach < Powerup
-  BASE_PRICE = 3_000_000
+  BASE_PRICE = 3_000
 
   def self.get_powerup_id
     "breach"
@@ -25,7 +25,7 @@ class PowerupBreach < Powerup
   end
 
   def get_description (public_key)
-    "Disabled all of a player's passive powerups for 10 minutes. The price doubles with every purchase."
+    "Disabled all of a player's passive powerups for 10 minutes. Price increases exponentially."
   end
 
   def get_price (public_key)

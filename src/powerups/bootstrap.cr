@@ -3,9 +3,9 @@ require "../powerup"
 class PowerupBootStrap < Powerup
   STACK_KEY = "bootstrap_stack"
   COOLDOWN_KEY = "bootstrap_cooldown"
-  COOLDOWN_TIME = 60 * 60 * 24
+  COOLDOWN_TIME = 60 * 60 * 6
   BASEPRICE = 5000
-  COST_PERCENTAGE = 0.1
+  COST_PERCENTAGE = 0.15
   BASE_PERCENT_INCREASE = 0.05
 
   def self.get_powerup_id
@@ -13,7 +13,7 @@ class PowerupBootStrap < Powerup
   end
 
   def get_name
-    "BootStrap"
+    "Boot Strap"
   end
 
   def is_stackable
@@ -30,12 +30,13 @@ class PowerupBootStrap < Powerup
 
   def next_units_inc (public_key)
     new_base_pi = new_base_percent_increase public_key
-    ((@game.get_player_time_units public_key) * new_base_pi).round
+    ((@game.get_player_time_units public_key) * (new_base_pi **2))
   end
+
 
   def get_description(public_key)
     new_base_pi = new_base_percent_increase(public_key)
-    "Gives #{(new_base_pi * 100).round}% of total units increasing multiplictivly with each purchase. Can only be purchased once every 24 hours. Cost of #{BASEPRICE} + #{COST_PERCENTAGE * 100}% of your total units."
+    "Gives #{(new_base_pi * 100).round}% of total units increasing exponentially with each purchase as well as price at a lower rate. Can only be purchased once every 24 hours. Cost of #{BASEPRICE} + #{COST_PERCENTAGE * 100}% of your total units."
   end
 
   def cooldown_seconds_left(public_key) : Int32
@@ -44,10 +45,6 @@ class PowerupBootStrap < Powerup
 
   def get_price (public_key)
     (BASEPRICE + (@game.get_player_time_units public_key) * COST_PERCENTAGE).round(2)
-  end
-
-  def max_stack_size (public_key)
-    7.0
   end
 
   def is_available_for_purchase(public_key)

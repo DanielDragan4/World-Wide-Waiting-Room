@@ -6,7 +6,7 @@ require "./compound_interest"
 class PowerupOverCharge < Powerup
   STACK_KEY = "overcharge_stack"
   ACTIVE_STACK_KEY = "overcharge_active_stack"
-  BASE_PRICE = 2.0
+  BASE_PRICE = 200.0
   UNIT_MULTIPLIER = 5.0
   DURATION = 120
   KEY_DURATION = "overcharge_duration"
@@ -28,9 +28,9 @@ class PowerupOverCharge < Powerup
         a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
         active_stack = a_s.nil? ? 1 : a_s + 1
         amount = (new_multiplier(public_key) ** active_stack.to_i)
-        "Increases Unit production by #{amount}x but disables all passive powerups for 2 minutes. Prices increase with each additional purchase"
+        "Increases unit production by #{amount}x for 2 min, but disables all passive powerups while active. Price increases exponentially."
     else
-        "Increases Unit production by 5x but disables all passive powerups for 2 minutes. Prices increase with each additional purchase"
+        "Increases unit production by 5x for 2 min, but disables all passive powerups while active. Price increases exponentially."
     end
   end
 
@@ -60,10 +60,6 @@ class PowerupOverCharge < Powerup
     else
       1
     end
-  end
-
-  def player_card_powerup_active_css_class(public_key)
-    "border-8 border-red-600 rounded-2xl"
   end
 
   def buy_action (public_key)
@@ -125,14 +121,14 @@ class PowerupOverCharge < Powerup
   end
 
   def cleanup (public_key)
-    puts "OVERCHARGE CLEANUP #{@game.ts}"
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
+    if public_key
       a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
       active_stack = a_s.nil? ? 0 : a_s
-
+        if !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
         unit_rate = @game.get_player_time_units_ps(public_key)
         overcharge_rate = unit_rate / (new_multiplier(public_key) ** active_stack.to_i)
         @game.set_player_time_units_ps(public_key, overcharge_rate)
+        end
 
         durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
 

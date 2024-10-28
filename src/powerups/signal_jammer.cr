@@ -25,7 +25,7 @@ class PowerupSignalJammer < Powerup
   end
 
   def get_description (public_key)
-    "Reduce a target player's units/s by 50% for 10 minutes. The price will 5x with each use."
+    "Reduce a target player's unit production by 50% for 10 minutes. The price increases multiplicatively."
   end
 
   def get_price (public_key)

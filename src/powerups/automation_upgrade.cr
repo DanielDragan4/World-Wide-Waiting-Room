@@ -28,7 +28,7 @@ class PowerupAutomationUpgrade < Powerup
       actives_since_purchase = [current_actives - actives_at_purchase, 0].max
       current_bonus = (adjusted_multiplier * actives_since_purchase * 100).round(2)
       
-      "Adds an extra #{(adjusted_multiplier * 100).round}% units/s for each active powerup purchased since this powerup was purchased (One time purchase).\n
+      "For each active power up, afer purchasing Automation uprgrade, increase your unit production by #{(adjusted_multiplier * 100).round}%. This powerup was purchased (One time purchase).\n
       Current boost: #{current_bonus}% from #{actives_since_purchase} purchases."
     else
       adjusted_multiplier = new_multiplier(public_key)
@@ -111,7 +111,7 @@ class PowerupAutomationUpgrade < Powerup
       actives_since_purchase = [current_actives - actives_at_purchase, 0].max
       
       # Only apply the bonus if neither harvest nor overcharge is active
-      if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id))
+      if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) || @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id)
         multiplier = new_multiplier(public_key)
         current_units_ps = @game.get_player_time_units_ps(public_key)
         
@@ -128,7 +128,7 @@ class PowerupAutomationUpgrade < Powerup
   def cleanup(public_key)
     if public_key && is_purchased(public_key)
       # Only restore units/s if neither harvest nor overcharge is active
-      if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id))
+      if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) || @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id)
         current_units_ps = @game.get_player_time_units_ps(public_key)
         actives_at_purchase = get_actives_at_purchase(public_key)
         current_actives = @game.get_actives(public_key)

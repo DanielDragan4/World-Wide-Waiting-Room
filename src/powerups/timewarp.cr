@@ -28,8 +28,8 @@ class PowerupTimeWarp < Powerup
   def get_description(public_key)
     a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
     active_stack = a_s.nil? ? 1 : a_s + 1
-    amount = (new_multiplier(public_key) ** active_stack.to_i)
-    "Multiplies unit generation by #{amount}x for the next 10 minutes. Stacks multiplicatively with other buffs. Prices increase with each additional purchase"
+    amount = (new_multiplier(public_key) ** active_stack.to_i).round(2)
+    "Multiplies unit production by #{amount}x for the next 10 minutes. Price increases exponentially."
   end
 
   def get_price (public_key)
@@ -63,10 +63,6 @@ class PowerupTimeWarp < Powerup
     else
       0
     end
-  end
-
-  def player_card_powerup_active_css_class(public_key)
-    "border-8 border-purple-700 rounded-2xl"
   end
 
   def buy_action (public_key)
@@ -123,14 +119,14 @@ class PowerupTimeWarp < Powerup
   end
 
   def cleanup (public_key)
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
+    if public_key
       a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
       active_stack = a_s.nil? ? 0 : a_s
-
+      if !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
         unit_rate = @game.get_player_time_units_ps(public_key)
         timewarp_rate = unit_rate / (new_multiplier(public_key) ** active_stack.to_i)
         @game.set_player_time_units_ps(public_key, timewarp_rate)
-
+      end
       durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
 
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)

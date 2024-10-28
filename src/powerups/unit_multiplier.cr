@@ -19,7 +19,7 @@ class PowerupUnitMultiplier < Powerup
 
   def get_description (public_key)
     adjusted_multiplier = new_multiplier(public_key)
-    "Permanently increases units/s by #{((adjusted_multiplier - 1) * 100).round(2).floor}%. Can be purchased multiple times with escalating costs."
+    "Permanently increases unit production by #{((adjusted_multiplier - 1) * 100).round(2).floor}%. Price increases multiplicatively."
   end
 
   def is_stackable
@@ -63,7 +63,7 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def action(public_key, dt)
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id)
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
       current_rate = @game.get_player_time_units_ps(public_key)
       stack_size = get_player_stack_size(public_key)
       adjusted_multiplier = new_multiplier(public_key)
@@ -73,7 +73,7 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def cleanup(public_key)
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id)
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
       current_rate = @game.get_player_time_units_ps(public_key)
       stack_size = get_player_stack_size(public_key)
       adjusted_multiplier = new_multiplier(public_key)

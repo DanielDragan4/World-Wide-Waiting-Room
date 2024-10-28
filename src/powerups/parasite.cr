@@ -31,8 +31,7 @@ class PowerupParasite < Powerup
 
   def get_description (public_key)
     new_percentage_steal = new_percentage_steal(public_key)
-    "Over the course of #{DURATION / 60} minutes, steal #{new_percentage_steal.round(2)}% of the units from the player directly ahead of you and directly behind you every minute.
-This action can be used once every #{COOLDOWN / 60 / 60} hours. "
+    "Over the course of #{(DURATION / 60).to_i} minutes, steal a fraction of the units from the player directly ahead of you and directly behind you every minute for the next 10 minutes."
   end
 
   def get_price (public_key)
