@@ -19,6 +19,10 @@ class PowerupOverCharge < Powerup
     "Over Charge"
   end
 
+  def player_card_powerup_icon (public_key)
+    "/overcharge.png"
+  end
+
   def is_stackable
     true
   end
