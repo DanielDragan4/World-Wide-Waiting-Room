@@ -1,6 +1,8 @@
 require "./worldwidewaitingroom"
 require "redis"
 
+alias PopupInfo = Hash(String, String | Float64 | Int64 | Int32 | Float32)
+
 class Powerup
   def initialize (@game : Game)
 
@@ -8,6 +10,10 @@ class Powerup
 
   def self.get_powerup_id : String
     "powerup"
+  end
+
+  def get_popup_info (public_key : String) : PopupInfo
+    Hash(String, String | Float64 | Int64 | Int32 | Float32).new
   end
 
   def player_card_powerup_active_css_class (public_key : String) : String

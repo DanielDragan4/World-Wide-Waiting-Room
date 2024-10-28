@@ -153,6 +153,20 @@ worker.onmessage = ({ data }) => {
       return `<button onclick="usePowerup('${x.value}', '${player.public_key}')" class="border rounded px-1 bg-white text-black hover:bg-black hover:text-white">${escape(x.name)}</button>` 
     }).join('\n')
 
+
+    const popupIcons = player.player_powerup_icons.map((x) => {
+      return `
+      <div class="relative group">
+        <img class="w-[25px]" src="${x.icon}"/>
+        <div class="absolute text-white bg-black rounded p-1 invisible group-hover:visible ease-in flex flex-col max-w-48 min-w-48 -left-20 text-center">
+          ${
+            Object.entries(player.popup_info[x.powerup]).map(([k, v]) => '<span><strong>' + k + ': </strong>' + v + '</span>').join('')
+          }
+        </div>
+      </div>
+      `
+    });
+
     card.innerHTML = `
     <div 
       style="background-color: ${player.bg_color}; color: ${player.text_color}" 
@@ -173,9 +187,7 @@ worker.onmessage = ({ data }) => {
     ">
       <span class="text-2xl text-center">${escape(player.name)}</span>
       <div class="flex flex-row space-x-2 justify-center">
-        ${
-          player.player_powerup_icons.map((x) => '<img class="w-[25px]" src="' + x + '"/>').join('\n')
-        }
+        ${popupIcons}
       </div>
       <div class="text-center my-auto flex flex-col">
         <span class="font-bold text-xl">

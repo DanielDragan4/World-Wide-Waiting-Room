@@ -25,12 +25,12 @@ class PowerupBreach < Powerup
   end
 
   def get_description (public_key)
-    "Disabled all of a player's passive powerups for 10 minutes. Price increases exponentially."
+    time = get_synergy_boosted_multiplier public_key, AfflictPowerupBreach::COOLDOWN
+    "Disabled all of a player's passive powerups for #{time / 60} minutes. Price increases exponentially."
   end
 
   def get_price (public_key)
-    mult = ((@game.get_powerup_stack public_key, PowerupBreach.get_powerup_id) * 2)
-    BASE_PRICE * (mult == 0 ? 1 : mult)
+    BASE_PRICE * 2 ** (@game.get_powerup_stack public_key, PowerupBreach.get_powerup_id)
   end
 
   def is_available_for_purchase (public_key)
