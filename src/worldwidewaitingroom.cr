@@ -284,7 +284,7 @@ class Game
         left = left.to_s
       end
 
-      if right_i > 0
+      if right_i >= 0
         right = (raw_leaderboard.fetch right_i, nil)
 
         if right
