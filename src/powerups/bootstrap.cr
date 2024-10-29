@@ -36,7 +36,7 @@ class PowerupBootStrap < Powerup
 
   def get_description(public_key)
     new_base_pi = new_base_percent_increase(public_key)
-    "Gives #{(new_base_pi * 100).round}% of total units increasing exponentially with each purchase as well as price at a lower rate. Can only be purchased once every 24 hours. Cost of #{BASEPRICE} + #{COST_PERCENTAGE * 100}% of your total units."
+    "Gives #{(new_base_pi * 100).round}% of total units increasing exponentially with each purchase as well as price at a lower rate. Can only be purchased once every 6 hours. Cost of #{BASEPRICE} + #{COST_PERCENTAGE * 100}% of your total units."
   end
 
   def cooldown_seconds_left(public_key) : Int32
