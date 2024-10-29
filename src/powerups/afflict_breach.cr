@@ -2,7 +2,6 @@ require "../powerup"
 require "json"
 
 require "./unit_multiplier"
-require "./synergy_matrix.cr"
 require "./compound_interest.cr"
 require "./force_field.cr"
 
@@ -22,12 +21,16 @@ class AfflictPowerupBreach < Powerup
     true
   end
 
+  def get_cooldown_time (public_key)
+    get_synergy_boosted_multiplier public_key, COOLDOWN.to_f64
+  end
+
   def is_available_for_purchase (public_key)
     false
   end
 
   def get_cooldown_seconds_left (public_key)
-    @game.get_timer_seconds_left public_key, COOLDOWN_KEY
+    @game.get_timer_seconds_left public_key, (get_cooldown_time public_key)
   end
 
   def buy_action (public_key)
@@ -36,7 +39,7 @@ class AfflictPowerupBreach < Powerup
     end
 
     @game.add_powerup public_key, AfflictPowerupBreach.get_powerup_id
-    @game.set_timer public_key, COOLDOWN_KEY, COOLDOWN
+    @game.set_timer public_key, COOLDOWN_KEY, (get_cooldown_time public_key).to_i64
   end
 
   def action (public_key, dt)

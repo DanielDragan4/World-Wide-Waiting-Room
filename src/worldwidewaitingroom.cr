@@ -84,6 +84,7 @@ module Keys
   PLAYER_TIME_UNITS_PER_SECOND = "time_units_per_second"
 
   PLAYER_NAME = "name"
+  PLAYER_POWERUP_POPUP_INFO = "popup_info"
   PLAYER_INPUT_BUTTONS = "input_buttons"
   PLAYER_BG_COLOR = "bg_color"
   PLAYER_TEXT_COLOR = "text_color"
@@ -98,6 +99,10 @@ class Game
     spawn do
       loop do
         tick
+        # WARNING:
+        # DO NOT CHANGE THE SLEEP TIME
+        # DOING SO WILL FUCK UP ACTION TIMING
+        # SOME POWERUPS DEPEND ON THEIR ACTION BEING CALLED EVERY SECOND
         sleep 1.second
       end
     end
@@ -489,21 +494,35 @@ class Game
     powerup_classes = get_powerup_classes
 
     player_input_buttons = Array(Hash(String, String)).new
+    powerup_popup_info = Hash(String, PopupInfo).new
 
     powerups.each do |pu|
       pc = powerup_classes.fetch pu.to_s, nil
-      if !pc || !(pc.is_input_powerup public_key)
+
+      if !pc
         next
       end
 
-      player_input_buttons << ({ "name" => (pc.input_button_text public_key), "value" => pu.to_s })
+      powerup_popup_info[pu.to_s] = pc.get_popup_info public_key
+
+      if pc.is_input_powerup public_key
+        player_input_buttons << ({ "name" => (pc.input_button_text public_key), "value" => pu.to_s })
+      end
     end
 
-    powerup_icons = powerups.map { |x| powerup_classes[x].player_card_powerup_icon public_key }.reject { |x| x == "" }
+    powerup_icons = powerups.map do |x|
+      {
+        "icon" => (powerup_classes[x].player_card_powerup_icon public_key),
+        "powerup" => x
+      }
+    end
+
+    powerup_icons = powerup_icons.reject { |x| x["icon"] == "" }
     css_classes = powerups.map { |x| powerup_classes[x].player_card_powerup_active_css_class public_key }
     css_classes = css_classes.join " "
 
     return {
+      Keys::PLAYER_POWERUP_POPUP_INFO => powerup_popup_info,
       Keys::PLAYER_NAME => player_name.value,
       Keys::PLAYER_BG_COLOR => player_bg_color.value,
       Keys::PLAYER_TEXT_COLOR => player_text_color.value,

@@ -30,7 +30,7 @@ class PowerupBootStrap < Powerup
 
   def next_units_inc (public_key)
     new_base_pi = new_base_percent_increase public_key
-    ((@game.get_player_time_units public_key) * ((new_base_pi) **2))
+    ((@game.get_player_time_units public_key) * (new_base_pi ** 2))
   end
 
 

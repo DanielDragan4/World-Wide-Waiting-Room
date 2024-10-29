@@ -23,6 +23,10 @@ class AfflictPowerupSignalJammer < Powerup
     "/jam.png"
   end
 
+  def get_cooldown_time (public_key)
+    get_synergy_boosted_multiplier public_key, COOLDOWN.to_f64
+  end
+
   def get_cooldown_seconds_left (public_key)
     @game.get_timer_seconds_left public_key, COOLDOWN_KEY
   end

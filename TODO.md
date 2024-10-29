@@ -1,0 +1,20 @@
+- Timers for active powerups
+- Powerup UI
+- Achievements
+- Different currency for other powerups
+- Show stack size
+- Reset game logic + global leaderboard
+- Add all icons for powerups
+- All animations for powerups
+- Make sure Synergy is handled
+- Make sure Forcefield is handled
+- Make sure Passives being disabled are handled
+- Remove stack size methods from powerup
+
+- [ x ] Parasite no 12 hour cooldown
+- [ x ] Stack parasite
+- [ x ] Signal Jammer synergy matrix applied to time
+- [ x ] Forcefield has 3 hour cooldown 
+- [ x ] Apply Synergy Matrix time to breach 
+- [ x ] Forcefield & Parasite scale at same rate
+- [ x ] Breach price increase exponentially
