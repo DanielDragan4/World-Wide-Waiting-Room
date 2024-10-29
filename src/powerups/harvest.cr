@@ -40,7 +40,7 @@ class PowerupHarvest < Powerup
   end
 
   def get_harvest_amount (public_key)
-    (@game.get_player_time_units_ps public_key) * HARVEST_TIME
+    (@game.get_player_frame_ups public_key) * HARVEST_TIME
   end
 
   def get_price (public_key)
