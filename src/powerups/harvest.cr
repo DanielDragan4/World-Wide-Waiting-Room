@@ -25,7 +25,8 @@ class PowerupHarvest < Powerup
   end
 
   def get_description(public_key)
-    "Collects the next hour's worth of units with the current unit production for the hour, but pauses unit generation for that hour: #{get_harvest_amount(public_key).round(2)} units. Can only be used once per hour."
+    units = (@game.get_player_frame_ups public_key) * HARVEST_TIME
+    "Collects the next hour's worth of units with the current unit production for the hour, but pauses unit generation for that hour: #{units} units. Can only be used once per hour."
   end
 
   def cooldown_seconds_left(public_key)
