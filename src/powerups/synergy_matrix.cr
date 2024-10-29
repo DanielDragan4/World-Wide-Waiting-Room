@@ -1,7 +1,7 @@
 require "../powerup.cr"
 
 class PowerupSynergyMatrix < Powerup
-  BASE_PRICE = 1_000.0
+  BASE_PRICE = 500.0
   KEY = "synergy_matrix_stack"
   BOOST_PER_STACK = 0.10
 
@@ -45,8 +45,8 @@ class PowerupSynergyMatrix < Powerup
   end
 
   def get_price(public_key)
-    stack_size = get_player_stack_size(public_key)
-    BASE_PRICE * (1.5 ** stack_size)
+    stack_size = get_player_stack_size(public_key) + 1
+    BASE_PRICE * ((stack_size) **1.25)
   end
 
   def buy_action(public_key)
