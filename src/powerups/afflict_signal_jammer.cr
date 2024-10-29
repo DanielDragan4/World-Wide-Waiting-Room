@@ -7,12 +7,22 @@ class AfflictPowerupSignalJammer < Powerup
   AMOUNT_DEC_KEY = "afflict_signal_jammer_tups_diff"
   COOLDOWN_KEY = "afflict_signal_jammer_cooldown"
 
+  def get_name
+    "Signal Jammer"
+  end
+
   def self.get_powerup_id
     "afflict_signal_jammer"
   end
 
   def is_afflication_powerup (public_key)
     true
+  end
+
+  def get_popup_info (public_key)
+    pi = PopupInfo.new
+    pi["Time Left"] = (@game.get_timer_seconds_left public_key, COOLDOWN_KEY)
+    pi
   end
 
   def is_available_for_purchase (public_key)
@@ -27,13 +37,9 @@ class AfflictPowerupSignalJammer < Powerup
     get_synergy_boosted_multiplier public_key, COOLDOWN.to_f64
   end
 
-  def get_cooldown_seconds_left (public_key)
-    @game.get_timer_seconds_left public_key, COOLDOWN_KEY
-  end
-
   def buy_action (public_key)
     @game.add_powerup public_key, AfflictPowerupSignalJammer.get_powerup_id
-    @game.set_timer public_key, COOLDOWN_KEY, COOLDOWN
+    @game.set_timer public_key, COOLDOWN_KEY, (get_cooldown_time public_key).to_i64
   end
 
   def action (public_key, dt)

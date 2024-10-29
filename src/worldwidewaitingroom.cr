@@ -184,15 +184,12 @@ class Game
         "name" => value.get_name,
         "description" => (value.get_description public_key),
         "price" => (value.get_price public_key),
-        "is_stackable" => (value.is_stackable public_key),
         "is_available_for_purchase" => (value.is_available_for_purchase public_key),
         "is_input_powerup" => (value.is_input_powerup public_key),
         "is_afflication_powerup" => (value.is_afflication_powerup public_key),
         "input_button_text" => (value.input_button_text public_key),
         "cooldown_seconds_left" => (value.cooldown_seconds_left public_key),
-        "max_stack_size" => (value.max_stack_size public_key),
         "currently_owns" => (player_powerups.includes? key),
-        "current_stack_size" => (value.get_player_stack_size public_key),
       }
     end
 
@@ -511,9 +508,11 @@ class Game
     end
 
     powerup_icons = powerups.map do |x|
+      pc = powerup_classes[x]
       {
-        "icon" => (powerup_classes[x].player_card_powerup_icon public_key),
-        "powerup" => x
+        "icon" => (pc.player_card_powerup_icon public_key),
+        "powerup" => x,
+        "name" => pc.get_name
       }
     end
 

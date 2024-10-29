@@ -49,7 +49,7 @@ class PowerupBootStrap < Powerup
 
   def is_available_for_purchase(public_key)
     current_units = @game.get_player_time_units public_key
-    (@game.is_timer_expired public_key, COOLDOWN_KEY) && ((get_player_stack_size public_key) != max_stack_size public_key) && ((get_price public_key) <= current_units)
+    (@game.is_timer_expired public_key, COOLDOWN_KEY) && ((get_price public_key) <= current_units)
   end
 
   def get_player_stack_size(public_key)

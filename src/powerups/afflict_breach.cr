@@ -13,6 +13,16 @@ class AfflictPowerupBreach < Powerup
     "afflict_breach"
   end
 
+  def get_name
+    "Breach"
+  end
+
+  def get_popup_info (public_key)
+    pi = PopupInfo.new
+    pi["Time Left"] = (@game.get_timer_seconds_left public_key, COOLDOWN_KEY)
+    pi
+  end
+
   def player_card_powerup_icon (public_key)
     "/breach.png"
   end
@@ -27,10 +37,6 @@ class AfflictPowerupBreach < Powerup
 
   def is_available_for_purchase (public_key)
     false
-  end
-
-  def get_cooldown_seconds_left (public_key)
-    @game.get_timer_seconds_left public_key, (get_cooldown_time public_key)
   end
 
   def buy_action (public_key)

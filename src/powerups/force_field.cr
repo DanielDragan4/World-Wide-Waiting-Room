@@ -15,12 +15,18 @@ class PowerupForceField < Powerup
     "forcefield"
   end
 
-  def player_card_powerup_active_css_class (public_key)
-    "border border-rounded border-[10px] border-blue-600"
+  def player_card_powerup_icon (public_key)
+    "/forcefield.png"
   end
 
   def get_name
     "Force Field"
+  end
+
+  def get_popup_info (public_key) : PopupInfo
+    pi = PopupInfo.new
+    pi["Time Left"] = (@game.get_timer_seconds_left public_key, COOLDOWN_KEY)
+    pi
   end
 
   def get_description (public_key)

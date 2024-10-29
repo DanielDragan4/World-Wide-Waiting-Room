@@ -60,23 +60,11 @@ class Powerup
     true
   end
 
-  def is_stackable (public_key : String) : Bool
-    false
-  end
-
-  def max_stack_size (public_key : String) : Int32
-    0
-  end
-
   def get_price (public_key : String) : Float64
     0.0
   end
 
   def cooldown_seconds_left (public_key : String) : Int32
-    0
-  end
-
-  def get_player_stack_size (public_key : String) : Int32
     0
   end
 

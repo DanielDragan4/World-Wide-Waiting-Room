@@ -159,13 +159,14 @@ worker.onmessage = ({ data }) => {
       <div class="relative group">
         <img class="w-[25px]" src="${x.icon}"/>
         <div class="absolute text-white bg-black rounded p-1 invisible group-hover:visible ease-in flex flex-col max-w-48 min-w-48 -left-20 text-center">
+          <h3>${x.name}</h3>
           ${
             Object.entries(player.popup_info[x.powerup]).map(([k, v]) => '<span><strong>' + k + ': </strong>' + v + '</span>').join('')
           }
         </div>
       </div>
       `
-    });
+    }).join('\n');
 
     card.innerHTML = `
     <div 

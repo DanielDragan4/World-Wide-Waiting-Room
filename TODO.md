@@ -6,9 +6,9 @@
 - Reset game logic + global leaderboard
 - Add all icons for powerups
 - All animations for powerups
-- Make sure Synergy is handled
-- Make sure Forcefield is handled
-- Make sure Passives being disabled are handled
+- [ x ] Make sure Synergy is handled
+- [ x ] Make sure Forcefield is handled
+- [ x ] Make sure Passives being disabled are handled
 - Remove stack size methods from powerup
 
 - [ x ] Parasite no 12 hour cooldown

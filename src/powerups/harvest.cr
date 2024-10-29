@@ -56,10 +56,6 @@ class PowerupHarvest < Powerup
     size_i
   end
 
-  def player_card_powerup_active_css_class(public_key)
-    "border border-rounded border-[10px] border-transparent bg-[#e0f7ff] bg-opacity-80 shadow-[inset_0_0_10px_rgba(173,216,230,0.5),_0_0_15px_rgba(173,216,230,0.8),_0_0_20px_rgba(30,144,255,0.6)] hover:bg-[#d6f0ff] transition-all duration-200 ease-in-out"
-  end
-
   def buy_action (public_key)
     if is_available_for_purchase(public_key)
       c_s = get_player_stack_size(public_key)
