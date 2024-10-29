@@ -1,7 +1,7 @@
 require "../powerup.cr"
 
 class PowerupAutomationUpgrade < Powerup
-  BASE_PRICE = 1000.0
+  BASE_PRICE = 1#1000.0
   MULTIPLIER = 0.05
   KEY = "automation_upgrade_stack"
   PURCHASE_TIME_KEY = "automation_upgrade_purchase_time"
@@ -26,7 +26,7 @@ class PowerupAutomationUpgrade < Powerup
       actives_at_purchase = get_actives_at_purchase(public_key)
       current_actives = @game.get_actives(public_key)
       actives_since_purchase = [current_actives - actives_at_purchase, 0].max
-      current_bonus = (adjusted_multiplier * actives_since_purchase * 100).round(2)
+      current_bonus = ((adjusted_multiplier * 100).round / 100 * actives_since_purchase * 100).round(2)
       
       "For each active power up, afer purchasing Automation uprgrade, increase your unit production by #{(adjusted_multiplier * 100).round}%. This powerup was purchased (One time purchase).\n
       Current boost: #{current_bonus}% from #{actives_since_purchase} purchases."
@@ -112,7 +112,7 @@ class PowerupAutomationUpgrade < Powerup
       
       # Only apply the bonus if neither harvest nor overcharge is active
       if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) || @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id)
-        multiplier = new_multiplier(public_key)
+        multiplier = (new_multiplier(public_key) * 100).round / 100
         current_units_ps = @game.get_player_time_units_ps(public_key)
         
         # Apply bonus based on total actives since purchase
@@ -133,7 +133,7 @@ class PowerupAutomationUpgrade < Powerup
         actives_at_purchase = get_actives_at_purchase(public_key)
         current_actives = @game.get_actives(public_key)
         actives_since_purchase = [current_actives - actives_at_purchase, 0].max
-        multiplier = new_multiplier(public_key)
+        multiplier = (new_multiplier(public_key) * 100).round / 100
 
         # Remove the bonus that was applied in action
         previous_units_ps = current_units_ps / (1 + (actives_since_purchase * multiplier))
