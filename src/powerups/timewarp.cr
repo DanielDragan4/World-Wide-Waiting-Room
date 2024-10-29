@@ -8,6 +8,7 @@ class PowerupTimeWarp < Powerup
   UNIT_MULTIPLIER = 2.0
   DURATION = 600
   KEY_DURATION = "timewarp_duration"
+  RATE_CHANGE_KEY = "timewarp_unit_change"
 
   def new_multiplier(public_key) : Float64
     get_synergy_boosted_multiplier(public_key, UNIT_MULTIPLIER)
@@ -26,18 +27,17 @@ class PowerupTimeWarp < Powerup
   end
 
   def get_popup_info (public_key) : PopupInfo
-    durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
+    durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
     pi = PopupInfo.new
-    pi["Time Left"] = (durations[0].to_i - @game.ts).to_s
+    pi["Time Left"] = (durations[0][0].to_i - @game.ts).to_s
     pi["Time Warp Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
     pi
   end
 
   def get_description(public_key)
-    a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
-    active_stack = a_s.nil? ? 1 : a_s + 1
-    amount = (new_multiplier(public_key) ** active_stack.to_i).round(2)
+    
+    amount = ((get_unit_boost(public_key)) * new_multiplier(public_key)).round(2)
     "Multiplies unit production by #{amount}x for the next 10 minutes. Price increases exponentially."
   end
 
@@ -57,7 +57,7 @@ class PowerupTimeWarp < Powerup
   end
 
   def max_stack_size (public_key)
-    500
+    10000
   end
 
   def get_player_stack_size(public_key)
@@ -78,6 +78,19 @@ class PowerupTimeWarp < Powerup
     end
   end
 
+  def get_unit_boost(public_key)
+    return 1.0 if !@game.has_powerup(public_key, PowerupTimeWarp.get_powerup_id)
+
+    durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
+    boost_units = 1.0
+
+    durations.each do |t|
+      boost_units *= t[1].to_f
+    end
+    
+    boost_units
+  end
+
   def buy_action (public_key)
 
     if public_key
@@ -94,12 +107,12 @@ class PowerupTimeWarp < Powerup
         a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
         active_stack = a_s.nil? ? 0 : a_s
 
-        durations = Array(String)
+        durations = Array(Array(String))
         if (!active_stack.nil?) && (active_stack > 0)
-            durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
-            durations << ((@game.ts + DURATION).to_s)
+            durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
+            durations << [((@game.ts + DURATION).to_s), (new_multiplier public_key).to_s]
         else
-            durations = [(@game.ts + DURATION).to_s]
+            durations = [[((@game.ts + DURATION).to_s), (new_multiplier public_key).to_s]]
         end
         @game.set_key_value public_key, KEY_DURATION,  durations.to_json
 
@@ -122,12 +135,11 @@ class PowerupTimeWarp < Powerup
 
   def action (public_key, dt)
     if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
-        a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
-        active_stack = a_s.nil? ? 0 : a_s
-
         unit_rate = @game.get_player_time_units_ps(public_key)
-        timewarp_rate = unit_rate * (new_multiplier(public_key) ** active_stack.to_i)
-        @game.set_player_time_units_ps(public_key, timewarp_rate)
+        timewarp_rate = (unit_rate * (get_unit_boost(public_key))) -unit_rate
+        @game.set_key_value public_key, RATE_CHANGE_KEY, timewarp_rate
+
+        @game.inc_time_units_ps public_key, timewarp_rate
     end
   end
 
@@ -136,14 +148,14 @@ class PowerupTimeWarp < Powerup
       a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
       active_stack = a_s.nil? ? 0 : a_s
       if !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
-        unit_rate = @game.get_player_time_units_ps(public_key)
-        timewarp_rate = unit_rate / (new_multiplier(public_key) ** active_stack.to_i)
-        @game.set_player_time_units_ps(public_key, timewarp_rate)
+        timewarp_rate = @game.get_key_value_as_float(public_key, RATE_CHANGE_KEY)
+        
+        @game.inc_time_units_ps public_key, -timewarp_rate
       end
-      durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
+      durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
-          duration = durations[0].to_i
+          duration = durations[0][0].to_i
           current_time = @game.ts
 
           if (duration < current_time)
