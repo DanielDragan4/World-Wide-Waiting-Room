@@ -275,7 +275,7 @@ class Game
     # Leaderboard is in reverse order so left and write are "swapped"
     if player_index
       left_i = (player_index + 1)
-      right_i = (player_index - 1)
+      right_i = Math.max (player_index - 1), 0
 
 
       left = (raw_leaderboard.fetch left_i, nil)
@@ -284,14 +284,10 @@ class Game
         left = left.to_s
       end
 
-      if right_i >= 0
-        right = (raw_leaderboard.fetch right_i, nil)
+      right = (raw_leaderboard.fetch right_i, nil)
 
-        if right
-          right = right.to_s
-        end
-      else
-        right = nil
+      if right
+        right = right.to_s
       end
 
       { left, right }
