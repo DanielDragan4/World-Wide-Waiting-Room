@@ -47,7 +47,6 @@ class PowerupBreach < Powerup
 
   def buy_action (public_key)
     if is_available_for_purchase public_key
-      @game.add_powerup public_key, PowerupBreach.get_powerup_id
       @game.inc_time_units public_key, -(get_price public_key)
       @game.inc_powerup_stack public_key, PowerupBreach.get_powerup_id
     end
