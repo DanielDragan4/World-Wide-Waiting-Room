@@ -186,7 +186,7 @@ class Game
         "price" => (value.get_price public_key),
         "is_available_for_purchase" => (value.is_available_for_purchase public_key),
         "is_input_powerup" => (value.is_input_powerup public_key),
-        "is_afflication_powerup" => (value.is_afflication_powerup public_key),
+        "is_achievement_powerup" => (value.is_achievement_powerup public_key),
         "input_button_text" => (value.input_button_text public_key),
         "cooldown_seconds_left" => (value.cooldown_seconds_left public_key),
         "currently_owns" => (player_powerups.includes? key),
@@ -210,10 +210,17 @@ class Game
 
   def do_powerup_actions (public_key : String, dt)
     powerup_classes = get_powerup_classes
+
     (get_player_powerups public_key).each do |powerup_name|
       powerup_class = powerup_classes.fetch powerup_name, nil
       if powerup_class
         powerup_class.action public_key, dt
+      end
+    end
+
+    powerup_classes.each_value do |pc|
+      if pc.is_achievement_powerup public_key
+        pc.action public_key, dt
       end
     end
   end
@@ -224,6 +231,12 @@ class Game
       powerup_class = powerup_classes.fetch powerup_name, nil
       if powerup_class
         powerup_class.cleanup public_key
+      end
+    end
+
+    powerup_classes.each_value do |pc|
+      if pc.is_achievement_powerup public_key
+        pc.cleanup public_key
       end
     end
   end

@@ -31,6 +31,13 @@ class Powerup
     false
   end
 
+  def is_achievement_powerup (public_key : String) : Bool
+    # An achievement powerup is not purchasable but instead _unlockable_
+    # Functionally, an achievement powerup has its action method run regardless of whether the player actually has the achievement unlocked or not
+    # It is the powerup's job to handle the specific logic outside of that.
+    false
+  end
+
   def is_input_powerup (public_key : String) : Bool
     # An input powerup gives the player an action that can be performed once
     # another player card.
