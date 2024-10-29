@@ -46,7 +46,7 @@ class PowerupSynergyMatrix < Powerup
 
   def get_price(public_key)
     stack_size = get_player_stack_size(public_key) + 1
-    BASE_PRICE * ((stack_size) **1.25)
+    BASE_PRICE * ((stack_size) **5)
   end
 
   def buy_action(public_key)
