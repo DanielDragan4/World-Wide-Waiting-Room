@@ -6,9 +6,9 @@ require "./compound_interest"
 class PowerupOverCharge < Powerup
   STACK_KEY = "overcharge_stack"
   ACTIVE_STACK_KEY = "overcharge_active_stack"
-  BASE_PRICE = 200.0
+  BASE_PRICE = 75.0
   UNIT_MULTIPLIER = 5.0
-  DURATION = 120
+  DURATION = 60
   KEY_DURATION = "overcharge_duration"
   RATE_CHANGE_KEY = "overcharge_unit_change"
 
@@ -38,12 +38,12 @@ class PowerupOverCharge < Powerup
 
   def get_description(public_key)
         amount = ((get_unit_boost(public_key)) * new_multiplier(public_key)).round(2)
-        "Increases unit production by #{amount}x for 2 min, but disables all passive powerups while active. Price increases exponentially."
+        "Increases unit production by #{amount}x for 1 min, but disables all passive powerups while active. Price increases exponentially."
   end
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    price = (BASE_PRICE * (stack_size ** 1.5)).round(2)
+    price = ((BASE_PRICE * stack_size)* (stack_size ** 2)).round(2)
   end
 
   def is_available_for_purchase(public_key)
