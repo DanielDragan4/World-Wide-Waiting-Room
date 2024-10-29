@@ -2,10 +2,10 @@
 - Powerup UI
 - Achievements
 - Different currency for other powerups
-- Show stack size
 - Reset game logic + global leaderboard
-- Add all icons for powerups
-- All animations for powerups
+- Mobile version
+- "Not Available" should say "Owned" if owned
+
 - [ x ] Make sure Synergy is handled
 - [ x ] Make sure Forcefield is handled
 - [ x ] Make sure Passives being disabled are handled
