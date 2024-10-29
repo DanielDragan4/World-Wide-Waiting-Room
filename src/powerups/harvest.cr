@@ -20,12 +20,22 @@ class PowerupHarvest < Powerup
     "Harvest"
   end
 
+  def player_card_powerup_icon (public_key)
+    "/harvest.png"
+  end
+
   def get_description(public_key)
     "Collects the next hour's worth of units with the current unit production for the hour, but pauses unit generation for that hour: #{get_harvest_amount(public_key).round(2)} units. Can only be used once per hour."
   end
 
   def cooldown_seconds_left(public_key)
     @game.get_timer_seconds_left public_key, DURATION_KEY
+  end
+
+  def get_popup_info (public_key) : PopupInfo
+    pi = PopupInfo.new
+    pi["Time Left"] = cooldown_seconds_left(public_key)
+    pi
   end
 
   def get_harvest_amount (public_key)

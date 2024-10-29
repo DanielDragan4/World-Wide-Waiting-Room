@@ -25,6 +25,15 @@ class PowerupTimeWarp < Powerup
     true
   end
 
+  def get_popup_info (public_key) : PopupInfo
+    durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
+
+    pi = PopupInfo.new
+    pi["Time Left"] = (durations[0].to_i - @game.ts).to_s
+    pi["Time Warp Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
+    pi
+  end
+
   def get_description(public_key)
     a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
     active_stack = a_s.nil? ? 1 : a_s + 1
@@ -34,7 +43,11 @@ class PowerupTimeWarp < Powerup
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    price = (BASE_PRICE * (stack_size ** 3)).round(2)
+    price = (BASE_PRICE * (stack_size ** 3.5)).round(2)
+  end
+
+  def player_card_powerup_icon (public_key)
+    "/timewarp.png"
   end
 
   def is_available_for_purchase(public_key)

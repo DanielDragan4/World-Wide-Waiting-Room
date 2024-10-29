@@ -19,8 +19,21 @@ class PowerupOverCharge < Powerup
     "Over Charge"
   end
 
+  def player_card_powerup_icon (public_key)
+    "/overcharge.png"
+  end
+
   def is_stackable
     true
+  end
+
+  def get_popup_info (public_key) : PopupInfo
+    durations = Array(String).from_json(@game.get_key_value public_key, KEY_DURATION)
+
+    pi = PopupInfo.new
+    pi["Time Left"] = (durations[0].to_i - @game.ts).to_s
+    pi["Overcharge Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
+    pi
   end
 
   def get_description(public_key)
