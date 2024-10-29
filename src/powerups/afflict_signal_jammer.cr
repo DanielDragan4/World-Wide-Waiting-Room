@@ -52,13 +52,18 @@ class AfflictPowerupSignalJammer < Powerup
     player_tups = @game.get_player_time_units_ps public_key
     amount_dec = player_tups * UPS_PERCENT_DECREASE
 
-    @game.set_key_value public_key, AMOUNT_DEC_KEY, amount_dec.to_s
+    @game.set_key_value public_key, AMOUNT_DEC_KEY, amount_dec
     @game.inc_time_units_ps public_key, -amount_dec
   end
 
   def cleanup (public_key)
+    @game.remove_powerup_if_timer_expired public_key, COOLDOWN_KEY, AfflictPowerupSignalJammer.get_powerup_id
+
+    if @game.has_powerup public_key, PowerupForceField.get_powerup_id
+      return
+    end
+
     amount_dec = @game.get_key_value_as_float public_key, AMOUNT_DEC_KEY
     @game.inc_time_units_ps public_key, amount_dec
-    @game.remove_powerup_if_timer_expired public_key, COOLDOWN_KEY, AfflictPowerupSignalJammer.get_powerup_id
   end
 end

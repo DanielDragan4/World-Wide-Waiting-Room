@@ -7,6 +7,7 @@ class PowerupAutomationUpgrade < Powerup
   PURCHASE_TIME_KEY = "automation_upgrade_purchase_time"
   PROCESSED_ACTIVES_KEY = "automation_upgrade_processed_actives"
   BONUS_APPLIED_KEY = "automation_upgrade_bonus_applied"
+  INCREASE_KEY = "automation_upgrade_increase"
 
   def new_multiplier(public_key) : Float64
     get_synergy_boosted_multiplier(public_key, MULTIPLIER)
@@ -26,7 +27,7 @@ class PowerupAutomationUpgrade < Powerup
       actives_at_purchase = get_actives_at_purchase(public_key)
       current_actives = @game.get_actives(public_key)
       actives_since_purchase = [current_actives - actives_at_purchase, 0].max
-      current_bonus = (adjusted_multiplier * actives_since_purchase * 100).round(2)
+      current_bonus = ((adjusted_multiplier * 100).round / 100 * actives_since_purchase * 100).round(2)
       
       "For each active power up, afer purchasing Automation uprgrade, increase your unit production by #{(adjusted_multiplier * 100).round}%. This powerup was purchased (One time purchase).\n
       Current boost: #{current_bonus}% from #{actives_since_purchase} purchases."
@@ -112,12 +113,14 @@ class PowerupAutomationUpgrade < Powerup
       
       # Only apply the bonus if neither harvest nor overcharge is active
       if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) || @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id)
-        multiplier = new_multiplier(public_key)
+        multiplier = (new_multiplier(public_key) * 100).round / 100
         current_units_ps = @game.get_player_time_units_ps(public_key)
         
         # Apply bonus based on total actives since purchase
         bonus = 1 + (actives_since_purchase * multiplier)
-        @game.set_player_time_units_ps(public_key, current_units_ps * bonus)
+        increased_rate = current_units_ps * bonus - current_units_ps
+        @game.set_key_value(public_key, INCREASE_KEY, increased_rate)
+        @game.inc_time_units_ps(public_key, increased_rate)
       end
       
       # Update processed actives to current state
@@ -129,17 +132,8 @@ class PowerupAutomationUpgrade < Powerup
     if public_key && is_purchased(public_key)
       # Only restore units/s if neither harvest nor overcharge is active
       if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) || @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id)
-        current_units_ps = @game.get_player_time_units_ps(public_key)
-        actives_at_purchase = get_actives_at_purchase(public_key)
-        current_actives = @game.get_actives(public_key)
-        actives_since_purchase = [current_actives - actives_at_purchase, 0].max
-        multiplier = new_multiplier(public_key)
-
-        # Remove the bonus that was applied in action
-        previous_units_ps = current_units_ps / (1 + (actives_since_purchase * multiplier))
-        @game.set_player_time_units_ps(public_key, previous_units_ps)
-
-        puts "Cleanup: Restored units/s to #{previous_units_ps}"
+        increased_rate = @game.get_key_value_as_float(public_key, INCREASE_KEY)
+        @game.inc_time_units_ps(public_key, -increased_rate)
       end
     end
   end

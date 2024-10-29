@@ -7,8 +7,8 @@ class PowerupParasite < Powerup
   NEXT_TAKE_COOLDOWN = 1
   DURATION = 60 * 10
 
-  PERCENTAGE_STEAL_PER_SECOND = 0.02 / 60.0
-  PRICE_MULTIPLIER = 10
+  PERCENTAGE_STEAL_PER_SECOND = 0.04 / 60.0
+  PRICE_MULTIPLIER = 1.3
 
   KEY_DURATION = "parasite_duration"
   KEY_NEXT_TAKE_COOLDOWN = "parasite_next_take"
