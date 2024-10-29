@@ -38,7 +38,7 @@ class PowerupParasite < Powerup
   end
 
   def get_description (public_key)
-    "Over the course of #{(DURATION / 60).to_i} minutes, steal a fraction of the units from the player directly ahead of you and directly behind for the next 10 minutes. The price is increased multiplicatively with each purchase. The number of active parasites can be stacked increasing the steal amount. Stacking parasites does not reset the 10 minute timer."
+    "Over the course of #{(DURATION / 60).to_i} minutes, steal a fraction of the units from the player directly ahead of you and directly behind you. The price is increased multiplicatively with each purchase. The number of active parasites can be stacked increasing the steal amount. Stacking parasites does not reset the 10 minute timer."
   end
 
   def get_price (public_key)
