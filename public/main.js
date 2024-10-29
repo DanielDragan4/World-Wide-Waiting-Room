@@ -196,7 +196,7 @@ worker.onmessage = ({ data }) => {
         </span>
         <span>Units</span>
         <span class="font-bold text-md mt-2">
-          ${player.time_units_per_second.toFixed(2)}
+          ${(player.time_units_per_second || 0).toFixed(2)}
         </span>
         <span>Units/s</span>
       </div>

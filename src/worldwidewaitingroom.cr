@@ -459,6 +459,12 @@ class Game
     set_key_value public_key, "stack-#{powerup_id}", stack_size
   end
 
+  def get_player_frame_ups (public_key : String) : Float64
+    result = WWWR::R.hget(Keys::PLAYER_FRAME_TUPS, public_key).to_f64?
+    result ||= 0.0;
+    result
+  end
+
   def setup_new_waiter
     puts "Setting up new waiter."
     secret_token = Random.new.hex
