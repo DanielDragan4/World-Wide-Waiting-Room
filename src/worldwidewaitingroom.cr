@@ -460,9 +460,9 @@ class Game
   end
 
   def get_player_frame_ups (public_key : String) : Float64
-    result = WWWR::R.hget(Keys::PLAYER_FRAME_TUPS, public_key).to_f64?
+    result = WWWR::R.hget(Keys::PLAYER_FRAME_TUPS, public_key)
     result ||= 0.0;
-    result
+    result.to_f64
   end
 
   def setup_new_waiter
