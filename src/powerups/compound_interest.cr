@@ -99,13 +99,13 @@ class PowerupCompoundInterest < Powerup
   
 
   def action(public_key, dt)
-    if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
+    if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && !@game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
         apply_bonus(public_key)
     end
   end
 
   def cleanup(public_key)
-    if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
+    if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && !@game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
       remove_bonus(public_key)
     end
   end
