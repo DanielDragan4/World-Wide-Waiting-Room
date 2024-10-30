@@ -98,9 +98,13 @@ class PowerupParasite < Powerup
 
       puts "#{public_key} LEFT #{left} RIGHT #{right}"
 
+      total = 0
+
       if left && left != public_key && !@game.has_powerup left, PowerupForceField.get_powerup_id
         left_units = @game.get_player_time_units left
         amount = left_units * percent_steal
+
+        total += amount
 
         puts "#{public_key} TAKING #{amount} FROM LEFT #{left} who has #{left_units}"
 
@@ -115,11 +119,14 @@ class PowerupParasite < Powerup
 
         puts "#{public_key} TAKING #{amount} FROM RIGHT #{right} who has #{right_units}"
 
+        total += amount
+
         @game.inc_time_units right, -amount
         @game.inc_time_units public_key, amount
         @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => "Parasite -#{amount.round(2)}", "color" => "#E9CFA0" }
       end
 
+      @game.send_animation_event public_key, Animation::NUMBER_FLOAT, { "value" => "Parasite +#{total.round(2)}", "color" => "#E9A0CF" }
       @game.set_timer public_key, KEY_NEXT_TAKE_COOLDOWN, NEXT_TAKE_COOLDOWN
     end
   end
