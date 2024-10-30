@@ -10,7 +10,6 @@ class PowerupOverCharge < Powerup
   UNIT_MULTIPLIER = 5.0
   DURATION = 60
   KEY_DURATION = "overcharge_duration"
-  RATE_CHANGE_KEY = "overcharge_unit_change"
 
   def self.get_powerup_id
     "overcharge"
@@ -43,7 +42,7 @@ class PowerupOverCharge < Powerup
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    price = ((BASE_PRICE * stack_size)* (stack_size ** 2)).round(2)
+    price = ((BASE_PRICE * stack_size)* (stack_size ** 2.125)).round(2)
   end
 
   def is_available_for_purchase(public_key)
@@ -132,7 +131,6 @@ class PowerupOverCharge < Powerup
 
         unit_rate = @game.get_player_time_units_ps(public_key)
         overcharge_rate = (unit_rate * (get_unit_boost(public_key))) -unit_rate
-        @game.set_key_value public_key, RATE_CHANGE_KEY, overcharge_rate
 
         @game.inc_time_units_ps public_key, overcharge_rate
     end
@@ -142,11 +140,6 @@ class PowerupOverCharge < Powerup
     if public_key
       a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
       active_stack = a_s.nil? ? 0 : a_s
-        if !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
-            overcharge_rate = @game.get_key_value_as_float(public_key, RATE_CHANGE_KEY)
-
-            @game.inc_time_units_ps public_key, -overcharge_rate
-        end
 
         durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
