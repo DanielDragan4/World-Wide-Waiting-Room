@@ -78,7 +78,7 @@ class PowerupOverCharge < Powerup
     durations.each do |t|
       boost_units *= t[1].to_f
     end
-    
+
     boost_units
   end
 
@@ -144,7 +144,7 @@ class PowerupOverCharge < Powerup
       active_stack = a_s.nil? ? 0 : a_s
         if !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
             overcharge_rate = @game.get_key_value_as_float(public_key, RATE_CHANGE_KEY)
-        
+
             @game.inc_time_units_ps public_key, -overcharge_rate
         end
 

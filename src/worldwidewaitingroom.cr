@@ -93,6 +93,7 @@ end
 
 class Game
   @sync_next_frame = false
+  @default_ups = 1
 
   def spawn_loop
     update_frame_time
@@ -120,6 +121,7 @@ class Game
     get_leaderboard.each do |player_data|
       player_public_key = player_data["public_key"].to_s
 
+      set_player_time_units_ps player_public_key, @default_ups
       do_powerup_actions player_public_key, dt
 
       if !(is_unit_generation_disabled_for player_public_key)
@@ -480,7 +482,7 @@ class Game
       r.hset(Keys::PLAYER_NAME, public_key, "Anonymous")
       r.hset(Keys::PLAYER_BG_COLOR, public_key, "#ffffff")
       r.hset(Keys::PLAYER_TEXT_COLOR, public_key, "#000000")
-      r.hset(Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key, 1)
+      r.hset(Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key, @default_ups)
     end
 
     secret_token
