@@ -4,7 +4,6 @@ class PowerupUnitMultiplier < Powerup
   BASE_PRICE = 1_000.0
   MULTIPLIER = 1.3
   KEY = "unit_multiplier_stack"
-  INCREASE_KEY = "unit_multiplier_increase"
 
   def new_multiplier(public_key) : Float64
     (MULTIPLIER) * get_synergy_boosted_multiplier(public_key, 1.0)
@@ -70,15 +69,11 @@ class PowerupUnitMultiplier < Powerup
       adjusted_multiplier = new_multiplier(public_key)
       new_rate = current_rate * adjusted_multiplier ** stack_size
       rate_increase = current_rate * adjusted_multiplier ** stack_size - current_rate
-      @game.set_key_value(public_key, INCREASE_KEY, rate_increase)
+
       @game.inc_time_units_ps(public_key, rate_increase)
     end
   end
 
   def cleanup(public_key)
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && !@game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
-      increased_rate = @game.get_key_value_as_float(public_key, INCREASE_KEY)
-      @game.inc_time_units_ps(public_key, -increased_rate)
-    end
   end
 end
