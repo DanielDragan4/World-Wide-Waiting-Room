@@ -41,8 +41,9 @@ class PowerupOverCharge < Powerup
   end
 
   def get_price (public_key)
+    active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
     stack_size = get_player_stack_size(public_key)
-    price = ((BASE_PRICE * stack_size)* (stack_size ** 2.125)).round(2)
+    price = ((BASE_PRICE * stack_size)* (stack_size ** (1.5 * active_stack))).round(2)
   end
 
   def is_available_for_purchase(public_key)
