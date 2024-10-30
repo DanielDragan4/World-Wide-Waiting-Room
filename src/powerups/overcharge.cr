@@ -6,7 +6,7 @@ require "./compound_interest"
 class PowerupOverCharge < Powerup
   STACK_KEY = "overcharge_stack"
   ACTIVE_STACK_KEY = "overcharge_active_stack"
-  BASE_PRICE = 75.0
+  BASE_PRICE = 50.0
   UNIT_MULTIPLIER = 5.0
   DURATION = 60
   KEY_DURATION = "overcharge_duration"
@@ -43,7 +43,7 @@ class PowerupOverCharge < Powerup
   def get_price (public_key)
     active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
     stack_size = get_player_stack_size(public_key)
-    price = ((BASE_PRICE * stack_size)* (stack_size ** (1.5 * active_stack))).round(2)
+    price = ((BASE_PRICE * stack_size)* (stack_size ** (1.25 * active_stack))).round(2)
   end
 
   def is_available_for_purchase(public_key)
