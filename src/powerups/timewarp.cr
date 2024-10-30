@@ -8,7 +8,6 @@ class PowerupTimeWarp < Powerup
   UNIT_MULTIPLIER = 2.0
   DURATION = 600
   KEY_DURATION = "timewarp_duration"
-  RATE_CHANGE_KEY = "timewarp_unit_change"
 
   def new_multiplier(public_key) : Float64
     get_synergy_boosted_multiplier(public_key, UNIT_MULTIPLIER)
@@ -137,7 +136,6 @@ class PowerupTimeWarp < Powerup
     if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
         unit_rate = @game.get_player_time_units_ps(public_key)
         timewarp_rate = (unit_rate * (get_unit_boost(public_key))) -unit_rate
-        @game.set_key_value public_key, RATE_CHANGE_KEY, timewarp_rate
 
         @game.inc_time_units_ps public_key, timewarp_rate
     end
@@ -147,11 +145,7 @@ class PowerupTimeWarp < Powerup
     if public_key
       a_s = @game.get_key_value_as_float public_key, ACTIVE_STACK_KEY
       active_stack = a_s.nil? ? 0 : a_s
-      if !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
-        timewarp_rate = @game.get_key_value_as_float(public_key, RATE_CHANGE_KEY)
-        
-        @game.inc_time_units_ps public_key, -timewarp_rate
-      end
+
       durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)

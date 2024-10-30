@@ -74,6 +74,7 @@ class PowerupCompoundInterest < Powerup
   end
 
   def apply_bonus(public_key)
+    @game.set_key_value(public_key, INCREASE_KEY, 0)
     current_rate = @game.get_player_time_units_ps(public_key)
     old_bonus = get_last_bonus(public_key)
     new_bonus = get_bonus(public_key)
@@ -92,17 +93,6 @@ class PowerupCompoundInterest < Powerup
     end
   end
 
-  def remove_bonus(public_key)
-    rate_increase = @game.get_key_value_as_float(public_key, INCREASE_KEY)
-  
-    if rate_increase > 0
-      @game.inc_time_units_ps(public_key, -rate_increase)
-      @game.set_key_value(public_key, INCREASE_KEY, 0)
-    end
-    @game.set_key_value(public_key, LAST_BONUS_KEY, 1)
-  end
-  
-
   def action(public_key, dt)
     if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && !@game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
         apply_bonus(public_key)
@@ -111,7 +101,7 @@ class PowerupCompoundInterest < Powerup
 
   def cleanup(public_key)
     if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && !@game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
-      remove_bonus(public_key)
+      @game.set_key_value(public_key, LAST_BONUS_KEY, 1)
     end
   end
 end
