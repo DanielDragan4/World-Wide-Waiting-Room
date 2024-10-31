@@ -21,7 +21,7 @@ class PowerupSchrödinger < Powerup
   end
 
   def get_price (public_key)
-    amount = ((@game.get_player_time_units public_key) * BASEBET)
+    amount = ((@game.get_player_time_units public_key) * BASEBET).round(2)
     amount
   end
 
