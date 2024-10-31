@@ -46,7 +46,8 @@ class PowerupSynergyMatrix < Powerup
 
   def get_price(public_key)
     stack_size = get_player_stack_size(public_key) + 1
-    BASE_PRICE * ((stack_size) **5)
+    price = BASE_PRICE * ((stack_size) **5)
+    BigFloat.new price
   end
 
   def buy_action(public_key)
@@ -54,11 +55,11 @@ class PowerupSynergyMatrix < Powerup
     if public_key
       price = get_price(public_key)
       units = @game.get_player_time_units(public_key)
-      
+
       if units > price
         current_stack = get_player_stack_size(public_key)
         new_stack = current_stack + 1
-        
+
         @game.inc_time_units(public_key, -price)
         @game.set_key_value(public_key, KEY, new_stack.to_s)
         @game.add_powerup(public_key, PowerupSynergyMatrix.get_powerup_id)

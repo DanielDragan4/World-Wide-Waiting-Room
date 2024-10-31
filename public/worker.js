@@ -13,7 +13,7 @@ setInterval(() => {
 
 // Render Loop
 setInterval(() => {
-  const leaderboard = Object.values(players).sort((a, b) => a.time_units <= b.time_units ? 1 : -1)
+  const leaderboard = Object.values(players).sort((a, b) => Number(a.time_units) <= Number(b.time_units) ? 1 : -1)
   postMessage(leaderboard)
 }, 10)
 

@@ -9,7 +9,7 @@ class PowerupTimeWarp < Powerup
   DURATION = 600
   KEY_DURATION = "timewarp_duration"
 
-  def new_multiplier(public_key) : Float64
+  def new_multiplier(public_key) : BigFloat
     get_synergy_boosted_multiplier(public_key, UNIT_MULTIPLIER)
   end
 
@@ -35,14 +35,15 @@ class PowerupTimeWarp < Powerup
   end
 
   def get_description(public_key)
-    
+
     amount = ((get_unit_boost(public_key)) * new_multiplier(public_key)).round(2)
     "Multiplies unit production by #{amount}x for the next 10 minutes. Price increases exponentially."
   end
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    price = (BASE_PRICE * (stack_size ** 3.5)).round(2)
+    price = (BASE_PRICE * (stack_size ** 3.5))
+    BigFloat.new(price).round(2)
   end
 
   def player_card_powerup_icon (public_key)
@@ -86,7 +87,7 @@ class PowerupTimeWarp < Powerup
     durations.each do |t|
       boost_units *= t[1].to_f
     end
-    
+
     boost_units
   end
 

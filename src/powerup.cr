@@ -67,8 +67,8 @@ class Powerup
     true
   end
 
-  def get_price (public_key : String) : Float64
-    0.0
+  def get_price (public_key : String) : BigFloat
+    BigFloat.new 0.0
   end
 
   def cooldown_seconds_left (public_key : String) : Int32
@@ -91,8 +91,8 @@ class Powerup
   # ex1. For a 2x boost, base_multiplier = 2
   # ex2. For a 5% addition to current units/s, or 1.05x, base_multiplier = 0.05 (since only the 5% change should be affected).
   # Returns the new multiplier value after having Synergy Matrix boost applied.
-  def get_synergy_boosted_multiplier(public_key : String, base_multiplier : Float64) : Float64
+  def get_synergy_boosted_multiplier(public_key : String, base_multiplier : Float64) : BigFloat
     synergy_boost = PowerupSynergyMatrix.get_boost_multiplier(@game, public_key, self.class.get_powerup_id)
-    (base_multiplier) * synergy_boost
+    BigFloat.new base_multiplier * BigFloat.new synergy_boost
   end
 end

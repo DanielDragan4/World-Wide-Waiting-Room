@@ -43,7 +43,8 @@ class PowerupOverCharge < Powerup
   def get_price (public_key)
     active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
     stack_size = get_player_stack_size(public_key)
-    price = ((BASE_PRICE * stack_size)* (stack_size ** (1.25 * active_stack))).round(2)
+    price = ((BASE_PRICE * stack_size)* (stack_size ** 2.125)).round(2)
+    BigFloat.new price
   end
 
   def is_available_for_purchase(public_key)
@@ -56,7 +57,7 @@ class PowerupOverCharge < Powerup
     10000
   end
 
-  def new_multiplier(public_key) : Float64
+  def new_multiplier(public_key) : BigFloat
     get_synergy_boosted_multiplier(public_key, UNIT_MULTIPLIER)
   end
 
