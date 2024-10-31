@@ -30,7 +30,8 @@ class PowerupBreach < Powerup
   end
 
   def get_price (public_key)
-    BASE_PRICE * 2 ** (@game.get_powerup_stack public_key, PowerupBreach.get_powerup_id)
+    price = BASE_PRICE * 2 ** (@game.get_powerup_stack public_key, PowerupBreach.get_powerup_id)
+    BigFloat.new price
   end
 
   def is_available_for_purchase (public_key)

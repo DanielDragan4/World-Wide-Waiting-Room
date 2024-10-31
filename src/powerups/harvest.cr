@@ -46,6 +46,7 @@ class PowerupHarvest < Powerup
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
     price = (BASE_PRICE * (stack_size ** 3)).round(2)
+    BigFloat.new price
   end
 
   def is_available_for_purchase(public_key)

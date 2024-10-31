@@ -67,8 +67,8 @@ class Powerup
     true
   end
 
-  def get_price (public_key : String) : Float64
-    0.0
+  def get_price (public_key : String) : BigFloat
+    BigFloat.new 0.0
   end
 
   def cooldown_seconds_left (public_key : String) : Int32

@@ -96,6 +96,9 @@ class Game
   @sync_next_frame = false
   @default_ups = 1
 
+  @time_units_cache = Hash(Public, BigFloat).new
+  @time_units_ps_cache = Hash(Public, BigFloat).new
+
   def spawn_loop
     update_frame_time
     spawn do
@@ -119,7 +122,7 @@ class Game
     dt = frame_dt_ms
     puts "Last frame #{dt}ms"
 
-    multiplier = dt / 1000.0
+    multiplier = BigFloat.new (dt / 1000.0)
 
     WWWR::R.incrby Keys::TIME_LEFT, -1
     get_time_left
@@ -179,7 +182,7 @@ class Game
   end
 
   def get_serialized_powerups (public_key)
-    powerups = [] of Hash(String, String | Float64 | Bool | Int32)
+    powerups = [] of Hash(String, String | Bool | Int32)
     player_powerups = get_player_powerups public_key
 
     get_powerup_classes.each do |key, value|
@@ -191,7 +194,7 @@ class Game
         "id" => key,
         "name" => value.get_name,
         "description" => (value.get_description public_key),
-        "price" => (value.get_price public_key).to_f64,
+        "price" => (value.get_price public_key).to_s,
         "is_available_for_purchase" => (value.is_available_for_purchase public_key),
         "is_input_powerup" => (value.is_input_powerup public_key),
         "is_achievement_powerup" => (value.is_achievement_powerup public_key),
@@ -306,25 +309,22 @@ class Game
   end
 
   def get_raw_leaderboard
-    WWWR::R.zrange(Keys::LEADERBOARD, 0, -1)
+    lb = WWWR::R.lrange(Keys::LEADERBOARD, 0, -1)
+    lb.map { |x| x.to_s }.sort { |a, b| (get_player_time_units a.to_s) <=> (get_player_time_units b.to_s) }
   end
 
   def inc_time_units (public_key : String, by)
     player_tu = get_player_time_units public_key
     updated_tu = player_tu + by
-
-    WWWR::R.pipelined do |r|
-      r.hset Keys::PLAYER_TIME_UNITS, public_key, updated_tu
-      r.zadd Keys::LEADERBOARD, updated_tu, public_key
-    end
+    set_player_time_units public_key, updated_tu
   end
 
   def add_to_leaderboard (public_key : String)
-    WWWR::R.zadd Keys::LEADERBOARD, (get_player_time_units public_key), public_key
+    WWWR::R.lpush Keys::LEADERBOARD, public_key
   end
 
   def remove_from_leaderboard (public_key : String)
-    WWWR::R.zrem Keys::LEADERBOARD, public_key
+    WWWR::R.lrem Keys::LEADERBOARD, 0, public_key
   end
 
   def get_key_value (public_key : String, key : String) : String
@@ -611,6 +611,13 @@ class Game
   end
 
   def get_player_time_units (public_key : String) : BigFloat
+    result = @time_units_cache.fetch public_key, nil
+
+    if result != nil
+      result ||= BigFloat.new 0
+      return result
+    end
+
     result = WWWR::R.hget Keys::PLAYER_TIME_UNITS, public_key
     if result
       BigFloat.new result
@@ -620,14 +627,23 @@ class Game
   end
 
   def set_player_time_units (public_key : String, to : BigFloat)
+    @time_units_cache[public_key] = to
     WWWR::R.hset Keys::PLAYER_TIME_UNITS, public_key, to.to_s
   end
 
   def set_player_time_units_ps (public_key : String, to : BigFloat)
+    @time_units_ps_cache[public_key] = to
     WWWR::R.hset Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key, to.to_s
   end
 
   def get_player_time_units_ps (public_key : String) : BigFloat
+    result = @time_units_ps_cache.fetch public_key, nil
+
+    if result != nil
+      result ||= BigFloat.new 0
+      return result
+    end
+
     result = WWWR::R.hget Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key
     if result
       BigFloat.new result

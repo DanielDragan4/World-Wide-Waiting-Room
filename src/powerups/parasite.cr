@@ -43,7 +43,8 @@ class PowerupParasite < Powerup
 
   def get_price (public_key)
     stack_size = @game.get_powerup_stack public_key, PowerupParasite.get_powerup_id
-    stack_size > 0 ? BASE_PRICE * (PRICE_MULTIPLIER * stack_size) : BASE_PRICE
+    price = stack_size > 0 ? BASE_PRICE * (PRICE_MULTIPLIER * stack_size) : BASE_PRICE
+    BigFloat.new price
   end
 
   def is_available_for_purchase (public_key)

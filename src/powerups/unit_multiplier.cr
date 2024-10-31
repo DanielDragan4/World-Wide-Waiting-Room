@@ -28,7 +28,7 @@ class PowerupUnitMultiplier < Powerup
 
   def get_price(public_key)
     stack_size = get_player_stack_size(public_key)
-    (BASE_PRICE * (1.5 ** stack_size)).round(2)
+    BigFloat.new (BASE_PRICE * (1.5 ** stack_size)).round(2)
   end
 
   def get_player_stack_size(public_key)

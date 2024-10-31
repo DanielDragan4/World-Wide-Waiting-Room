@@ -31,7 +31,7 @@ class PowerupCompoundInterest < Powerup
   end
 
   def get_price(public_key)
-    BASE_PRICE
+    BigFloat.new BASE_PRICE
   end
 
   def is_available_for_purchase(private_key)

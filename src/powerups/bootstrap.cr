@@ -44,7 +44,8 @@ class PowerupBootStrap < Powerup
   end
 
   def get_price (public_key)
-    (BASEPRICE + (@game.get_player_time_units public_key) * (COST_PERCENTAGE **1.5)).round(2)
+    price = (BASEPRICE + (@game.get_player_time_units public_key) * (COST_PERCENTAGE **1.5)).round(2)
+    BigFloat.new price
   end
 
   def is_available_for_purchase(public_key)
