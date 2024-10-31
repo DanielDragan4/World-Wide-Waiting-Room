@@ -5,7 +5,7 @@ class PowerupUnitMultiplier < Powerup
   MULTIPLIER = 1.3
   KEY = "unit_multiplier_stack"
 
-  def new_multiplier(public_key) : Float64
+  def new_multiplier(public_key) : BigFloat
     (MULTIPLIER) * get_synergy_boosted_multiplier(public_key, 1.0)
   end
 
@@ -47,7 +47,7 @@ class PowerupUnitMultiplier < Powerup
       if units >= price
         current_stack = get_player_stack_size(public_key)
         powerup = PowerupUnitMultiplier.get_powerup_id
-        
+
         @game.inc_time_units(public_key, -price)
         @game.add_powerup(public_key, powerup)
 

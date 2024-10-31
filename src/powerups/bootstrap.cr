@@ -24,7 +24,7 @@ class PowerupBootStrap < Powerup
     (get_player_stack_size public_key) * BASE_PERCENT_INCREASE
   end
 
-  def new_base_percent_increase(public_key) : Float64
+  def new_base_percent_increase(public_key) : BigFloat
     get_synergy_boosted_multiplier(public_key, (percent_increase public_key))
   end
 
@@ -70,7 +70,7 @@ class PowerupBootStrap < Powerup
       @game.add_active public_key
 
       new_stack = (get_player_stack_size public_key) + 1
-      @game.set_key_value(public_key, STACK_KEY, new_stack)
+      @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
     else
       puts "Your out of BootStraps today :(. Come back tommorow for another!"
     end

@@ -7,7 +7,7 @@ class PowerupCompoundInterest < Powerup
   INCREASE_KEY = "compound_interest_increase"
   BASE_BONUS_PER_10K = 1.01
 
-  def new_multiplier(public_key) : Float64
+  def new_multiplier(public_key) : BigFloat
     get_synergy_boosted_multiplier(public_key, BASE_BONUS_PER_10K - 1) + 1
   end
 
@@ -58,7 +58,7 @@ class PowerupCompoundInterest < Powerup
   def buy_action(public_key)
     puts "Purchasing Compound Interest"
     if public_key
-      if !is_purchased(public_key) 
+      if !is_purchased(public_key)
         powerup = PowerupCompoundInterest.get_powerup_id
         @game.inc_time_units(public_key, -BASE_PRICE)
         @game.set_key_value(public_key, KEY, "true")
@@ -74,11 +74,11 @@ class PowerupCompoundInterest < Powerup
   end
 
   def apply_bonus(public_key)
-    @game.set_key_value(public_key, INCREASE_KEY, 0)
+    @game.set_key_value(public_key, INCREASE_KEY, "0")
     current_rate = @game.get_player_time_units_ps(public_key)
     old_bonus = get_last_bonus(public_key)
     new_bonus = get_bonus(public_key)
-  
+
     if old_bonus != new_bonus
       old_rate_increase = @game.get_key_value_as_float(public_key, INCREASE_KEY)
       if old_rate_increase > 0
@@ -86,10 +86,10 @@ class PowerupCompoundInterest < Powerup
       end
       base_rate = old_bonus.zero? ? current_rate : current_rate - old_rate_increase
       rate_increase = base_rate * (new_bonus - 1)
-      
-      @game.set_key_value(public_key, INCREASE_KEY, rate_increase)
+
+      @game.set_key_value(public_key, INCREASE_KEY, rate_increase.to_s)
       @game.inc_time_units_ps(public_key, rate_increase)
-      @game.set_key_value(public_key, LAST_BONUS_KEY, new_bonus)
+      @game.set_key_value(public_key, LAST_BONUS_KEY, new_bonus.to_s)
     end
   end
 
@@ -101,7 +101,7 @@ class PowerupCompoundInterest < Powerup
 
   def cleanup(public_key)
     if public_key && is_purchased(public_key) && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && !@game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
-      @game.set_key_value(public_key, LAST_BONUS_KEY, 1)
+      @game.set_key_value(public_key, LAST_BONUS_KEY, "1")
     end
   end
 end

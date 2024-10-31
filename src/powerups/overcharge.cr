@@ -55,7 +55,7 @@ class PowerupOverCharge < Powerup
     10000
   end
 
-  def new_multiplier(public_key) : Float64
+  def new_multiplier(public_key) : BigFloat
     get_synergy_boosted_multiplier(public_key, UNIT_MULTIPLIER)
   end
 

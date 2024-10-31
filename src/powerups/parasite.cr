@@ -15,7 +15,7 @@ class PowerupParasite < Powerup
   KEY_ACTIVE_STACK = "parasite_active_stack"
 
   def new_percentage_steal(public_key)
-    get_synergy_boosted_multiplier public_key, (PERCENTAGE_STEAL_PER_SECOND * get_active_parasite_stack public_key)
+    get_synergy_boosted_multiplier public_key, (PERCENTAGE_STEAL_PER_SECOND) * (get_active_parasite_stack public_key).to_f64
   end
 
   def self.get_powerup_id
@@ -55,11 +55,11 @@ class PowerupParasite < Powerup
   end
 
   def inc_active_parasite_stack (public_key)
-    @game.set_key_value public_key, KEY_ACTIVE_STACK, (get_active_parasite_stack public_key) + 1
+    @game.set_key_value public_key, KEY_ACTIVE_STACK, ((get_active_parasite_stack public_key) + 1).to_s
   end
 
   def reset_active_parasite_stack (public_key)
-    @game.set_key_value public_key, KEY_ACTIVE_STACK, 0
+    @game.set_key_value public_key, KEY_ACTIVE_STACK, "0"
   end
 
   def buy_action (public_key)

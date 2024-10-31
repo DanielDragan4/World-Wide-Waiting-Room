@@ -81,7 +81,7 @@ class PowerupHarvest < Powerup
       @game.inc_time_units public_key, (get_harvest_amount public_key)
       @game.disable_unit_generation public_key
       @game.set_timer public_key, DURATION_KEY, HARVEST_TIME
-      @game.set_key_value public_key, STACK_KEY, new_stack
+      @game.set_key_value public_key, STACK_KEY, new_stack.to_s
       @game.send_animation_event public_key,
         Animation::NUMBER_FLOAT,
         {"value" => "Harvested #{get_harvest_amount(public_key).round(2)} units!","color" => "#CFE9A0"}

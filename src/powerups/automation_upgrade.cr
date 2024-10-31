@@ -8,7 +8,7 @@ class PowerupAutomationUpgrade < Powerup
   PROCESSED_ACTIVES_KEY = "automation_upgrade_processed_actives"
   BONUS_APPLIED_KEY = "automation_upgrade_bonus_applied"
 
-  def new_multiplier(public_key) : Float64
+  def new_multiplier(public_key) : BigFloat
     get_synergy_boosted_multiplier(public_key, MULTIPLIER)
   end
 

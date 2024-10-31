@@ -1,4 +1,5 @@
 require "kemal"
+require "big"
 require "random"
 require "json"
 require "redis"
@@ -99,7 +100,12 @@ class Game
     update_frame_time
     spawn do
       loop do
-        tick
+        begin
+          tick
+        rescue e
+          puts "ERROR DURING TICK #{e}"
+          e.backtrace.each { |line| puts line }
+        end
         # WARNING:
         # DO NOT CHANGE THE SLEEP TIME
         # DOING SO WILL FUCK UP ACTION TIMING
@@ -121,7 +127,7 @@ class Game
     get_leaderboard.each do |player_data|
       player_public_key = player_data["public_key"].to_s
 
-      set_player_time_units_ps player_public_key, @default_ups
+      set_player_time_units_ps player_public_key, BigFloat.new @default_ups
       do_powerup_actions player_public_key, dt
 
       if !(is_unit_generation_disabled_for player_public_key)
@@ -185,7 +191,7 @@ class Game
         "id" => key,
         "name" => value.get_name,
         "description" => (value.get_description public_key),
-        "price" => (value.get_price public_key),
+        "price" => (value.get_price public_key).to_f64,
         "is_available_for_purchase" => (value.is_available_for_purchase public_key),
         "is_input_powerup" => (value.is_input_powerup public_key),
         "is_achievement_powerup" => (value.is_achievement_powerup public_key),
@@ -247,10 +253,6 @@ class Game
     WWWR::R.set(Keys::LAST_FRAME_TIME, Time.utc.to_unix_ms)
   end
 
-  def get_raw_leaderboard
-    WWWR::R.zrange(Keys::LEADERBOARD, 0, -1)
-  end
-
   def get_leaderboard
     get_raw_leaderboard.map { |public_key| get_data_for public_key.to_s }
   end
@@ -298,6 +300,15 @@ class Game
     end
   end
 
+  def inc_time_units_ps (public_key : String, by : BigFloat)
+    player_tu_ps = get_player_time_units_ps public_key
+    set_player_time_units_ps public_key, (player_tu_ps + by)
+  end
+
+  def get_raw_leaderboard
+    WWWR::R.zrange(Keys::LEADERBOARD, 0, -1)
+  end
+
   def inc_time_units (public_key : String, by)
     player_tu = get_player_time_units public_key
     updated_tu = player_tu + by
@@ -306,11 +317,6 @@ class Game
       r.hset Keys::PLAYER_TIME_UNITS, public_key, updated_tu
       r.zadd Keys::LEADERBOARD, updated_tu, public_key
     end
-  end
-
-  def inc_time_units_ps (public_key : String, by)
-    player_tu_ps = get_player_time_units_ps public_key
-    set_player_time_units_ps public_key, (player_tu_ps + by)
   end
 
   def add_to_leaderboard (public_key : String)
@@ -327,16 +333,18 @@ class Game
     global_vars = JSON.parse global_vars
     begin
       global_vars[key].to_s
-    rescue
+    rescue e
       ""
     end
   end
 
-  def get_key_value_as_float (public_key : String , key : String) : Float64
+  def get_key_value_as_float (public_key : String , key : String) : BigFloat
     kv = get_key_value public_key, key
-    result = kv.to_f64?
-    result ||= 0.0
-    result
+    if kv == ""
+      kv = 0.0
+    end
+    kv ||= 0.0
+    BigFloat.new kv
   end
 
   def set_timer (public_key : String, timer_key : String, seconds : Int64)
@@ -355,10 +363,10 @@ class Game
     remove_powerup public_key, powerup_id if (is_timer_expired public_key, timer_key)
   end
 
-  def set_key_value (public_key : String, key : String, value : String | Int64 | Int32 | Float32 | Float64)
+  def set_key_value (public_key : String, key : String, value : String)
     gv = WWWR::R.hget Keys::GLOBAL_VARS, public_key
     gv ||= "{}"
-    gv = Hash(String, String | Int64 | Int32 | Float32 | Float64).from_json gv
+    gv = Hash(String, String).from_json gv
     gv[key] = value
     WWWR::R.hset Keys::GLOBAL_VARS, public_key, gv.to_json
   end
@@ -369,7 +377,8 @@ class Game
         begin
           sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), (get_time_left)
           c[1].send sync_data
-        rescue
+        rescue e
+          puts "Error during sync player #{public_key} #{e}"
         end
       end
     end
@@ -384,7 +393,8 @@ class Game
         begin
           sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), get_time_left
           channel.send sync_data
-        rescue
+        rescue e
+          puts "Error during sync #{e}"
         end
       end
     end
@@ -462,13 +472,16 @@ class Game
   end
 
   def set_powerup_stack (public_key : String, powerup_id : String, stack_size : Int32)
-    set_key_value public_key, "stack-#{powerup_id}", stack_size
+    set_key_value public_key, "stack-#{powerup_id}", stack_size.to_s
   end
 
-  def get_player_frame_ups (public_key : String) : Float64
+  def get_player_frame_ups (public_key : String) : BigFloat
     result = WWWR::R.hget(Keys::PLAYER_FRAME_TUPS, public_key)
+    if result == ""
+      result = 0.0
+    end
     result ||= 0.0;
-    result.to_f64
+    BigFloat.new result
   end
 
   def setup_new_waiter
@@ -550,8 +563,8 @@ class Game
       Keys::PLAYER_NAME => player_name.value,
       Keys::PLAYER_BG_COLOR => player_bg_color.value,
       Keys::PLAYER_TEXT_COLOR => player_text_color.value,
-      Keys::PLAYER_TIME_UNITS => time_units.value.to_s.to_f64?,
-      Keys::PLAYER_TIME_UNITS_PER_SECOND => tps.value.to_s.to_f64?,
+      Keys::PLAYER_TIME_UNITS => time_units.value.to_s,
+      Keys::PLAYER_TIME_UNITS_PER_SECOND => tps.value.to_s,
       Keys::PLAYER_INPUT_BUTTONS => player_input_buttons,
       Keys::PLAYER_PUBLIC_KEY => public_key,
       Keys::PLAYER_POWERUPS => powerups,
@@ -597,29 +610,29 @@ class Game
     pk == nil ? nil : pk.to_s
   end
 
-  def get_player_time_units (public_key : String)
+  def get_player_time_units (public_key : String) : BigFloat
     result = WWWR::R.hget Keys::PLAYER_TIME_UNITS, public_key
     if result
-      return result.to_f64
+      BigFloat.new result
     else
-      return Float64.new 0.0
+      BigFloat.new 0.0
     end
   end
 
-  def set_player_time_units (public_key : String, to : Float64)
-    WWWR::R.hset Keys::PLAYER_TIME_UNITS, public_key, to
+  def set_player_time_units (public_key : String, to : BigFloat)
+    WWWR::R.hset Keys::PLAYER_TIME_UNITS, public_key, to.to_s
   end
 
-  def set_player_time_units_ps (public_key : String, to : Float64)
-    WWWR::R.hset Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key, to
+  def set_player_time_units_ps (public_key : String, to : BigFloat)
+    WWWR::R.hset Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key, to.to_s
   end
 
-  def get_player_time_units_ps (public_key : String)
+  def get_player_time_units_ps (public_key : String) : BigFloat
     result = WWWR::R.hget Keys::PLAYER_TIME_UNITS_PER_SECOND, public_key
     if result
-      result.to_f64
+      BigFloat.new result
     else
-      Float64.new 0.0
+      BigFloat.new 0.0
     end
   end
 
