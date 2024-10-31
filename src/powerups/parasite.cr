@@ -15,7 +15,7 @@ class PowerupParasite < Powerup
   KEY_ACTIVE_STACK = "parasite_active_stack"
 
   def new_percentage_steal(public_key)
-    get_synergy_boosted_multiplier public_key, (PERCENTAGE_STEAL_PER_SECOND * get_active_parasite_stack public_key)
+    get_synergy_boosted_multiplier public_key, (PERCENTAGE_STEAL_PER_SECOND) * (get_active_parasite_stack public_key).to_f64
   end
 
   def self.get_powerup_id
@@ -43,7 +43,8 @@ class PowerupParasite < Powerup
 
   def get_price (public_key)
     stack_size = @game.get_powerup_stack public_key, PowerupParasite.get_powerup_id
-    stack_size > 0 ? BASE_PRICE * (PRICE_MULTIPLIER * stack_size) : BASE_PRICE
+    price = stack_size > 0 ? BASE_PRICE * (PRICE_MULTIPLIER * stack_size) : BASE_PRICE
+    BigFloat.new price
   end
 
   def is_available_for_purchase (public_key)
@@ -55,11 +56,11 @@ class PowerupParasite < Powerup
   end
 
   def inc_active_parasite_stack (public_key)
-    @game.set_key_value public_key, KEY_ACTIVE_STACK, (get_active_parasite_stack public_key) + 1
+    @game.set_key_value public_key, KEY_ACTIVE_STACK, ((get_active_parasite_stack public_key) + 1).to_s
   end
 
   def reset_active_parasite_stack (public_key)
-    @game.set_key_value public_key, KEY_ACTIVE_STACK, 0
+    @game.set_key_value public_key, KEY_ACTIVE_STACK, "0"
   end
 
   def buy_action (public_key)
@@ -98,9 +99,13 @@ class PowerupParasite < Powerup
 
       puts "#{public_key} LEFT #{left} RIGHT #{right}"
 
+      total = 0
+
       if left && left != public_key && !@game.has_powerup left, PowerupForceField.get_powerup_id
         left_units = @game.get_player_time_units left
         amount = left_units * percent_steal
+
+        total += amount
 
         puts "#{public_key} TAKING #{amount} FROM LEFT #{left} who has #{left_units}"
 
@@ -115,11 +120,14 @@ class PowerupParasite < Powerup
 
         puts "#{public_key} TAKING #{amount} FROM RIGHT #{right} who has #{right_units}"
 
+        total += amount
+
         @game.inc_time_units right, -amount
         @game.inc_time_units public_key, amount
         @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => "Parasite -#{amount.round(2)}", "color" => "#E9CFA0" }
       end
 
+      @game.send_animation_event public_key, Animation::NUMBER_FLOAT, { "value" => "Parasite +#{total.round(2)}", "color" => "#E9A0CF" }
       @game.set_timer public_key, KEY_NEXT_TAKE_COOLDOWN, NEXT_TAKE_COOLDOWN
     end
   end

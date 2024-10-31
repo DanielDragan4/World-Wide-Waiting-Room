@@ -45,7 +45,8 @@ class PowerupHarvest < Powerup
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    price = (BASE_PRICE * (stack_size ** 1.5)).round(2)
+    price = (BASE_PRICE * (stack_size ** 3)).round(2)
+    BigFloat.new price
   end
 
   def is_available_for_purchase(public_key)
@@ -81,7 +82,7 @@ class PowerupHarvest < Powerup
       @game.inc_time_units public_key, (get_harvest_amount public_key)
       @game.disable_unit_generation public_key
       @game.set_timer public_key, DURATION_KEY, HARVEST_TIME
-      @game.set_key_value public_key, STACK_KEY, new_stack
+      @game.set_key_value public_key, STACK_KEY, new_stack.to_s
       @game.send_animation_event public_key,
         Animation::NUMBER_FLOAT,
         {"value" => "Harvested #{get_harvest_amount(public_key).round(2)} units!","color" => "#CFE9A0"}
