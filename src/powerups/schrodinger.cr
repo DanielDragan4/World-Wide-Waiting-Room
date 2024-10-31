@@ -1,15 +1,15 @@
 require "../powerup"
 
 class PowerupSchrödinger < Powerup
-  STACK_KEY = "schrödinger_stack"
+  STACK_KEY = "schrodinger_stack"
   BASEBET = 0.5
 
   def self.get_powerup_id
-    "schrödinger"
+    "schrodinger"
   end
 
   def get_name
-    "Schrödinger"
+    "Schrodinger"
   end
 
   # def new_base_percent_increase(public_key) : Float64
@@ -17,7 +17,7 @@ class PowerupSchrödinger < Powerup
   # end
 
   def get_description(public_key)
-    "Like Schrödinger's cat, both the win and lose of units is true. You won't know till you find out. Risk half of your units to either double them up or loose them."
+    "Like Schrodinger's cat, both the win and lose of units is true. You won't know till you find out. Risk half of your units to either double them up or loose them."
   end
 
   def get_price (public_key)
@@ -50,7 +50,7 @@ class PowerupSchrödinger < Powerup
 
   def buy_action (public_key)
     if is_available_for_purchase(public_key)
-      puts "Purchased Schrödinger!"
+      puts "Purchased Schrodinger!"
 
       bet_amount = get_price public_key
 
