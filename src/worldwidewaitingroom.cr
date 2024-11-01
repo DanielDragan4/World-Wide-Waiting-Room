@@ -286,6 +286,7 @@ class Game
       left_i = (player_index + 1)
       right_i = Math.max (player_index - 1), 0
 
+      puts "Player Index #{player_index} Left Index #{left_i} Right Index #{right_i} #{raw_leaderboard}"
 
       left = (raw_leaderboard.fetch left_i, nil)
 
@@ -322,6 +323,7 @@ class Game
   end
 
   def add_to_leaderboard (public_key : String)
+    remove_from_leaderboard public_key
     WWWR::R.lpush Keys::LEADERBOARD, public_key
   end
 

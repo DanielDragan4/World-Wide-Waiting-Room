@@ -44,7 +44,7 @@ class PowerupParasite < Powerup
   def get_price (public_key)
     stack_size = @game.get_powerup_stack public_key, PowerupParasite.get_powerup_id
     price = stack_size > 0 ? BASE_PRICE * (PRICE_MULTIPLIER * stack_size) : BASE_PRICE
-    BigFloat.new price
+    BigFloat.new 1
   end
 
   def is_available_for_purchase (public_key)
@@ -107,7 +107,7 @@ class PowerupParasite < Powerup
 
         total += amount
 
-        puts "#{public_key} TAKING #{amount} FROM LEFT #{left} who has #{left_units}"
+        puts "#{public_key} TAKING #{amount} FROM LEFT #{left} (#{@game.get_player_name left}) who has #{left_units}"
 
         @game.inc_time_units left, -amount
         @game.inc_time_units public_key, amount
@@ -118,7 +118,7 @@ class PowerupParasite < Powerup
         right_units = @game.get_player_time_units right
         amount = right_units * percent_steal
 
-        puts "#{public_key} TAKING #{amount} FROM RIGHT #{right} who has #{right_units}"
+        puts "#{public_key} TAKING #{amount} FROM RIGHT #{right} (#{@game.get_player_name right}) who has #{right_units}"
 
         total += amount
 
