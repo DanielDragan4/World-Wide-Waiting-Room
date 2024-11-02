@@ -9,8 +9,10 @@ class PowerupHarvest < Powerup
   STACK_KEY = "harvest_stack"
   ACTIVE_STACK_KEY = "active_stack"
   DURATION_KEY = "harvest_duration"
-  BASE_PRICE = 500.0
+  BASE_PRICE = 5.0
   HARVEST_TIME = 3600
+  COOLDOWN_DURATION = 60 * 60 * 6
+  COOLDOWN_KEY = "harvest cooldown"
 
   def self.get_powerup_id
     "harvest"
@@ -26,16 +28,16 @@ class PowerupHarvest < Powerup
 
   def get_description(public_key)
     units = ((@game.get_player_frame_ups public_key) * HARVEST_TIME).round(0)
-    "Collects the next hour's worth of units with the current unit production for the hour, but pauses unit generation for that hour: #{units} units. Can only be used once per hour."
+    "Collects the next hour's worth of units with the current unit production for the hour, but pauses unit generation for that hour: #{units} units. Can only be used once every 6 hours."
   end
 
-  def cooldown_seconds_left(public_key)
-    @game.get_timer_seconds_left public_key, DURATION_KEY
+  def cooldown_seconds_left(public_key, key)
+    @game.get_timer_seconds_left public_key, key
   end
 
   def get_popup_info (public_key) : PopupInfo
     pi = PopupInfo.new
-    pi["Time Left"] = cooldown_seconds_left(public_key)
+    pi["Time Left"] = cooldown_seconds_left(public_key, DURATION_KEY)
     pi
   end
 
@@ -45,7 +47,7 @@ class PowerupHarvest < Powerup
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    price = (BASE_PRICE * (stack_size ** 3)).round(2)
+    price = (BASE_PRICE * (stack_size ** 4)).round(2)
     BigFloat.new price
   end
 
@@ -53,8 +55,9 @@ class PowerupHarvest < Powerup
     price = get_price(public_key)
 
     timer_expired = @game.is_timer_expired public_key, DURATION_KEY
+    cooldown_expired = @game.is_timer_expired public_key, COOLDOWN_KEY
 
-    return ((@game.get_player_time_units public_key) >= price) && timer_expired
+    return ((@game.get_player_time_units public_key) >= price) && timer_expired && cooldown_expired
   end
 
   def max_stack_size (public_key)
@@ -82,6 +85,7 @@ class PowerupHarvest < Powerup
       @game.inc_time_units public_key, (get_harvest_amount public_key)
       @game.disable_unit_generation public_key
       @game.set_timer public_key, DURATION_KEY, HARVEST_TIME
+      @game.set_timer public_key, COOLDOWN_KEY, COOLDOWN_DURATION
       @game.set_key_value public_key, STACK_KEY, new_stack.to_s
       @game.send_animation_event public_key,
         Animation::NUMBER_FLOAT,
