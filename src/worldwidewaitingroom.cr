@@ -23,7 +23,7 @@ require "./powerups/breach"
 require "./powerups/signal_jammer"
 require "./powerups/automation_upgrade.cr"
 require "./templates"
-require "./powerups/schrödinger"
+require "./powerups/schrodinger"
 
 alias Secret = String
 alias Public = String
@@ -169,7 +169,7 @@ class Game
       AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
       AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
       PowerupAutomationUpgrade.get_powerup_id => PowerupAutomationUpgrade.new(self),
-      PowerupSchrödinger.get_powerup_id => PowerupSchrödinger.new(self),
+      PowerupSchrodinger.get_powerup_id => PowerupSchrodinger.new(self),
     }
   end
 
@@ -286,6 +286,7 @@ class Game
       left_i = (player_index + 1)
       right_i = Math.max (player_index - 1), 0
 
+      puts "Player Index #{player_index} Left Index #{left_i} Right Index #{right_i} #{raw_leaderboard}"
 
       left = (raw_leaderboard.fetch left_i, nil)
 
@@ -322,6 +323,7 @@ class Game
   end
 
   def add_to_leaderboard (public_key : String)
+    remove_from_leaderboard public_key
     WWWR::R.lpush Keys::LEADERBOARD, public_key
   end
 

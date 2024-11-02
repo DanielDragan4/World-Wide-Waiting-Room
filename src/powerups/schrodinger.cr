@@ -1,6 +1,6 @@
 require "../powerup"
 
-class PowerupSchrödinger < Powerup
+class PowerupSchrodinger < Powerup
   STACK_KEY = "schrodinger_stack"
   BASEBET = 0.5
 
@@ -17,7 +17,7 @@ class PowerupSchrödinger < Powerup
   # end
 
   def get_description(public_key)
-    "Like Schrodinger's cat, both the win and lose of units is true. You won't know till you find out. Risk half of your units to either double them up or loose them."
+    "Like Schrodinger's cat, both the win and lose of units is true. You won't know until you find out. Risk half of your units to either double them up or loose them."
   end
 
   def get_price (public_key)
@@ -36,8 +36,8 @@ class PowerupSchrödinger < Powerup
 
     if gamble_value >= 0.51
       true
-    else 
-      false 
+    else
+      false
     end
   end
 
@@ -55,7 +55,7 @@ class PowerupSchrödinger < Powerup
       bet_amount = get_price public_key
 
       @game.inc_time_units public_key, -(bet_amount)
-      
+
       won_loose = win_or_loose
 
       if won_loose
