@@ -42,7 +42,8 @@ class PowerupTimeWarp < Powerup
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    price = (BASE_PRICE * (stack_size ** 3.5))
+    active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
+    price = ((BASE_PRICE * (stack_size ** (((active_stack + 1)/2) * 4)))).round(2)
     BigFloat.new(price).round(2)
   end
 
