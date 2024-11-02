@@ -9,7 +9,7 @@ class PowerupHarvest < Powerup
   STACK_KEY = "harvest_stack"
   ACTIVE_STACK_KEY = "active_stack"
   DURATION_KEY = "harvest_duration"
-  BASE_PRICE = 5.0
+  BASE_PRICE = 500.0
   HARVEST_TIME = 3600
   COOLDOWN_DURATION = 60 * 60 * 6
   COOLDOWN_KEY = "harvest cooldown"
