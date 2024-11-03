@@ -9,6 +9,7 @@ const worker = new Worker("/worker.js")
 
 let thisPlayerId = null;
 let selectedCategory = null;
+let mostRecentMessage = {}
 
 // Time Left Interval
 
@@ -231,8 +232,6 @@ worker.onmessage = ({ data }) => {
 
   Idiomorph.morph(leaderboard, newLeaderboardHtml.innerHTML, { morphStyle: 'innerHTML' });
 }
-
-let mostRecentMessage = {}
 
 function processMostRecentMessage() {
   const { player, time_left, powerups } = mostRecentMessage;
