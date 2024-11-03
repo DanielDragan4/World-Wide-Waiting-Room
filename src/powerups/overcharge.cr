@@ -32,6 +32,7 @@ class PowerupOverCharge < Powerup
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
     pi = PopupInfo.new
     pi["Time Left"] = (durations[0][0].to_i - @game.ts).to_s
+    pi["Units/s Boost"] = "#{(get_unit_boost(public_key)).to_i}x"
     pi["Overcharge Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
     pi
   end
@@ -45,7 +46,9 @@ class PowerupOverCharge < Powerup
     active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
     stack_size = get_player_stack_size(public_key)
     price = ((BASE_PRICE * (stack_size ** (((active_stack + 1)/2) * 3)))).round(2)
-    BigFloat.new price.round(2)
+    b= BigFloat.new price
+    b.round(2)
+    b
   end
 
   def is_available_for_purchase(public_key)
