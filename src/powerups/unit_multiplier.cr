@@ -1,12 +1,12 @@
 require "../powerup.cr"
 
 class PowerupUnitMultiplier < Powerup
-  BASE_PRICE = 1_000.0
-  MULTIPLIER = 1.3
+  BASE_PRICE = 25.0
+  MULTIPLIER = 1
   KEY = "unit_multiplier_stack"
 
   def new_multiplier(public_key) : BigFloat
-    (MULTIPLIER) * get_synergy_boosted_multiplier(public_key, 1.0)
+    (MULTIPLIER) + (get_synergy_boosted_multiplier(public_key, 1.0) -1)
   end
 
   def self.get_powerup_id
@@ -19,7 +19,7 @@ class PowerupUnitMultiplier < Powerup
 
   def get_description (public_key)
     adjusted_multiplier = new_multiplier(public_key)
-    "Permanently increases unit production by #{((adjusted_multiplier - 1) * 100).round(2).floor}%. Price increases multiplicatively."
+    "Permanently increases unit production by #{(adjusted_multiplier).round(2)} with each purchase. Price increases multiplicatively. Number purchased: #{get_player_stack_size(public_key)}"
   end
 
   def is_stackable
@@ -27,8 +27,9 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def get_price(public_key)
-    stack_size = get_player_stack_size(public_key)
-    BigFloat.new (BASE_PRICE * (1.5 ** stack_size)).round(2)
+    stack_size = get_player_stack_size(public_key) + 1
+    price = BigFloat.new (BASE_PRICE * ( stack_size ** 1.75))
+    price.round(2)
   end
 
   def get_player_stack_size(public_key)
@@ -67,9 +68,8 @@ class PowerupUnitMultiplier < Powerup
       current_rate = @game.get_player_time_units_ps(public_key)
       stack_size = get_player_stack_size(public_key)
       adjusted_multiplier = new_multiplier(public_key)
-      new_rate = current_rate * adjusted_multiplier ** stack_size
-      rate_increase = current_rate * adjusted_multiplier ** stack_size - current_rate
 
+      rate_increase = current_rate * (adjusted_multiplier * stack_size) -current_rate
       @game.inc_time_units_ps(public_key, rate_increase)
     end
   end
