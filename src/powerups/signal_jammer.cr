@@ -36,7 +36,7 @@ class PowerupSignalJammer < Powerup
   def get_price (public_key)
     mult = ((@game.get_powerup_stack public_key, PowerupSignalJammer.get_powerup_id) * 5)
     price = BASE_PRICE * (mult == 0 ? 1 : mult)
-    BigFloat.new price
+    (BigFloat.new price).round 2
   end
 
   def is_available_for_purchase (public_key)
