@@ -11,6 +11,10 @@ class PowerupForceField < Powerup
   NEXT_USE_COOLDOWN_KEY = "forcefield_next_use_cooldown"
   COOLDOWN_KEY = "forcefield_cooldown_time"
 
+  def category
+    PowerupCategory::DEFENSIVE
+  end
+
   def self.get_powerup_id
     "forcefield"
   end

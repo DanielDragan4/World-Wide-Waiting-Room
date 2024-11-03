@@ -9,6 +9,10 @@ class PowerupTimeWarp < Powerup
   DURATION = 600
   KEY_DURATION = "timewarp_duration"
 
+  def category
+    PowerupCategory::ACTIVE
+  end
+
   def new_multiplier(public_key) : BigFloat
     get_synergy_boosted_multiplier(public_key, UNIT_MULTIPLIER)
   end

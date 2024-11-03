@@ -16,6 +16,10 @@ class PowerupOverCharge < Powerup
     "overcharge"
   end
 
+  def category
+    PowerupCategory::ACTIVE
+  end
+
   def get_name
     "Over Charge"
   end

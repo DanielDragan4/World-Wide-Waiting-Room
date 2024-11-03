@@ -1,11 +1,14 @@
 const powerups = {}
 // const powerupIcons = {}
 const waiterCard = document.querySelector("#waiter-card");
-const powerupsContainer = document.querySelector("#powerups");
-const timeLeftContainer = document.querySelector("#time-left")
+const powerupsContainer = document.querySelector("#powerups-grid");
+const timeLeftContainer = document.querySelector("#time-left");
+const powerupCategories = document.querySelector("#powerup-categories");
 
 const worker = new Worker("/worker.js") 
+
 let thisPlayerId = null;
+let selectedCategory = null;
 
 // Time Left Interval
 
@@ -73,6 +76,19 @@ function formatTimeUnits(tu) {
       <div class="text-[0.7em] ml-1">${power}</div>
     </div>
   </div>`
+}
+
+function togglePowerups() {
+  const powerups = document.querySelector("#powerups");
+  const showPowerupsButton = document.querySelector("#show-powerups");
+  powerups.classList.toggle('hidden');
+  showPowerupsButton.classList.toggle("hidden");
+}
+
+function changePowerupCategory(category) {
+  selectedCategory = category;
+  powerupsContainer.innerHTML = '';
+  processMostRecentMessage();
 }
 
 function performAnimation(jsonMsg) {
@@ -216,6 +232,80 @@ worker.onmessage = ({ data }) => {
   Idiomorph.morph(leaderboard, newLeaderboardHtml.innerHTML, { morphStyle: 'innerHTML' });
 }
 
+let mostRecentMessage = {}
+
+function processMostRecentMessage() {
+  const { player, time_left, powerups } = mostRecentMessage;
+
+  // Defined in index.html originally
+  timeLeft = time_left
+
+  if (selectedCategory === null) {
+    const [first, ...rest] = powerups;
+    if (first) {
+      const { category } = first;
+      selectedCategory = category;
+    }
+  }
+
+  const categories = Array.from(
+    powerups.reduce(
+      (a, b) => { 
+        a.add(b.category);
+        return a 
+      }, 
+      new Set()
+    )
+  ).map((x) => {
+    return `<button 
+    class="p-1 border rounded hover:bg-white hover:text-black ${selectedCategory === x ? 'bg-white text-black' : ''}"
+    onclick="changePowerupCategory('${x}')">${x}</button>`
+  }).join("\n");
+
+  Idiomorph.morph(powerupCategories, categories, { morphStyle: 'innerHTML' });
+
+  powerups.forEach((powerup) => {
+    const { id, category } = powerup
+    if (!id || category !== selectedCategory) return;
+
+    if (JSON.stringify(powerup) !== powerups[id]) {
+      powerups[id] = powerup
+      const powerupCard = document.createElement("div");
+      const buyButton = powerup.is_available_for_purchase && powerup.price <= playerCurrentTimeUnits
+      ? `
+<button 
+name="powerup"
+onclick="buy('${id}')"
+class="text-white bg-[#212126] border w-full mx-auto p-2 rounded cursor-pointer hover:bg-white hover:text-[#212126] mt-auto" 
+>Buy</button>
+      ` : `<div class="w-full text-center text-sm">${notAvailableString(powerup)}</div>`
+
+      powerupCard.id = `powerup-${id}`
+
+      powerupCard.innerHTML = `
+<div class="border rounded bg-[#212126] p-4 min-h-[300px] flex flex-col mt-4 max-h-content">
+  <h1 class="text-center font-bold">${powerup.name}</h1>
+  <h2 class="text-center">${powerup.description}</h1>
+  <h3 class="text-center font-bold my-4 flex flex-col">
+    <span>Price</span>
+    <span>${powerup.price.toLocaleString('en-US')} units</span>
+  </h3>
+  ${buyButton} 
+</div>
+      `;
+
+      const powerupContainer = document.querySelector(`#powerup-${id}`);        
+      if (!powerupContainer) {
+        powerupsContainer.appendChild(powerupCard);
+      } else {
+        Idiomorph.morph(powerupContainer, powerupCard, { morphStyle: 'outerHTML' });
+      }
+    }
+  })
+
+  thisPlayerId = player.public_key
+}
+
 document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
   const { detail: { message } } = wsMsg;
 
@@ -236,46 +326,6 @@ document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
   }
 
   worker.postMessage(jsonMsg) 
-
-  const { player, time_left, powerups } = jsonMsg;
-
-  // Defined in index.html originally
-  timeLeft = time_left
-
-  powerups.forEach((powerup) => {
-    const { id } = powerup
-    if (!id) return;
-
-    if (JSON.stringify(powerup) !== powerups[id]) {
-      powerups[id] = powerup
-      const powerupCard = document.createElement("div");
-      const buyButton = powerup.is_available_for_purchase && powerup.price <= playerCurrentTimeUnits
-      ? `
-
-<button 
-name="powerup"
-onclick="buy('${id}')"
-class="text-white bg-[#212126] border w-full mx-auto p-2 rounded cursor-pointer hover:bg-white hover:text-[#212126]" 
->Buy</button>
-      ` : `<div class="w-full text-center text-sm">${notAvailableString(powerup)}</div>`
-      powerupCard.id = `powerup-${id}`
-      powerupCard.innerHTML = `
-<div class="border rounded bg-[#212126] p-4">
-<h1 class="text-center font-bold">${powerup.name}</h1>
-<h2 class="text-center">${powerup.description}</h1>
-<h3 class="text-center font-bold my-4">${powerup.price.toLocaleString('en-US')} units</h3>
-${buyButton} 
-</div>
-      `;
-
-      const powerupContainer = document.querySelector(`#powerup-${id}`);        
-      if (!powerupContainer) {
-        powerupsContainer.appendChild(powerupCard);
-      } else {
-        Idiomorph.morph(powerupContainer, powerupCard, { morphStyle: 'innerHTML' });
-      }
-    }
-  })
-
-  thisPlayerId = player.public_key
+  mostRecentMessage = jsonMsg
+  processMostRecentMessage();
 })

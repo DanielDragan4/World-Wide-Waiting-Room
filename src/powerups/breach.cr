@@ -4,6 +4,10 @@ require "./afflict_breach.cr"
 class PowerupBreach < Powerup
   BASE_PRICE = 3_000
 
+  def category
+    PowerupCategory::SABATOGE
+  end
+
   def self.get_powerup_id
     "breach"
   end

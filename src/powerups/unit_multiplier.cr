@@ -5,6 +5,10 @@ class PowerupUnitMultiplier < Powerup
   MULTIPLIER = 1.3
   KEY = "unit_multiplier_stack"
 
+  def category
+    PowerupCategory::ACTIVE
+  end
+
   def new_multiplier(public_key) : BigFloat
     (MULTIPLIER) * get_synergy_boosted_multiplier(public_key, 1.0)
   end

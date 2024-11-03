@@ -8,6 +8,10 @@ class PowerupSchrodinger < Powerup
     "schrodinger"
   end
 
+  def category
+    PowerupCategory::ACTIVE
+  end
+
   def get_name
     "Schrodinger"
   end

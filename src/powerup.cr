@@ -3,6 +3,13 @@ require "redis"
 
 alias PopupInfo = Hash(String, String | Float64 | Int64 | Int32 | Float32)
 
+enum PowerupCategory
+  PASSIVE
+  DEFENSIVE
+  ACTIVE
+  SABATOGE
+end
+
 class Powerup
   def initialize (@game : Game)
 
@@ -10,6 +17,10 @@ class Powerup
 
   def self.get_powerup_id : String
     "powerup"
+  end
+
+  def category : PowerupCategory
+    PowerupCategory::PASSIVE
   end
 
   def get_popup_info (public_key : String) : PopupInfo

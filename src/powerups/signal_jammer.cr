@@ -8,6 +8,10 @@ class PowerupSignalJammer < Powerup
     "signal_jammer"
   end
 
+  def category
+    PowerupCategory::SABATOGE
+  end
+
   def is_input_powerup (public_key)
     true
   end

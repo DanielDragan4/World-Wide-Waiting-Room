@@ -8,6 +8,10 @@ class PowerupBootStrap < Powerup
   COST_PERCENTAGE = 0.15
   BASE_PERCENT_INCREASE = 0.05
 
+  def category
+    PowerupCategory::ACTIVE
+  end
+
   def self.get_powerup_id
     "bootstrap"
   end

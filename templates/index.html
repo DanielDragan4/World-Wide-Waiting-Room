@@ -91,10 +91,40 @@
     </div>
 
     <h3 class="absolute top-4 left-4 border border-white rounded p-2 text-xs" id="time-left"></h3>
-    <div class="fixed left-0 top-[10%]">
-      <h1 class="text-center mb-2 text-xl font-bold">Powerups</h1>
-      <div class="ml-2 w-[300px] h-[800px] overflow-y-scroll space-y-4 flex bg-[#212126] flex-col border rounded p-4" id="powerups">
-        <div id="powerups-error" class="text-center text-orange-400"></div>
+    <button id="show-powerups" class="absolute border rounded p-1 left-4 top-16" onclick="togglePowerups()">Powerups</button>
+    <div 
+      class="
+        hidden 
+        mx-2 
+        my-2
+        max-w-[1200px] 
+        max-h-[1000px]
+        overflow-x-hidden
+        top-1/2
+        -translate-y-1/2
+        left-1/2
+        -translate-x-1/2
+        absolute 
+        top-1 
+        z-10 
+        w-full 
+        h-full 
+        space-y-4 
+        flex 
+        bg-[#212126] 
+        border 
+        rounded 
+      " 
+      id="powerups"
+    >
+      <div class="absolute top-2 text-md bg-[#212126] cursor-pointer w-full">
+        <div class="flex flex-row justify-between items-center w-full">
+          <span class="ml-2 text-xl w-8 text-center rounded hover:text-black hover:bg-white" onclick="togglePowerups()">&times;</span>
+          <h1 class="font-bold">Powerups</h1>
+          <span></span>
+        </div>
+        <div id="powerup-categories" class="flex flex-row items-center justify-center mt-4 space-x-2"></div>
+        <div id="powerups-grid" class="grid gap-2 px-4 grid-cols-3 max-md:grid-cols-1 overflow-y-scroll h-[910px]"></div>
       </div>
     </div>
     <div id="waiter-card" class="flex flex-row justify-center"></div>
