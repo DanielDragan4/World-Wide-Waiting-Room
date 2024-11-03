@@ -34,6 +34,7 @@ class PowerupTimeWarp < Powerup
 
     pi = PopupInfo.new
     pi["Time Left"] = (durations[0][0].to_i - @game.ts).to_s
+    pi["Units/s Boost"] = "#{(get_unit_boost(public_key)).to_i}x"
     pi["Time Warp Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
     pi
   end
