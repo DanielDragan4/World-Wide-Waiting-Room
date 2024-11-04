@@ -287,7 +287,7 @@ class="text-white bg-[#212126] border w-full mx-auto p-2 rounded cursor-pointer 
   <h2 class="text-center">${powerup.description}</h1>
   <h3 class="text-center font-bold my-4 flex flex-col">
     <span>Price</span>
-    <span>${powerup.price.toLocaleString('en-US')} units</span>
+    <span>${powerup.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} units</span>
   </h3>
   ${buyButton} 
 </div>
