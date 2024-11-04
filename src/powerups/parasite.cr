@@ -18,6 +18,10 @@ class PowerupParasite < Powerup
     get_synergy_boosted_multiplier public_key, (PERCENTAGE_STEAL_PER_SECOND) * (get_active_parasite_stack public_key).to_f64
   end
 
+  def category
+    PowerupCategory::SABATOGE
+  end
+
   def self.get_powerup_id
     "parasite"
   end

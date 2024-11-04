@@ -14,6 +14,10 @@ class PowerupHarvest < Powerup
   COOLDOWN_DURATION = 60 * 60 * 6
   COOLDOWN_KEY = "harvest cooldown"
 
+  def category
+    PowerupCategory::ACTIVE
+  end
+
   def self.get_powerup_id
     "harvest"
   end

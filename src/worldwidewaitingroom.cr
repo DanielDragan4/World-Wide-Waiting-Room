@@ -203,6 +203,7 @@ class Game
         "is_available_for_purchase" => (value.is_available_for_purchase public_key),
         "is_input_powerup" => (value.is_input_powerup public_key),
         "is_achievement_powerup" => (value.is_achievement_powerup public_key),
+        "category" => (value.category).to_s,
         "input_button_text" => (value.input_button_text public_key),
         "cooldown_seconds_left" => (value.cooldown_seconds_left public_key),
         "currently_owns" => (player_powerups.includes? key),

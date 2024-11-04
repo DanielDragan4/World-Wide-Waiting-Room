@@ -5,6 +5,10 @@ class PowerupSynergyMatrix < Powerup
   BASE_AMOUNT = 0.1
   KEY = "synergy_matrix_stack"
 
+  def category
+    PowerupCategory::PASSIVE
+  end
+
   def self.get_stack_size(game : Game, public_key : String) : Int32
     if public_key
       size = game.get_key_value(public_key, KEY)

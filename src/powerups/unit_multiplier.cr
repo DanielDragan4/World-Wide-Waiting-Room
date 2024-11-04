@@ -5,6 +5,10 @@ class PowerupUnitMultiplier < Powerup
   BASE_AMOUNT = 1.0
   KEY = "unit_multiplier_stack"
 
+  def category
+    PowerupCategory::ACTIVE
+  end
+
   def new_multiplier(public_key) : BigFloat
     prestige_multi = get_civ_boost(public_key, @game)
     get_synergy_boosted_multiplier(public_key, prestige_multi)

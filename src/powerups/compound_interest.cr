@@ -6,9 +6,13 @@ class PowerupCompoundInterest < Powerup
   BOOST_COUNT_KEY = "compound_interest_boost_count"
   USED_MILESTONES_KEY = "compound_interest_used_milestones"
   BOOST_MULTIPLIER = 0.1
-  BOOST_DURATION = 600    
+  BOOST_DURATION = 600
   KEY_DURATION = "compound_interest_durations"
   INITIAL_MILESTONE = 1000.0
+
+  def category
+    PowerupCategory::PASSIVE
+  end
 
   def new_multiplier(public_key) : BigFloat
     get_synergy_boosted_multiplier(public_key, BOOST_MULTIPLIER)
@@ -30,7 +34,7 @@ class PowerupCompoundInterest < Powerup
     durations_json = @game.get_key_value(public_key, KEY_DURATION) || "[]"
     durations = Array(Array(String)).from_json(durations_json)
     boost_count = get_stored_boost_count(public_key)
-  
+
     pi = PopupInfo.new
     if durations.any?
       time_left = (durations[0][0].to_i - @game.ts).to_s
@@ -55,9 +59,9 @@ class PowerupCompoundInterest < Powerup
     boost_multiplier = (new_multiplier(public_key) * 100).round
     if !is_purchased(public_key)
     "Earn a #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.\n"
-    else 
+    else
     "Earn a #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.\n
-    Stored boosts: #{boost_count}\n 
+    Stored boosts: #{boost_count}\n
     (Purchase again to use stored boosts)"
     end
   end
@@ -86,7 +90,7 @@ class PowerupCompoundInterest < Powerup
       format_in_scientific_notation(milestone)
     end
   end
-  
+
   # Helper method to format numbers with commas
   def format_with_commas(value : BigFloat) : String
     integer_part, decimal_part = value.to_s.split(".")
@@ -94,7 +98,7 @@ class PowerupCompoundInterest < Powerup
     integer_part = integer_part.reverse.chars.each_slice(3).map(&.join).join(",").reverse
     decimal_part ? "#{integer_part}.#{decimal_part}" : integer_part
   end
-  
+
   # Helper method to format numbers in scientific notation
   def format_in_scientific_notation(value : BigFloat) : String
     exponent = Math.log10(value).floor
@@ -104,7 +108,7 @@ class PowerupCompoundInterest < Powerup
 
   # Returns all milestone values the player has already reached
   def get_used_milestones(public_key : String) : Set(BigFloat)
-    used_milestones_str = @game.get_key_value(public_key, USED_MILESTONES_KEY) || "" 
+    used_milestones_str = @game.get_key_value(public_key, USED_MILESTONES_KEY) || ""
     used_milestones_str.empty? ? Set(BigFloat).new : used_milestones_str.split(",").map(&.to_big_f).to_set
   end
 
@@ -112,7 +116,7 @@ class PowerupCompoundInterest < Powerup
   def get_next_milestone(public_key)
     milestone = INITIAL_MILESTONE
     used_milestones = get_used_milestones(public_key)
-    
+
     while used_milestones.includes?(milestone)
       milestone *= 10.0
     end
@@ -170,15 +174,15 @@ class PowerupCompoundInterest < Powerup
     end
   end
 
-  # Applies all stored boosts by adding entries to KEY_DURATION list [boost duration, multiplier value] 
+  # Applies all stored boosts by adding entries to KEY_DURATION list [boost duration, multiplier value]
   # Currently multipliers are additive and all identical values
   def apply_stored_boosts(public_key : String, boost_count : Int32)
     durations_json = @game.get_key_value(public_key, KEY_DURATION) || "[]"
     durations = Array(Array(String)).from_json(durations_json)
-    
+
     # Stores full multiplier (ex 1.1) not just the boost (ex 0.1)
-    boost_multiplier = 1.0 + new_multiplier(public_key) 
-    
+    boost_multiplier = 1.0 + new_multiplier(public_key)
+
     boost_count.times do
       durations << [((@game.ts + BOOST_DURATION).to_s), boost_multiplier.to_s]
     end
@@ -190,48 +194,48 @@ class PowerupCompoundInterest < Powerup
   # Returns total multiplier for all currently active boosts
   def get_unit_boost(public_key)
     return 1.0 unless is_purchased(public_key)
-  
+
     durations_json = @game.get_key_value(public_key, KEY_DURATION) || "[]"
     durations = Array(Array(String)).from_json(durations_json)
     boost_units = 1.0
-  
+
     # Stacks boost values additively
     durations.each do |t|
       if t[0].to_i > @game.ts
         boost_units += t[1].to_f - 1
       end
     end
-  
+
     boost_units
   end
 
   # Checks if next milestone has been reached. If yes, adds boost to storage.
-  # Applies any active boosts. 
+  # Applies any active boosts.
   def action(public_key, dt)
     return unless is_purchased(public_key)
 
     # Checks for new milestones
     units = @game.get_player_time_units(public_key)
     next_milestone = get_next_milestone(public_key)
- 
+
     # If new milestone is reached, add boost to storage
     if units >= next_milestone
       boost_count = get_stored_boost_count(public_key) + 1
       @game.set_key_value(public_key, BOOST_COUNT_KEY, boost_count.to_s)
- 
+
       used_milestones = get_used_milestones(public_key)
       used_milestones.add(BigFloat.new(next_milestone))
       @game.set_key_value(public_key, USED_MILESTONES_KEY, used_milestones.to_a.join(","))
- 
+
       puts "Milestone reached! You have #{boost_count} stored boosts."
     end
- 
+
     # Applies any active boosts if no "blocking" powerups applied
     if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id)) && !(@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)) && !(@game.has_powerup(public_key, AfflictPowerupBreach.get_powerup_id))
       unit_rate = @game.get_player_time_units_ps(public_key)
       boost_multiplier = get_unit_boost(public_key)
       boost_amount = (unit_rate * boost_multiplier) - unit_rate
- 
+
       if boost_amount > 0
         puts "Applying boost: multiplier = #{boost_multiplier}"
         @game.inc_time_units_ps(public_key, boost_amount)
@@ -242,18 +246,18 @@ class PowerupCompoundInterest < Powerup
   # Removes any expired boosts from KEY_DURATION list
   def cleanup(public_key)
     return unless is_purchased(public_key)
-   
+
     durations_json = @game.get_key_value(public_key, KEY_DURATION) || "[]"
     durations = Array(Array(String)).from_json(durations_json)
-   
+
     active_before = durations.count { |d| d[0].to_i > @game.ts }
     durations.reject! { |duration| duration[0].to_i <= @game.ts }
     active_after = durations.size
-   
+
     if active_before != active_after
       puts "Cleanup: Removed #{active_before - active_after} expired boosts. #{active_after} boosts remaining."
     end
-   
+
     @game.set_key_value(public_key, KEY_DURATION, durations.to_json)
   end
 end
