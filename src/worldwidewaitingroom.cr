@@ -24,6 +24,8 @@ require "./powerups/signal_jammer"
 require "./powerups/automation_upgrade.cr"
 require "./templates"
 require "./powerups/schrodinger"
+require "./powerups/cosmic_breakthrough"
+
 
 alias Secret = String
 alias Public = String
@@ -170,6 +172,7 @@ class Game
       AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
       PowerupAutomationUpgrade.get_powerup_id => PowerupAutomationUpgrade.new(self),
       PowerupSchrodinger.get_powerup_id => PowerupSchrodinger.new(self),
+      PowerupCosmicBreak.get_powerup_id => PowerupCosmicBreak.new(self),
     }
   end
 

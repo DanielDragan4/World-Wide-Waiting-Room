@@ -95,4 +95,14 @@ class Powerup
     synergy_boost = PowerupSynergyMatrix.get_boost_multiplier(@game, public_key, self.class.get_powerup_id)
     BigFloat.new base_multiplier * BigFloat.new synergy_boost
   end
+
+  def self.get_civilization_type_synergy(public_key : String, base_val : Float64, game : Game) : Float64
+    civ_boost_synergy = PowerupCosmicBreak.get_synergy_boost(game, public_key, self.get_powerup_id)
+    civ_boost_synergy * base_val
+  end
+
+  def self.get_civilization_type_unit(public_key : String, base_val : Float64, game : Game) : Float64
+    civ_boost_unit = PowerupCosmicBreak.get_unit_boost(game, public_key, self.get_powerup_id)
+    civ_boost_unit * base_val
+  end
 end
