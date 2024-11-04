@@ -22,8 +22,15 @@ require "./powerups/force_field"
 require "./powerups/breach"
 require "./powerups/signal_jammer"
 require "./powerups/automation_upgrade.cr"
-require "./templates"
 require "./powerups/schrodinger"
+
+require "./powerups/achievement_type_1.cr"
+require "./powerups/achievement_type_2.cr"
+require "./powerups/achievement_type_3.cr"
+require "./powerups/achievement_type_4.cr"
+require "./powerups/achievement_type_5.cr"
+
+require "./templates"
 
 alias Secret = String
 alias Public = String
@@ -166,10 +173,17 @@ class Game
       PowerupSignalJammer.get_powerup_id => PowerupSignalJammer.new(self),
       PowerupForceField.get_powerup_id => PowerupForceField.new(self),
       PowerupBreach.get_powerup_id => PowerupBreach.new(self),
-      AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
-      AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
       PowerupAutomationUpgrade.get_powerup_id => PowerupAutomationUpgrade.new(self),
       PowerupSchrodinger.get_powerup_id => PowerupSchrodinger.new(self),
+
+      AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
+      AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
+
+      AchievementTypeI.get_powerup_id => AchievementTypeI.new(self),
+      AchievementTypeII.get_powerup_id => AchievementTypeII.new(self),
+      AchievementTypeIII.get_powerup_id => AchievementTypeIII.new(self),
+      AchievementTypeIV.get_powerup_id => AchievementTypeIV.new(self),
+      AchievementTypeV.get_powerup_id => AchievementTypeV.new(self),
     }
   end
 

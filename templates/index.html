@@ -92,6 +92,16 @@
 
     <h3 class="absolute top-4 left-4 border border-white rounded p-2 text-xs" id="time-left"></h3>
     <button id="show-powerups" class="absolute border rounded p-1 left-4 top-16" onclick="togglePowerups()">Powerups</button>
+    <button id="show-achievements" class="absolute border rounded p-1 left-4 top-28" onclick="toggleAchievements()">Achievements</button>
+    <div id="achievements-container" class="hidden absolute left-4 top-28 border rounded border-white bg-[#212126]">
+      <div class="flex flex-row justify-between items-center w-full mt-2">
+        <span class="ml-2 text-xl w-8 text-center rounded hover:text-black hover:bg-white cursor-pointer" onclick="toggleAchievements()">&times;</span>
+        <h1 class="font-bold">Achievements</h1>
+        <span class="w-2"></span>
+      </div>
+      <div id="achievements" class="max-w-[500px] overflow-y-auto max-h-[700px] flex flex-col space-y-2 p-2">
+      </div>
+    </div>
     <div 
       class="
         hidden 
