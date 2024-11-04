@@ -53,7 +53,7 @@ class PowerupUnitMultiplier < Powerup
   def get_civ_boost(public_key)
     breakthrough = @game.get_powerup_classes[PowerupCosmicBreak.get_powerup_id]
     breakthrough = breakthrough.as PowerupCosmicBreak
-    breakthrough.get_synergy_boost(public_key, BASE_AMOUNT)
+    breakthrough.get_unit_boost(public_key, BASE_AMOUNT)
   end
 
   def new_prestige(public_key, game : Game)
