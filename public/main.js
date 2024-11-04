@@ -4,6 +4,9 @@ const waiterCard = document.querySelector("#waiter-card");
 const powerupsContainer = document.querySelector("#powerups-grid");
 const timeLeftContainer = document.querySelector("#time-left");
 const powerupCategories = document.querySelector("#powerup-categories");
+const achievementsDiv = document.querySelector("#achievements");
+const achievementsContainer = document.querySelector("#achievements-container");
+const showAchievementsButton = document.querySelector("#show-achievements");
 
 const worker = new Worker("/worker.js") 
 
@@ -84,6 +87,11 @@ function togglePowerups() {
   const showPowerupsButton = document.querySelector("#show-powerups");
   powerups.classList.toggle('hidden');
   showPowerupsButton.classList.toggle("hidden");
+}
+
+function toggleAchievements() {
+  achievementsContainer.classList.toggle('hidden');
+  showAchievementsButton.classList.toggle('hidden');
 }
 
 function changePowerupCategory(category) {
@@ -233,20 +241,21 @@ worker.onmessage = ({ data }) => {
   Idiomorph.morph(leaderboard, newLeaderboardHtml.innerHTML, { morphStyle: 'innerHTML' });
 }
 
-function processMostRecentMessage() {
-  const { player, time_left, powerups } = mostRecentMessage;
+function drawAchievements(achievements, player) {
+  const html = achievements.map((achievement) => {
+  const hasAchievement = player.powerups.includes(achievement.id);
+    return `
+    <div class="border text-center rounded m-2 border-white flex flex-col p-2 ${hasAchievement ? 'text-black bg-white' : ''}">
+      <h1 class="text-center font-bold text-lg">${achievement.name}</h1>
+      <h3 class="mt-2">${achievement.description}</h3>
+    </div>
+    `
+  }).join('\n');
 
-  // Defined in index.html originally
-  timeLeft = time_left
+  Idiomorph.morph(achievementsDiv, html, { morphStyle: 'innerHTML' })
+}
 
-  if (selectedCategory === null) {
-    const [first, ...rest] = powerups;
-    if (first) {
-      const { category } = first;
-      selectedCategory = category;
-    }
-  }
-
+function drawPowerups(powerups) {
   const categories = Array.from(
     powerups.reduce(
       (a, b) => { 
@@ -301,6 +310,25 @@ class="text-white bg-[#212126] border w-full mx-auto p-2 rounded cursor-pointer 
       }
     }
   })
+
+}
+
+function processMostRecentMessage() {
+  const { player, time_left, powerups } = mostRecentMessage;
+
+  // Defined in index.html originally
+  timeLeft = time_left
+
+  if (selectedCategory === null) {
+    const [first, ...rest] = powerups;
+    if (first) {
+      const { category } = first;
+      selectedCategory = category;
+    }
+  }
+
+  drawPowerups(powerups.filter((x) => !x.is_achievement_powerup));
+  drawAchievements(powerups.filter((x) => x.is_achievement_powerup), player);
 
   thisPlayerId = player.public_key
 }

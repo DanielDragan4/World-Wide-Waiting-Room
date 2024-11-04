@@ -35,13 +35,13 @@ class PowerupHarvest < Powerup
     "Collects the next hour's worth of units with the current unit production for the hour, but pauses unit generation for that hour: #{units} units. Can only be used once every 6 hours."
   end
 
-  def cooldown_seconds_left(public_key, key)
-    @game.get_timer_seconds_left public_key, key
+  def cooldown_seconds_left(public_key)
+    @game.get_timer_seconds_left public_key, COOLDOWN_KEY
   end
 
   def get_popup_info (public_key) : PopupInfo
     pi = PopupInfo.new
-    pi["Time Left"] = cooldown_seconds_left(public_key, DURATION_KEY)
+    pi["Time Left"] = @game.get_timer_seconds_left public_key, DURATION_KEY
     pi
   end
 
