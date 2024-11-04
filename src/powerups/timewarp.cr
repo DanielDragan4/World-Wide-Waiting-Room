@@ -42,7 +42,7 @@ class PowerupTimeWarp < Powerup
   def get_description(public_key)
 
     amount = ((get_unit_boost(public_key)) * new_multiplier(public_key)).round(2)
-    "Multiplies unit production by #{amount}x for the next 10 minutes. Price increases exponentially."
+    "Multiplies unit production by #{amount}x for the next 10 minutes. Price increases exponentially. Active Time Warps are stackable, with each additional purchase increasing the base price exponentially. Each active Time Warp amplifies this exponential rate, making growth even faster until the active Time Warp expires."
   end
 
   def get_price (public_key)

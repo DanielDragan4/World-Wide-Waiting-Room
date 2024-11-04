@@ -9,24 +9,22 @@ class PowerupCosmicBreak < Powerup
   SYNERGY_VALUES = [1.0, 2.5, 5.0, 10.0, 25.0, 40.0, 100.0]
   UNIT_VALUES = [1.0, 5.0, 20.0, 50.0, 100.0, 150.0, 500.0]
 
-  def self.get_stack_size(game : Game, public_key : String) : Int32
-    size = game.get_key_value(public_key, KEY)
+  def get_stack_size(public_key : String) : Int32
+    size = @game.get_key_value(public_key, KEY)
     size.to_s.empty? ? 0 : size.to_i
   end
 
-  def self.get_unit_boost(public_key : String, powerup_id : String, base_amount : Float64) : Float64
-    return 1.0 if powerup_id == get_powerup_id # Prevents from boosting itself
-
-    stack_size = get_stack_size(game, public_key)
+  def get_unit_boost(public_key : String, base_amount : Float64) : Float64
+    
+    stack_size = get_stack_size(public_key)
     unit_boost = UNIT_VALUES[stack_size] * base_amount
 
     unit_boost
   end
 
-  def self.get_synergy_boost(public_key : String, powerup_id : String, base_amount : Float64) : Float64
-    return 1.0 if powerup_id == get_powerup_id # Prevents from boosting itself
+  def get_synergy_boost(public_key : String, base_amount : Float64) : Float64
 
-    stack_size = get_stack_size(game, public_key)
+    stack_size = get_stack_size(public_key)
     synergy_boost = SYNERGY_VALUES[stack_size] * base_amount
 
     synergy_boost
@@ -41,7 +39,7 @@ class PowerupCosmicBreak < Powerup
   end
 
   def get_description(public_key)
-    stack_size = get_player_stack_size(public_key)
+    stack_size = get_stack_size(public_key)
     "Resets Unit Multiplyer and Synergy Matrix to 0 but increase their base rate by some multiple. Current Civilization Type: #{stack_size} | Next Synergy Precent: #{SYNERGY_VALUES[stack_size+1]*10}% | Next Unit Multiplyer Rate: #{UNIT_VALUES[stack_size+1]}"
   end
 
@@ -49,12 +47,8 @@ class PowerupCosmicBreak < Powerup
     PowerupCategory::PASSIVE
   end
 
-  def get_player_stack_size(public_key : String) : Int32
-    self.class.get_stack_size(@game, public_key)
-  end
-
   def get_price(public_key)
-    stack_size = get_player_stack_size(public_key) + 1
+    stack_size = get_stack_size(public_key) + 1
     price = BASE_PRICE * ((stack_size) **(2 + (stack_size ** 1.75)))
     BigFloat.new price
   end
@@ -66,15 +60,20 @@ class PowerupCosmicBreak < Powerup
       units = @game.get_player_time_units(public_key)
 
       if units > price
-        current_stack = get_player_stack_size(public_key)
+        current_stack = get_stack_size(public_key)
         new_stack = current_stack + 1
 
         @game.inc_time_units(public_key, -price)
         @game.set_key_value(public_key, KEY, new_stack.to_s)
         @game.add_powerup(public_key, PowerupCosmicBreak.get_powerup_id)
 
-        PowerupSynergyMatrix.new_prestige(public_key, @game)
-        PowerupUnitMultiplier.new_prestige(public_key, @game)
+        synergy = @game.get_powerup_classes[PowerupSynergyMatrix.get_powerup_id]
+        unit = @game.get_powerup_classes[PowerupUnitMultiplier.get_powerup_id]
+        synergy = synergy.as PowerupSynergyMatrix
+        unit = unit.as PowerupUnitMultiplier
+
+        synergy.new_prestige(public_key, @game)
+        unit.new_prestige(public_key, @game)
       else
         return "Not enough time units"
       end

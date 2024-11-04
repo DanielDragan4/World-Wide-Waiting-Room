@@ -43,7 +43,7 @@ class PowerupOverCharge < Powerup
 
   def get_description(public_key)
         amount = ((get_unit_boost(public_key)) * new_multiplier(public_key)).round(2)
-        "Increases unit production by #{amount}x for 1 min, but disables all passive powerups while active. Price increases exponentially."
+        "Increases unit production by #{amount}x for 1 min, but disables all passive powerups while active. Price increases exponentially. Active Over Charges are stackable, with each additional purchase increasing the base price exponentially. Each active OverCharge amplifies this exponential rate, making growth even faster until the active Over Charge expires."
   end
 
   def get_price (public_key)

@@ -10,20 +10,11 @@ class PowerupSynergyMatrix < Powerup
     PowerupCategory::PASSIVE
   end
 
-  def self.get_stack_size(game : Game, public_key : String) : Int32
-    if public_key
-      size = game.get_key_value(public_key, KEY)
-      size.to_s.empty? ? 0 : size.to_i
-    else
-      0
-    end
-  end
-
-  def self.get_boost_multiplier(game : Game, public_key : String, powerup_id : String) : Float64
-    return 1.0 if powerup_id == get_powerup_id # Prevents from boosting itself
-
-    stack_size = get_stack_size(game, public_key)
-    boost = get_civ_boost(public_key)
+  def get_boost_multiplier(public_key : String) : Float64
+    synergy = @game.get_powerup_classes[PowerupSynergyMatrix.get_powerup_id]
+    synergy = synergy.as PowerupSynergyMatrix
+    stack_size = synergy.get_player_stack_size(public_key)
+    boost = synergy.get_civ_boost(public_key)
     1.0 + (stack_size * boost)
   end
 
@@ -48,7 +39,8 @@ class PowerupSynergyMatrix < Powerup
   end
 
   def get_player_stack_size(public_key : String) : Int32
-    self.class.get_stack_size(@game, public_key)
+    size = @game.get_key_value(public_key, KEY)
+    size.to_s.empty? ? 0 : size.to_i
   end
 
   def get_price(public_key)
@@ -61,11 +53,12 @@ class PowerupSynergyMatrix < Powerup
   end
 
   def get_civ_boost(public_key)
-    breakthrough = @game.get_powerup_classes[PowerupCosmicBreakthrough.get_powerup_id]
-    breakthrough.get_synergy_boost(public_key, KEY, BASE_AMOUNT)
+    breakthrough = @game.get_powerup_classes[PowerupCosmicBreak.get_powerup_id]
+    breakthrough = breakthrough.as PowerupCosmicBreak
+    breakthrough.get_synergy_boost(public_key, BASE_AMOUNT)
   end
 
-  def self.new_prestige(public_key, game : Game)
+  def new_prestige(public_key, game : Game)
     game.set_key_value(public_key, KEY, (0).to_s)
   end
 
