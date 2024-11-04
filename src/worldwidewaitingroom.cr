@@ -23,6 +23,8 @@ require "./powerups/breach"
 require "./powerups/signal_jammer"
 require "./powerups/automation_upgrade.cr"
 require "./powerups/schrodinger"
+require "./powerups/cosmic_breakthrough"
+
 
 require "./powerups/achievement_type_1.cr"
 require "./powerups/achievement_type_2.cr"
@@ -175,6 +177,7 @@ class Game
       PowerupBreach.get_powerup_id => PowerupBreach.new(self),
       PowerupAutomationUpgrade.get_powerup_id => PowerupAutomationUpgrade.new(self),
       PowerupSchrodinger.get_powerup_id => PowerupSchrodinger.new(self),
+      PowerupCosmicBreak.get_powerup_id => PowerupCosmicBreak.new(self),
 
       AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
       AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
