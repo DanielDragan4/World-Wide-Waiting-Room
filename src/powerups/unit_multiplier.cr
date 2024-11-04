@@ -1,4 +1,5 @@
 require "../powerup.cr"
+require "./cosmic_breakthrough"
 
 class PowerupUnitMultiplier < Powerup
   BASE_PRICE = 25.0
@@ -10,7 +11,7 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def new_multiplier(public_key) : BigFloat
-    prestige_multi = get_civ_boost(public_key, @game)
+    prestige_multi = get_civ_boost(public_key)
     get_synergy_boosted_multiplier(public_key, prestige_multi)
   end
 
@@ -33,7 +34,7 @@ class PowerupUnitMultiplier < Powerup
 
   def get_price(public_key)
     stack_size = get_player_stack_size(public_key) + 1
-    boost = get_civ_boost(public_key, @game)
+    boost = get_civ_boost(public_key)
     multi = (boost/1.0)
     base_increase = (multi == 1) ? 1 : multi/2
     price = BigFloat.new ((BASE_PRICE * base_increase) * ( stack_size ** 1.75))
@@ -49,8 +50,8 @@ class PowerupUnitMultiplier < Powerup
     end
   end
 
-  def get_civ_boost(public_key, game : Game)
-    Powerup.get_civilization_type_unit(public_key, BASE_AMOUNT, game)
+  def get_civ_boost(public_key)
+    PowerupCosmicBreak.get_unit_boost(public_key, KEY, BASE_AMOUNT)
   end
 
   def self.new_prestige(public_key, game : Game)

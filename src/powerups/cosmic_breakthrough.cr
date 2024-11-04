@@ -14,20 +14,20 @@ class PowerupCosmicBreak < Powerup
     size.to_s.empty? ? 0 : size.to_i
   end
 
-  def self.get_unit_boost(game : Game, public_key : String, powerup_id : String) : Float64
+  def self.get_unit_boost(public_key : String, powerup_id : String, base_amount : Float64) : Float64
     return 1.0 if powerup_id == get_powerup_id # Prevents from boosting itself
 
     stack_size = get_stack_size(game, public_key)
-    unit_boost = UNIT_VALUES[stack_size]
+    unit_boost = UNIT_VALUES[stack_size] * base_amount
 
     unit_boost
   end
 
-  def self.get_synergy_boost(game : Game, public_key : String, powerup_id : String) : Float64
+  def self.get_synergy_boost(public_key : String, powerup_id : String, base_amount : Float64) : Float64
     return 1.0 if powerup_id == get_powerup_id # Prevents from boosting itself
 
     stack_size = get_stack_size(game, public_key)
-    synergy_boost = SYNERGY_VALUES[stack_size]
+    synergy_boost = SYNERGY_VALUES[stack_size] * base_amount
 
     synergy_boost
   end
@@ -42,7 +42,7 @@ class PowerupCosmicBreak < Powerup
 
   def get_description(public_key)
     stack_size = get_player_stack_size(public_key)
-    "Prestige and Resets Unit Multiplyer and Synergy Matrix to 0 whilst also boosting their base rates. Current Civilization Type: #{stack_size} | Next Synergy Precent: #{SYNERGY_VALUES[stack_size+1]*10}% | Next Unit Multiplyer Rate: #{UNIT_VALUES[stack_size+1]}"
+    "Resets Unit Multiplyer and Synergy Matrix to 0 but increase their base rate by some multiple. Current Civilization Type: #{stack_size} | Next Synergy Precent: #{SYNERGY_VALUES[stack_size+1]*10}% | Next Unit Multiplyer Rate: #{UNIT_VALUES[stack_size+1]}"
   end
 
   def category

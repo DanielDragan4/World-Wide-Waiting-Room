@@ -1,4 +1,5 @@
 require "../powerup.cr"
+require "./cosmic_breakthrough"
 
 class PowerupSynergyMatrix < Powerup
   BASE_PRICE = 500.0
@@ -22,7 +23,7 @@ class PowerupSynergyMatrix < Powerup
     return 1.0 if powerup_id == get_powerup_id # Prevents from boosting itself
 
     stack_size = get_stack_size(game, public_key)
-    boost = get_civ_boost(public_key, game)
+    boost = get_civ_boost(public_key)
     1.0 + (stack_size * boost)
   end
 
@@ -36,7 +37,7 @@ class PowerupSynergyMatrix < Powerup
 
   def get_description(public_key)
     stack_size = get_player_stack_size(public_key)
-    boost = get_civ_boost(public_key, @game)
+    boost = get_civ_boost(public_key)
     boost_percent = (stack_size * boost * 100).to_i
     "Increases the effectiveness of all other powerups by #{boost* 100}%. The effect stacks additively with each purchase.\n Purchasing does not affect active powerups currently in use.
     Current boost: #{boost_percent}%"
@@ -52,18 +53,16 @@ class PowerupSynergyMatrix < Powerup
 
   def get_price(public_key)
     stack_size = get_player_stack_size(public_key) + 1
-    boost = get_civ_boost(public_key, @game)
+    boost = get_civ_boost(public_key)
     multi = (boost/0.1)
     base_increase = (multi == 1) ? 1 : multi/2
     price = BASE_PRICE * base_increase * ((stack_size) **(5 +(stack_size * 0.2)))
     BigFloat.new price
   end
 
-  def self.get_civ_boost(public_key, game : Game)
-    Powerup.get_civilization_type_synergy(public_key, BASE_AMOUNT, game)
-  end
-  def get_civ_boost(public_key, game : Game)
-    Powerup.get_civilization_type_synergy(public_key, BASE_AMOUNT, game)
+  def get_civ_boost(public_key)
+    breakthrough = @game.get_powerup_classes[PowerupCosmicBreakthrough.get_powerup_id]
+    breakthrough.get_synergy_boost(public_key, KEY, BASE_AMOUNT)
   end
 
   def self.new_prestige(public_key, game : Game)
