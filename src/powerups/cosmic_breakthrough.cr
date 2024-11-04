@@ -4,7 +4,7 @@ require "./synergy_matrix"
 
 
 class PowerupCosmicBreak < Powerup
-  BASE_PRICE = 1.0#150_000_000.0
+  BASE_PRICE = 150_000_000.0
   KEY = "cosmic_break_stack"
   SYNERGY_VALUES = [1.0, 2.5, 5.0, 10.0, 25.0, 40.0, 100.0]
   UNIT_VALUES = [1.0, 5.0, 20.0, 50.0, 100.0, 150.0, 500.0]
@@ -42,9 +42,12 @@ class PowerupCosmicBreak < Powerup
 
   def get_description(public_key)
     stack_size = get_player_stack_size(public_key)
-    "Prestige and Resets Unit Multiplyer and Synergy Matrix to 0 whilst also boosting their base rates. Current Civilization Type: #{stack_size}  Next Synergy Precent: #{SYNERGY_VALUES[stack_size+1]*10}% Next Unit Multiplyer Rate: #{UNIT_VALUES[stack_size+1]}"
+    "Prestige and Resets Unit Multiplyer and Synergy Matrix to 0 whilst also boosting their base rates. Current Civilization Type: #{stack_size} | Next Synergy Precent: #{SYNERGY_VALUES[stack_size+1]*10}% | Next Unit Multiplyer Rate: #{UNIT_VALUES[stack_size+1]}"
   end
 
+  def category
+    PowerupCategory::PASSIVE
+  end
 
   def get_player_stack_size(public_key : String) : Int32
     self.class.get_stack_size(@game, public_key)
