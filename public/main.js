@@ -75,8 +75,10 @@ function formatTimeUnits(tu) {
   return `<div class="flex flex-row items-center justify-center">
     <div>${tu.toFixed(5)}</div>
     <div class="font-light text-[0.8em] mx-2">x</div> 
-    <span>10</span>
-    <sup">${power - 1}</sup>
+    <div class="flex flex-row items-start">
+      <div>10</div>
+      <div class="text-[0.7em] ml-1">${power - 1}</div>
+    </div>
   </div>`
 }
 
