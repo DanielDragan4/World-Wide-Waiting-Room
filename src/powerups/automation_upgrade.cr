@@ -76,6 +76,12 @@ class PowerupAutomationUpgrade < Powerup
     end
   end
 
+  def new_prestige(public_key, game : Game)
+    actives_at_purchase = get_actives_at_purchase(public_key)
+    current_actives = @game.get_actives(public_key)
+    game.set_key_value(public_key, PURCHASE_TIME_KEY, current_actives.to_s)
+  end
+
   def buy_action(public_key)
     return nil if !public_key
 
