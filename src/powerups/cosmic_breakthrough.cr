@@ -6,8 +6,8 @@ require "./synergy_matrix"
 class PowerupCosmicBreak < Powerup
   BASE_PRICE = 150_000_000.0
   KEY = "cosmic_break_stack"
-  SYNERGY_VALUES = [1.0, 2.5, 5.0, 10.0, 25.0, 40.0, 100.0]
-  UNIT_VALUES = [1.0, 5.0, 20.0, 50.0, 100.0, 150.0, 500.0]
+  SYNERGY_VALUES = [1.0, 2.5, 5.0, 10.0, 25.0, 40.0, 100.0, 250.0, 500.0]
+  UNIT_VALUES = [1.0, 5.0, 20.0, 50.0, 100.0, 150.0, 500.0, 1000.0, 2500.0]
 
   def get_stack_size(public_key : String) : Int32
     size = @game.get_key_value(public_key, KEY)
@@ -49,7 +49,7 @@ class PowerupCosmicBreak < Powerup
 
   def get_price(public_key)
     stack_size = get_stack_size(public_key) + 1
-    price = BASE_PRICE * ((stack_size) **(2 + (stack_size ** 1.75)))
+    price = BASE_PRICE * ((stack_size) **(4 + (stack_size ** 2.25)))
     BigFloat.new price
   end
 
@@ -69,11 +69,15 @@ class PowerupCosmicBreak < Powerup
 
         synergy = @game.get_powerup_classes[PowerupSynergyMatrix.get_powerup_id]
         unit = @game.get_powerup_classes[PowerupUnitMultiplier.get_powerup_id]
+        automation = @game.get_powerup_classes[PowerupAutomationUpgrade.get_powerup_id]
+
         synergy = synergy.as PowerupSynergyMatrix
         unit = unit.as PowerupUnitMultiplier
+        automation = automation.as PowerupAutomationUpgrade
 
         synergy.new_prestige(public_key, @game)
         unit.new_prestige(public_key, @game)
+        automation.new_prestige(public_key, @game)
       else
         return "Not enough time units"
       end
