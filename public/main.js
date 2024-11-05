@@ -67,7 +67,7 @@ function formatTimeUnits(tu) {
   }
 
   let power = 0;
-  while (tu > 10) {
+  while (tu >= 10) {
     tu /= 10
     power++
   }
