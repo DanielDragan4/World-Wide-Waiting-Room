@@ -67,7 +67,7 @@ function formatTimeUnits(tu) {
   }
 
   let power = 0;
-  while (tu > 10) {
+  while (tu >= 10) {
     tu /= 10
     power++
   }
@@ -77,7 +77,7 @@ function formatTimeUnits(tu) {
     <div class="font-light text-[0.8em] mx-2">x</div> 
     <div class="flex flex-row items-start">
       <div>10</div>
-      <div class="text-[0.7em] ml-1">${power}</div>
+      <div class="text-[0.7em] ml-1">${power - 1}</div>
     </div>
   </div>`
 }
