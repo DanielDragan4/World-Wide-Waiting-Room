@@ -74,6 +74,20 @@ class PowerupCompoundInterest < Powerup
     BigFloat.new BASE_PRICE
   end
 
+  def is_available_for_purchase(public_key)
+    if is_purchased(public_key) 
+      if get_stored_boost_count(public_key) == 0
+        return false
+      end
+    else
+      if @game.get_player_time_units(public_key) < get_price(public_key)
+        return false
+      end
+    end
+  
+    return true
+  end
+
   def is_purchased(public_key)
     @game.get_key_value(public_key, KEY) == "true"
   end
@@ -216,18 +230,28 @@ class PowerupCompoundInterest < Powerup
 
     # Checks for new milestones
     units = @game.get_player_time_units(public_key)
-    next_milestone = get_next_milestone(public_key)
+    used_milestones = get_used_milestones(public_key)
+    boost_count = get_stored_boost_count(public_key)
 
-    # If new milestone is reached, add boost to storage
-    if units >= next_milestone
-      boost_count = get_stored_boost_count(public_key) + 1
+    # Loop through all milestones up to the current unit amount and apply boosts
+    milestone = BigFloat.new(INITIAL_MILESTONE)
+    new_boosts = 0
+
+    # Iterate over all new milestones (in case of instant unit gain) and add them
+    while units >= milestone
+      unless used_milestones.includes?(milestone)
+        new_boosts += 1
+        used_milestones.add(milestone)
+      end
+      milestone *= 10.0
+    end
+
+    # Updates stored boost count and used milestones if any boosts were added
+    if new_boosts > 0
+      boost_count += new_boosts
       @game.set_key_value(public_key, BOOST_COUNT_KEY, boost_count.to_s)
-
-      used_milestones = get_used_milestones(public_key)
-      used_milestones.add(BigFloat.new(next_milestone))
       @game.set_key_value(public_key, USED_MILESTONES_KEY, used_milestones.to_a.join(","))
-
-      puts "Milestone reached! You have #{boost_count} stored boosts."
+      puts "Milestones reached! Added #{new_boosts} new boosts, for a total of #{boost_count} stored boosts."
     end
 
     # Applies any active boosts if no "blocking" powerups applied
