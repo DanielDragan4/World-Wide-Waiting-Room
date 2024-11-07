@@ -79,16 +79,16 @@ class PowerupOverCharge < Powerup
   end
 
   def get_unit_boost(public_key)
-    return 1.0 if !@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)
+    return 1.0 if !@game.has_powerup(public_key, PowerupTimeWarp.get_powerup_id)
 
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
     boost_units = 1.0
-
+    BigFloat.new(boost_units).round(2)
     durations.each do |t|
       boost_units *= t[1].to_f
     end
 
-    boost_units
+    BigFloat.new(boost_units).round(2)
   end
 
   def buy_action (public_key)
