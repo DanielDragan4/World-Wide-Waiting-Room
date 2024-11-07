@@ -85,7 +85,7 @@ class PowerupOverCharge < Powerup
     boost_units = 1.0
     BigFloat.new(boost_units).round(2)
     durations.each do |t|
-      boost_units *= t[1].to_f
+      boost_units *=  BigFloat.new(t[1])
     end
 
     BigFloat.new(boost_units).round(2)
@@ -139,7 +139,7 @@ class PowerupOverCharge < Powerup
     puts "OVERCHARGE ACTION #{@game.ts}"
     if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
 
-        unit_rate = @game.get_player_time_units_ps(public_key)
+        unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
         overcharge_rate = (unit_rate * (get_unit_boost(public_key))) -unit_rate
         BigFloat.new(overcharge_rate).round(2)
 
