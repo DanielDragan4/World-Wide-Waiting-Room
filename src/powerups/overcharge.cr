@@ -141,6 +141,7 @@ class PowerupOverCharge < Powerup
 
         unit_rate = @game.get_player_time_units_ps(public_key)
         overcharge_rate = (unit_rate * (get_unit_boost(public_key))) -unit_rate
+        BigFloat.new(overcharge_rate).round(2)
 
         @game.inc_time_units_ps public_key, overcharge_rate
     end
