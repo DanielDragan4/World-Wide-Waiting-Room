@@ -6,7 +6,7 @@ require "./compound_interest.cr"
 require "./force_field.cr"
 
 class AfflictPowerupBreach < Powerup
-  COOLDOWN = 60 * 10
+  COOLDOWN = BigFloat.new 60 * 10
   COOLDOWN_KEY = "afflict_signal_jammer_cooldown"
 
   def self.get_powerup_id
@@ -32,7 +32,7 @@ class AfflictPowerupBreach < Powerup
   end
 
   def get_cooldown_time (public_key)
-    get_synergy_boosted_multiplier public_key, COOLDOWN.to_f64
+    get_synergy_boosted_multiplier public_key, COOLDOWN
   end
 
   def is_available_for_purchase (public_key)

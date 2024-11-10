@@ -85,6 +85,7 @@ module Keys
   PLAYER_METADATA = "metadata"
   PLAYER_TOKENS = "tokens"
   PLAYER_TIME_UNITS = "time_units"
+  BUY_RATE_LIMIT = "buy_rate_limit"
 
   # PLAYER_FRAME_TUPS is the value that is visually present in the UI. PLAYER_TIME_UNITS_PER_SECOND is the manipulatable value
   # The reason for needing both is that at the end of a frame the PLAYER_TIME_UNITS_PER_SECOND is not an accurate representation
@@ -108,6 +109,19 @@ class Game
 
   @time_units_cache = Hash(Public, BigFloat).new
   @time_units_ps_cache = Hash(Public, BigFloat).new
+
+  @last_buy = Hash(Public, BigFloat).new
+
+  def can_buy(public_key : Public) : Bool
+    last_buy = @last_buy.fetch public_key, BigFloat.new 0
+
+    if (Time.utc.to_unix_ms - last_buy) < 100
+      false
+    else
+      @last_buy[public_key] = BigFloat.new Time.utc.to_unix_ms
+      true
+    end
+  end
 
   def spawn_loop
     update_frame_time
@@ -742,6 +756,11 @@ post "/buy" do |ctx|
 
   if !public_key
     next
+  end
+
+  if !game.can_buy public_key
+    puts "Rate limited buy of #{name} on #{public_key} #{game.get_player_name public_key}"
+    next "Chill."
   end
 
   player_name = game.get_player_name public_key

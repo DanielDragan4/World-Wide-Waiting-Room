@@ -2,7 +2,7 @@ require "../powerup"
 require "./afflict_signal_jammer.cr"
 
 class PowerupSignalJammer < Powerup
-  BASE_PRICE = 2_000
+  BASE_PRICE = BigFloat.new 2_000
 
   def self.get_powerup_id
     "signal_jammer"
@@ -29,7 +29,7 @@ class PowerupSignalJammer < Powerup
   end
 
   def get_description (public_key)
-    time = get_synergy_boosted_multiplier public_key, AfflictPowerupSignalJammer::COOLDOWN
+    time = get_synergy_boosted_multiplier public_key, BigFloat.new AfflictPowerupSignalJammer::COOLDOWN
     "Reduce a target player's unit production by 50% for #{time / 60} minutes. The price increases multiplicatively."
   end
 

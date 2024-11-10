@@ -102,10 +102,10 @@ class Powerup
   # ex1. For a 2x boost, base_multiplier = 2
   # ex2. For a 5% addition to current units/s, or 1.05x, base_multiplier = 0.05 (since only the 5% change should be affected).
   # Returns the new multiplier value after having Synergy Matrix boost applied.
-  def get_synergy_boosted_multiplier(public_key : String, base_multiplier : Float64) : BigFloat
+  def get_synergy_boosted_multiplier(public_key : String, base_multiplier : BigFloat) : BigFloat
     synergy = @game.get_powerup_classes[PowerupSynergyMatrix.get_powerup_id]
     synergy = synergy.as PowerupSynergyMatrix
     synergy_boost = synergy.get_boost_multiplier(public_key)
-    BigFloat.new base_multiplier * BigFloat.new synergy_boost
+    base_multiplier * synergy_boost
   end
 end

@@ -29,7 +29,7 @@ class PowerupBreach < Powerup
   end
 
   def get_description (public_key)
-    time = get_synergy_boosted_multiplier public_key, AfflictPowerupBreach::COOLDOWN
+    time = get_synergy_boosted_multiplier public_key, BigFloat.new AfflictPowerupBreach::COOLDOWN
     "Disabled all of a player's passive powerups for #{time / 60} minutes. Price increases exponentially."
   end
 

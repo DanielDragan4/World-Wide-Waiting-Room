@@ -3,19 +3,19 @@ require "json"
 require "./force_field.cr"
 
 class PowerupParasite < Powerup
-  BASE_PRICE = 10_000
+  BASE_PRICE = BigFloat.new 10_000
   NEXT_TAKE_COOLDOWN = 1
   DURATION = 60 * 10
 
-  PERCENTAGE_STEAL_PER_SECOND = 0.04 / 60.0
-  PRICE_MULTIPLIER = 1.3
+  PERCENTAGE_STEAL_PER_SECOND = BigFloat.new (0.04 / 60.0)
+  PRICE_MULTIPLIER = BigFloat.new 1.3
 
   KEY_DURATION = "parasite_duration"
   KEY_NEXT_TAKE_COOLDOWN = "parasite_next_take"
   KEY_ACTIVE_STACK = "parasite_active_stack"
 
   def new_percentage_steal(public_key)
-    get_synergy_boosted_multiplier public_key, (PERCENTAGE_STEAL_PER_SECOND) * (get_active_parasite_stack public_key).to_f64
+    get_synergy_boosted_multiplier public_key, (PERCENTAGE_STEAL_PER_SECOND) * (get_active_parasite_stack public_key)
   end
 
   def category
@@ -29,7 +29,7 @@ class PowerupParasite < Powerup
   def get_popup_info (public_key) : PopupInfo
     pi = PopupInfo.new
     pi["Timer Left"] = (@game.get_timer_seconds_left public_key, KEY_DURATION)
-    pi["Parasite Stack"] = (get_active_parasite_stack public_key).to_i
+    pi["Parasite Stack"] = (get_active_parasite_stack public_key).to_s
     pi
   end
 

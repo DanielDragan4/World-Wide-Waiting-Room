@@ -2,8 +2,8 @@ require "../powerup"
 require "./force_field.cr"
 
 class AfflictPowerupSignalJammer < Powerup
-  COOLDOWN = 60 * 10
-  UPS_PERCENT_DECREASE = 0.5
+  COOLDOWN = BigFloat.new 60 * 10
+  UPS_PERCENT_DECREASE = BigFloat.new 0.5
   AMOUNT_DEC_KEY = "afflict_signal_jammer_tups_diff"
   COOLDOWN_KEY = "afflict_signal_jammer_cooldown"
 
@@ -34,7 +34,7 @@ class AfflictPowerupSignalJammer < Powerup
   end
 
   def get_cooldown_time (public_key)
-    get_synergy_boosted_multiplier public_key, COOLDOWN.to_f64
+    get_synergy_boosted_multiplier public_key, COOLDOWN
   end
 
   def buy_action (public_key)

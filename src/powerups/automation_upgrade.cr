@@ -1,8 +1,8 @@
 require "../powerup.cr"
 
 class PowerupAutomationUpgrade < Powerup
-  BASE_PRICE = 1000.0
-  MULTIPLIER = 0.05
+  BASE_PRICE = BigFloat.new 1000.0
+  MULTIPLIER = BigFloat.new 0.05
   KEY = "automation_upgrade_stack"
   PURCHASE_TIME_KEY = "automation_upgrade_purchase_time"
   PROCESSED_ACTIVES_KEY = "automation_upgrade_processed_actives"
@@ -56,24 +56,14 @@ class PowerupAutomationUpgrade < Powerup
     @game.get_key_value(public_key, KEY) == "true"
   end
 
-  def get_actives_at_purchase(public_key) : Int32
-    if public_key
-      count = @game.get_key_value(public_key, PURCHASE_TIME_KEY)
-      count.to_s.empty? ? 0 : count.to_i
-    else
-      0
-    end
+  def get_actives_at_purchase(public_key)
+    @game.get_key_value_as_int(public_key, PURCHASE_TIME_KEY, BigInt.new 0)
   end
 
   # Returns number of processed powerups from last time it was checked
   # Processed - actives_at_purchase = applicable number of actives
-  def get_processed_actives(public_key) : Int32
-    if public_key
-      count = @game.get_key_value(public_key, PROCESSED_ACTIVES_KEY)
-      count.to_s.empty? ? 0 : count.to_i
-    else
-      0
-    end
+  def get_processed_actives(public_key)
+    @game.get_key_value_as_int(public_key, PROCESSED_ACTIVES_KEY, BigInt.new 0)
   end
 
   def new_prestige(public_key, game : Game)

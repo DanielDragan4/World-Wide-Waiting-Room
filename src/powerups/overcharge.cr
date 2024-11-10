@@ -7,8 +7,8 @@ require "./compound_interest"
 class PowerupOverCharge < Powerup
   STACK_KEY = "overcharge_stack"
   ACTIVE_STACK_KEY = "overcharge_active_stack"
-  BASE_PRICE = 50.0
-  UNIT_MULTIPLIER = 5.0
+  BASE_PRICE = BigFloat.new 50.0
+  UNIT_MULTIPLIER = BigFloat.new 5.0
   DURATION = 60
   KEY_DURATION = "overcharge_duration"
 
@@ -35,9 +35,9 @@ class PowerupOverCharge < Powerup
   def get_popup_info (public_key) : PopupInfo
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
     pi = PopupInfo.new
-    pi["Time Left"] = (durations[0][0].to_i - @game.ts).to_s
-    pi["Units/s Boost"] = "#{(get_unit_boost(public_key)).to_i}x"
-    pi["Overcharge Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
+    pi["Time Left"] = (BigInt.new(durations[0][0]) - @game.ts).to_s
+    pi["Units/s Boost"] = "#{(get_unit_boost(public_key))}x"
+    pi["Overcharge Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_s
     pi
   end
 
@@ -47,7 +47,7 @@ class PowerupOverCharge < Powerup
   end
 
   def get_price (public_key)
-    active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
+    active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY)
     stack_size = get_player_stack_size(public_key)
     price = ((BASE_PRICE * (stack_size ** (((active_stack + 1)/2) * 3)))).round(2)
     b= BigFloat.new price
@@ -70,25 +70,18 @@ class PowerupOverCharge < Powerup
   end
 
   def get_player_stack_size(public_key)
-    if public_key
-      size = @game.get_key_value(public_key, STACK_KEY)
-      size.to_s.empty? ? 1 : size.to_i
-    else
-      1
-    end
+    @game.get_key_value_as_int(public_key, STACK_KEY, BigInt.new 1)
   end
 
   def get_unit_boost(public_key)
     return 1.0 if !@game.has_powerup(public_key, PowerupTimeWarp.get_powerup_id)
 
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
-    boost_units = 1.0
-    BigFloat.new(boost_units).round(2)
+    boost_units = BigFloat.new 1.0
     durations.each do |t|
       boost_units *=  BigFloat.new(t[1])
     end
-
-    BigFloat.new(boost_units).round(2)
+    boost_units.round 2
   end
 
   def buy_action (public_key)
@@ -155,7 +148,7 @@ class PowerupOverCharge < Powerup
         durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
-          duration = durations[0][0].to_i
+          duration = BigInt.new durations[0][0]
           current_time = @game.ts
 
           if (duration < current_time)
