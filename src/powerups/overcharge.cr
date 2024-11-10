@@ -35,7 +35,7 @@ class PowerupOverCharge < Powerup
   def get_popup_info (public_key) : PopupInfo
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
     pi = PopupInfo.new
-    pi["Time Left"] = (BigInt.new(durations[0][0]) - @game.ts).to_s
+    pi["Time Left"] = (force_big_int(durations[0][0]) - @game.ts).to_s
     pi["Units/s Boost"] = "#{(get_unit_boost(public_key))}x"
     pi["Overcharge Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_s
     pi
@@ -148,7 +148,7 @@ class PowerupOverCharge < Powerup
         durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
-          duration = BigInt.new durations[0][0]
+          duration = force_big_int durations[0][0]
           current_time = @game.ts
 
           if (duration < current_time)

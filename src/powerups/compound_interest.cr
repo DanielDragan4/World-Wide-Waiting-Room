@@ -214,7 +214,7 @@ class PowerupCompoundInterest < Powerup
 
     # Stacks boost values additively
     durations.each do |t|
-      if BigInt.new(t[0]) > @game.ts
+      if force_big_int(t[0]) > @game.ts
         boost_units += BigFloat.new(t[1]) - 1
       end
     end
@@ -273,8 +273,8 @@ class PowerupCompoundInterest < Powerup
     durations_json = @game.get_key_value(public_key, KEY_DURATION) || "[]"
     durations = Array(Array(String)).from_json(durations_json)
 
-    active_before = durations.count { |d| BigInt.new(d[0]) > @game.ts }
-    durations.reject! { |duration| BigInt.new(duration[0]) <= @game.ts }
+    active_before = durations.count { |d| force_big_int(d[0]) > @game.ts }
+    durations.reject! { |duration| force_big_int(duration[0]) <= @game.ts }
     active_after = durations.size
 
     if active_before != active_after

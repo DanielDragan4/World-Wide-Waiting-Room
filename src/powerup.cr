@@ -1,5 +1,6 @@
 require "./worldwidewaitingroom"
 require "redis"
+require "./utils"
 
 alias PopupInfo = Hash(String, String | Float64 | Int64 | Int32 | Float32)
 

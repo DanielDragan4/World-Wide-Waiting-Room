@@ -146,7 +146,7 @@ class PowerupTimeWarp < Powerup
       durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
-        duration = BigInt.new durations[0][0]
+        duration = force_big_int durations[0][0]
           current_time = @game.ts
 
           if (duration < current_time)
