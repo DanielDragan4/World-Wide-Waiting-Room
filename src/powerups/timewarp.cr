@@ -1,4 +1,5 @@
 require "../powerup"
+require "big"
 require "json"
 
 class PowerupTimeWarp < Powerup
@@ -33,9 +34,9 @@ class PowerupTimeWarp < Powerup
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
     pi = PopupInfo.new
-    pi["Time Left"] = (durations[0][0].to_i - @game.ts).to_s
-    pi["Units/s Boost"] = "#{(get_unit_boost(public_key)).to_i}x"
-    pi["Time Warp Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
+    pi["Time Left"] = (BigFloat.new(durations[0][0]) - @game.ts).to_s
+    pi["Units/s Boost"] = "#{(get_unit_boost(public_key))}x"
+    pi["Time Warp Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_s
     pi
   end
 
@@ -47,9 +48,9 @@ class PowerupTimeWarp < Powerup
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_i
-    price = ((BASE_PRICE * (stack_size ** (((active_stack + 1)/2) * 4)))).round(2)
-    BigFloat.new(price).round(2)
+    active_stack = (@game.get_key_value_as_int public_key, ACTIVE_STACK_KEY)
+    price = BASE_PRICE * (stack_size ** (((active_stack + 1) / 2) * 4))
+    price.round(2)
   end
 
   def player_card_powerup_icon (public_key)
@@ -67,34 +68,23 @@ class PowerupTimeWarp < Powerup
   end
 
   def get_player_stack_size(public_key)
-    if public_key
-      size = @game.get_key_value(public_key, STACK_KEY)
-      size.to_s.empty? ? 1 : size.to_i
-    else
-      1
-    end
+    @game.get_key_value_as_int(public_key, STACK_KEY, BigInt.new 1)
   end
 
   def get_player_active_stack_size(public_key)
-    if public_key
-      size = @game.get_key_value(public_key, STACK_KEY)
-      size.to_s.empty? ? 0 : size.to_i
-    else
-      0
-    end
+    @game.get_key_value_as_int(public_key, STACK_KEY, BigInt.new 0)
   end
 
   def get_unit_boost(public_key)
     return 1.0 if !@game.has_powerup(public_key, PowerupTimeWarp.get_powerup_id)
 
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
-    boost_units = 1.0
-    BigFloat.new(boost_units).round(2)
+    boost_units = BigFloat.new 1.0
     durations.each do |t|
-      boost_units *=  BigFloat.new(t[1])
+      boost_units *= BigFloat.new t[1]
     end
 
-    BigFloat.new(boost_units).round(2)
+    boost_units.round(2)
   end
 
   def buy_action (public_key)
@@ -142,10 +132,9 @@ class PowerupTimeWarp < Powerup
   def action (public_key, dt)
     if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
         unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
-        timewarp_rate = (unit_rate * (get_unit_boost(public_key))) -unit_rate
-        BigFloat.new(timewarp_rate).round(2)
+        timewarp_rate = (unit_rate * (get_unit_boost(public_key))) - unit_rate
 
-        @game.inc_time_units_ps public_key, timewarp_rate
+        @game.inc_time_units_ps public_key, timewarp_rate.round(2)
     end
   end
 
@@ -157,7 +146,7 @@ class PowerupTimeWarp < Powerup
       durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
-          duration = durations[0][0].to_i
+        duration = BigInt.new durations[0][0]
           current_time = @game.ts
 
           if (duration < current_time)

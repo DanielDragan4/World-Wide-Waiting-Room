@@ -360,13 +360,25 @@ class Game
     end
   end
 
-  def get_key_value_as_float (public_key : String , key : String) : BigFloat
+  def get_key_value_as_float (public_key : String , key : String, default : BigFloat) : BigFloat
     kv = get_key_value public_key, key
     if kv == ""
-      kv = 0.0
+      kv = default
     end
-    kv ||= 0.0
+    kv ||= default
     BigFloat.new kv
+  end
+
+  def get_key_value_as_float(public_key : String, key : String) : BigFloat
+    get_key_value_as_float(public_key, key, BigFloat.new 0.0)
+  end
+
+  def get_key_value_as_int(public_key : String, key : String, default : BigInt) : BigInt
+    BigInt.new get_key_value_as_float(public_key, key, BigFloat.new default)
+  end
+
+  def get_key_value_as_int(public_key : String, key : String) : BigInt
+    BigInt.new get_key_value_as_float(public_key, key, BigFloat.new 0.0)
   end
 
   def set_timer (public_key : String, timer_key : String, seconds : Int64)
@@ -609,7 +621,7 @@ class Game
   end
 
   def ts
-    Time.utc.to_unix
+    BigFloat.new(Time.utc.to_unix)
   end
 
   def frame_dt_ms
