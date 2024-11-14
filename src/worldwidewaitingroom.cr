@@ -259,13 +259,21 @@ class Game
     (get_player_powerups public_key).each do |powerup_name|
       powerup_class = powerup_classes.fetch powerup_name, nil
       if powerup_class
-        powerup_class.action public_key, dt
+        begin
+          powerup_class.action public_key, dt
+        rescue e
+          puts "POWERUP ACTION ERROR: Failed to execute powerup #{powerup_class.get_name} with error #{e}. Skipping."
+        end
       end
     end
 
     powerup_classes.each_value do |pc|
       if pc.is_achievement_powerup public_key
-        pc.action public_key, dt
+        begin
+          pc.action public_key, dt
+        rescue e
+          puts "ACHIEVEMENT ACTION ERROR: Failed to execute achievement #{pc.get_name} with error #{e}. Skipping."
+        end
       end
     end
   end
@@ -275,13 +283,21 @@ class Game
     (get_player_powerups public_key).each do |powerup_name|
       powerup_class = powerup_classes.fetch powerup_name, nil
       if powerup_class
-        powerup_class.cleanup public_key
+        begin
+          powerup_class.cleanup public_key
+        rescue e
+          puts "POWERUP CLEANUP ERROR: Failed to execute powerup cleanup #{powerup_class.get_name} with error #{e}. Skipping."
+        end
       end
     end
 
     powerup_classes.each_value do |pc|
       if pc.is_achievement_powerup public_key
-        pc.cleanup public_key
+        begin
+          pc.cleanup public_key
+        rescue e
+          puts "POWERUP ACHIEVEMENT CLEANUP ERROR: Failed to execute achievement cleanup #{pc.get_name} with error #{e}. Skipping."
+        end
       end
     end
   end
