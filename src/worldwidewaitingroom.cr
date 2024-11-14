@@ -223,19 +223,23 @@ class Game
         next
       end
 
-      powerups << {
-        "id" => key,
-        "name" => value.get_name,
-        "description" => (value.get_description public_key),
-        "price" => (value.get_price public_key).to_s,
-        "is_available_for_purchase" => (value.is_available_for_purchase public_key),
-        "is_input_powerup" => (value.is_input_powerup public_key),
-        "is_achievement_powerup" => (value.is_achievement_powerup public_key),
-        "category" => (value.category).to_s,
-        "input_button_text" => (value.input_button_text public_key),
-        "cooldown_seconds_left" => (value.cooldown_seconds_left public_key),
-        "currently_owns" => (player_powerups.includes? key),
-      }
+      begin
+        powerups << {
+          "id" => key,
+          "name" => value.get_name,
+          "description" => (value.get_description public_key),
+          "price" => (value.get_price public_key).to_s,
+          "is_available_for_purchase" => (value.is_available_for_purchase public_key),
+          "is_input_powerup" => (value.is_input_powerup public_key),
+          "is_achievement_powerup" => (value.is_achievement_powerup public_key),
+          "category" => (value.category).to_s,
+          "input_button_text" => (value.input_button_text public_key),
+          "cooldown_seconds_left" => (value.cooldown_seconds_left public_key),
+          "currently_owns" => (player_powerups.includes? key),
+        }
+      rescue e
+        puts "POWERUP SERIALIZATION ERROR: Failed to serialize powerup #{key} with error #{e}"
+      end
     end
 
     powerups
