@@ -1,14 +1,14 @@
 require "../powerup.cr"
 
 class PowerupCompoundInterest < Powerup
-  BASE_PRICE = 1000.0
+  BASE_PRICE = BigFloat.new 1000.0
   KEY = "compound_interest_purchased"
   BOOST_COUNT_KEY = "compound_interest_boost_count"
   USED_MILESTONES_KEY = "compound_interest_used_milestones"
-  BOOST_MULTIPLIER = 0.1
+  BOOST_MULTIPLIER = BigFloat.new 0.1
   BOOST_DURATION = 600
   KEY_DURATION = "compound_interest_durations"
-  INITIAL_MILESTONE = 1000.0
+  INITIAL_MILESTONE = BigFloat.new 1000.0
 
   def category
     PowerupCategory::PASSIVE
@@ -37,13 +37,13 @@ class PowerupCompoundInterest < Powerup
 
     pi = PopupInfo.new
     if durations.any?
-      time_left = (durations[0][0].to_i - @game.ts).to_s
+      time_left = (BigFloat.new(durations[0][0]) - @game.ts).to_s
       pi["Time Left"] = time_left
     else
       pi["Time Left"] = "No active boosts"
     end
 
-    active_boosts_count = durations.count { |duration| duration[0].to_i > @game.ts }
+    active_boosts_count = durations.count { |duration| BigFloat.new(duration[0]) > @game.ts }
 
     if active_boosts_count > 0
       pi["Active Boosts"] = active_boosts_count.to_s
@@ -75,7 +75,7 @@ class PowerupCompoundInterest < Powerup
   end
 
   def is_available_for_purchase(public_key)
-    if is_purchased(public_key) 
+    if is_purchased(public_key)
       if get_stored_boost_count(public_key) == 0
         return false
       end
@@ -84,7 +84,7 @@ class PowerupCompoundInterest < Powerup
         return false
       end
     end
-  
+
     return true
   end
 
@@ -92,9 +92,8 @@ class PowerupCompoundInterest < Powerup
     @game.get_key_value(public_key, KEY) == "true"
   end
 
-  def get_stored_boost_count(public_key : String) : Int32
-    boost_count_str = @game.get_key_value(public_key, BOOST_COUNT_KEY)
-    boost_count_str.empty? ? 0 : boost_count_str.to_i
+  def get_stored_boost_count(public_key : String)
+    @game.get_key_value_as_int(public_key, BOOST_COUNT_KEY, BigInt.new 0)
   end
 
   def format_milestone(milestone : BigFloat) : String
@@ -139,11 +138,11 @@ class PowerupCompoundInterest < Powerup
 
   # Calculates number of boosts that should be given at time of purchase based on player's current total units
   # Inserts reached milestone values into set as already being reached
-  def calculate_retroactive_boosts(public_key : String) : Int32
+  def calculate_retroactive_boosts(public_key : String) : BigInt
     units = @game.get_player_time_units(public_key)
     used_milestones = get_used_milestones(public_key)
     milestone = BigFloat.new(INITIAL_MILESTONE)
-    retroactive_boosts = 0
+    retroactive_boosts = BigInt.new 0
 
     while units >= milestone
       unless used_milestones.includes?(milestone)
@@ -190,7 +189,7 @@ class PowerupCompoundInterest < Powerup
 
   # Applies all stored boosts by adding entries to KEY_DURATION list [boost duration, multiplier value]
   # Currently multipliers are additive and all identical values
-  def apply_stored_boosts(public_key : String, boost_count : Int32)
+  def apply_stored_boosts(public_key : String, boost_count : BigInt)
     durations_json = @game.get_key_value(public_key, KEY_DURATION) || "[]"
     durations = Array(Array(String)).from_json(durations_json)
 
@@ -207,16 +206,16 @@ class PowerupCompoundInterest < Powerup
 
   # Returns total multiplier for all currently active boosts
   def get_unit_boost(public_key)
-    return 1.0 unless is_purchased(public_key)
+    return BigFloat.new 1.0 unless is_purchased(public_key)
 
     durations_json = @game.get_key_value(public_key, KEY_DURATION) || "[]"
     durations = Array(Array(String)).from_json(durations_json)
-    boost_units = 1.0
+    boost_units = BigFloat.new 1.0
 
     # Stacks boost values additively
     durations.each do |t|
-      if t[0].to_i > @game.ts
-        boost_units += t[1].to_f - 1
+      if force_big_int(t[0]) > @game.ts
+        boost_units += BigFloat.new(t[1]) - 1
       end
     end
 
@@ -274,8 +273,8 @@ class PowerupCompoundInterest < Powerup
     durations_json = @game.get_key_value(public_key, KEY_DURATION) || "[]"
     durations = Array(Array(String)).from_json(durations_json)
 
-    active_before = durations.count { |d| d[0].to_i > @game.ts }
-    durations.reject! { |duration| duration[0].to_i <= @game.ts }
+    active_before = durations.count { |d| force_big_int(d[0]) > @game.ts }
+    durations.reject! { |duration| force_big_int(duration[0]) <= @game.ts }
     active_after = durations.size
 
     if active_before != active_after

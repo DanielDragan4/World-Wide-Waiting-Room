@@ -9,7 +9,7 @@ class PowerupHarvest < Powerup
   STACK_KEY = "harvest_stack"
   ACTIVE_STACK_KEY = "active_stack"
   DURATION_KEY = "harvest_duration"
-  BASE_PRICE = 500.0
+  BASE_PRICE = BigFloat.new 500.0
   HARVEST_TIME = 3600
   COOLDOWN_DURATION = 60 * 60 * 6
   COOLDOWN_KEY = "harvest cooldown"
@@ -69,16 +69,12 @@ class PowerupHarvest < Powerup
   end
 
   def get_player_stack_size(public_key)
-    size = @game.get_key_value(public_key, STACK_KEY)
-    size_i = size.to_i?
-    size_i ||= 1
-    size_i
+    @game.get_key_value_as_int(public_key, STACK_KEY, BigInt.new 1)
   end
 
   def buy_action (public_key)
     if is_available_for_purchase(public_key)
       c_s = get_player_stack_size(public_key)
-      c_s ||= 0
       new_stack = c_s + 1
 
       price = get_price(public_key)

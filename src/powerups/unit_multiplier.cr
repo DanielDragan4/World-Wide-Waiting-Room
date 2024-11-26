@@ -2,8 +2,8 @@ require "../powerup.cr"
 require "./cosmic_breakthrough"
 
 class PowerupUnitMultiplier < Powerup
-  BASE_PRICE = 25.0
-  BASE_AMOUNT = 1.0
+  BASE_PRICE = BigFloat.new 25.0
+  BASE_AMOUNT = BigFloat.new 1.0
   KEY = "unit_multiplier_stack"
 
   def category
@@ -42,12 +42,7 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def get_player_stack_size(public_key)
-    if public_key
-      size = @game.get_key_value(public_key, KEY)
-      size.to_s.empty? ? 0 : size.to_i
-    else
-      0
-    end
+    @game.get_key_value_as_int(public_key, KEY, BigInt.new 0)
   end
 
   def get_civ_boost(public_key)

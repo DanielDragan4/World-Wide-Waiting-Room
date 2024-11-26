@@ -85,6 +85,7 @@ module Keys
   PLAYER_METADATA = "metadata"
   PLAYER_TOKENS = "tokens"
   PLAYER_TIME_UNITS = "time_units"
+  BUY_RATE_LIMIT = "buy_rate_limit"
 
   # PLAYER_FRAME_TUPS is the value that is visually present in the UI. PLAYER_TIME_UNITS_PER_SECOND is the manipulatable value
   # The reason for needing both is that at the end of a frame the PLAYER_TIME_UNITS_PER_SECOND is not an accurate representation
@@ -108,6 +109,19 @@ class Game
 
   @time_units_cache = Hash(Public, BigFloat).new
   @time_units_ps_cache = Hash(Public, BigFloat).new
+
+  @last_buy = Hash(Public, BigFloat).new
+
+  def can_buy(public_key : Public) : Bool
+    last_buy = @last_buy.fetch public_key, BigFloat.new 0
+
+    if (Time.utc.to_unix_ms - last_buy) < 100
+      false
+    else
+      @last_buy[public_key] = BigFloat.new Time.utc.to_unix_ms
+      true
+    end
+  end
 
   def spawn_loop
     update_frame_time
@@ -209,19 +223,23 @@ class Game
         next
       end
 
-      powerups << {
-        "id" => key,
-        "name" => value.get_name,
-        "description" => (value.get_description public_key),
-        "price" => (value.get_price public_key).to_s,
-        "is_available_for_purchase" => (value.is_available_for_purchase public_key),
-        "is_input_powerup" => (value.is_input_powerup public_key),
-        "is_achievement_powerup" => (value.is_achievement_powerup public_key),
-        "category" => (value.category).to_s,
-        "input_button_text" => (value.input_button_text public_key),
-        "cooldown_seconds_left" => (value.cooldown_seconds_left public_key),
-        "currently_owns" => (player_powerups.includes? key),
-      }
+      begin
+        powerups << {
+          "id" => key,
+          "name" => value.get_name,
+          "description" => (value.get_description public_key),
+          "price" => (value.get_price public_key).to_s,
+          "is_available_for_purchase" => (value.is_available_for_purchase public_key),
+          "is_input_powerup" => (value.is_input_powerup public_key),
+          "is_achievement_powerup" => (value.is_achievement_powerup public_key),
+          "category" => (value.category).to_s,
+          "input_button_text" => (value.input_button_text public_key),
+          "cooldown_seconds_left" => (value.cooldown_seconds_left public_key),
+          "currently_owns" => (player_powerups.includes? key),
+        }
+      rescue e
+        puts "POWERUP SERIALIZATION ERROR: Failed to serialize powerup #{key} with error #{e}"
+      end
     end
 
     powerups
@@ -245,13 +263,21 @@ class Game
     (get_player_powerups public_key).each do |powerup_name|
       powerup_class = powerup_classes.fetch powerup_name, nil
       if powerup_class
-        powerup_class.action public_key, dt
+        begin
+          powerup_class.action public_key, dt
+        rescue e
+          puts "POWERUP ACTION ERROR: Failed to execute powerup #{powerup_class.get_name} with error #{e}. Skipping."
+        end
       end
     end
 
     powerup_classes.each_value do |pc|
       if pc.is_achievement_powerup public_key
-        pc.action public_key, dt
+        begin
+          pc.action public_key, dt
+        rescue e
+          puts "ACHIEVEMENT ACTION ERROR: Failed to execute achievement #{pc.get_name} with error #{e}. Skipping."
+        end
       end
     end
   end
@@ -261,13 +287,21 @@ class Game
     (get_player_powerups public_key).each do |powerup_name|
       powerup_class = powerup_classes.fetch powerup_name, nil
       if powerup_class
-        powerup_class.cleanup public_key
+        begin
+          powerup_class.cleanup public_key
+        rescue e
+          puts "POWERUP CLEANUP ERROR: Failed to execute powerup cleanup #{powerup_class.get_name} with error #{e}. Skipping."
+        end
       end
     end
 
     powerup_classes.each_value do |pc|
       if pc.is_achievement_powerup public_key
-        pc.cleanup public_key
+        begin
+          pc.cleanup public_key
+        rescue e
+          puts "POWERUP ACHIEVEMENT CLEANUP ERROR: Failed to execute achievement cleanup #{pc.get_name} with error #{e}. Skipping."
+        end
       end
     end
   end
@@ -360,13 +394,25 @@ class Game
     end
   end
 
-  def get_key_value_as_float (public_key : String , key : String) : BigFloat
+  def get_key_value_as_float (public_key : String , key : String, default : BigFloat) : BigFloat
     kv = get_key_value public_key, key
     if kv == ""
-      kv = 0.0
+      kv = default
     end
-    kv ||= 0.0
+    kv ||= default
     BigFloat.new kv
+  end
+
+  def get_key_value_as_float(public_key : String, key : String) : BigFloat
+    get_key_value_as_float(public_key, key, BigFloat.new 0.0)
+  end
+
+  def get_key_value_as_int(public_key : String, key : String, default : BigInt) : BigInt
+    BigInt.new get_key_value_as_float(public_key, key, BigFloat.new default)
+  end
+
+  def get_key_value_as_int(public_key : String, key : String) : BigInt
+    BigInt.new get_key_value_as_float(public_key, key, BigFloat.new 0.0)
   end
 
   def set_timer (public_key : String, timer_key : String, seconds : Int64)
@@ -609,7 +655,7 @@ class Game
   end
 
   def ts
-    Time.utc.to_unix
+    BigFloat.new(Time.utc.to_unix)
   end
 
   def frame_dt_ms
@@ -730,6 +776,11 @@ post "/buy" do |ctx|
 
   if !public_key
     next
+  end
+
+  if !game.can_buy public_key
+    puts "Rate limited buy of #{name} on #{public_key} #{game.get_player_name public_key}"
+    next "Chill."
   end
 
   player_name = game.get_player_name public_key

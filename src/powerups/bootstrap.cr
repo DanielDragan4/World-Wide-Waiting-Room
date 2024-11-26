@@ -4,9 +4,9 @@ class PowerupBootStrap < Powerup
   STACK_KEY = "bootstrap_stack"
   COOLDOWN_KEY = "bootstrap_cooldown"
   COOLDOWN_TIME = 60 * 60 * 6
-  BASEPRICE = 5000
+  BASEPRICE = BigFloat.new 5000
   COST_PERCENTAGE = 0.15
-  BASE_PERCENT_INCREASE = 0.05
+  BASE_PERCENT_INCREASE = BigFloat.new 0.05
 
   def category
     PowerupCategory::ACTIVE
@@ -24,7 +24,7 @@ class PowerupBootStrap < Powerup
     true
   end
 
-  def percent_increase(public_key) : Float64
+  def percent_increase(public_key)
     (get_player_stack_size public_key) * BASE_PERCENT_INCREASE
   end
 
@@ -48,7 +48,7 @@ class PowerupBootStrap < Powerup
   end
 
   def get_price (public_key)
-    price = (BASEPRICE + (@game.get_player_time_units public_key) * (COST_PERCENTAGE **1.5)).round(2)
+    price = (BASEPRICE + (@game.get_player_time_units public_key) * (COST_PERCENTAGE ** 1.5)).round(2)
     BigFloat.new price
   end
 
@@ -58,10 +58,7 @@ class PowerupBootStrap < Powerup
   end
 
   def get_player_stack_size(public_key)
-    size = @game.get_key_value(public_key, STACK_KEY)
-    size_i = size.to_i?
-    size_i ||= 1
-    size_i
+    @game.get_key_value_as_int(public_key, STACK_KEY, BigInt.new 1)
   end
 
   def buy_action (public_key)

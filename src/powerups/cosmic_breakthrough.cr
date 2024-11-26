@@ -9,20 +9,19 @@ class PowerupCosmicBreak < Powerup
   SYNERGY_VALUES = [1.0, 2.5, 5.0, 10.0, 25.0, 40.0, 100.0, 250.0, 500.0]
   UNIT_VALUES = [1.0, 5.0, 20.0, 50.0, 100.0, 150.0, 500.0, 1000.0, 2500.0]
 
-  def get_stack_size(public_key : String) : Int32
-    size = @game.get_key_value(public_key, KEY)
-    size.to_s.empty? ? 0 : size.to_i
+  def get_stack_size(public_key : String) : BigInt
+    @game.get_key_value_as_int(public_key, KEY, BigInt.new 0)
   end
 
-  def get_unit_boost(public_key : String, base_amount : Float64) : Float64
-    
+  def get_unit_boost(public_key : String, base_amount : BigFloat) : BigFloat
+
     stack_size = get_stack_size(public_key)
     unit_boost = UNIT_VALUES[stack_size] * base_amount
 
     unit_boost
   end
 
-  def get_synergy_boost(public_key : String, base_amount : Float64) : Float64
+  def get_synergy_boost(public_key : String, base_amount : BigFloat) : BigFloat
 
     stack_size = get_stack_size(public_key)
     synergy_boost = SYNERGY_VALUES[stack_size] * base_amount
