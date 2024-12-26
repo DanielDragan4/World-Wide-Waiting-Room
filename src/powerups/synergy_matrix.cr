@@ -2,7 +2,7 @@ require "../powerup.cr"
 require "./cosmic_breakthrough"
 
 class PowerupSynergyMatrix < Powerup
-  BASE_PRICE = BigFloat.new 500.0
+  BASE_PRICE = BigFloat.new 50.0
   BASE_AMOUNT = BigFloat.new 0.1
   KEY = "synergy_matrix_stack"
 
