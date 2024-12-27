@@ -5,7 +5,7 @@ require "json"
 class PowerupTimeWarp < Powerup
   STACK_KEY = "timewarp_stack"
   ACTIVE_STACK_KEY = "active_stack"
-  BASE_PRICE = BigFloat.new 100.0
+  BASE_PRICE = BigFloat.new 10.0
   UNIT_MULTIPLIER = BigFloat.new 2.0
   DURATION = 600
   KEY_DURATION = "timewarp_duration"
@@ -35,7 +35,7 @@ class PowerupTimeWarp < Powerup
 
     pi = PopupInfo.new
     pi["Time Left"] = (BigFloat.new(durations[0][0]) - @game.ts).to_s
-    pi["Units/s Boost"] = "#{(get_unit_boost(public_key))}x"
+    pi["Units/s Boost"] = "#{(get_unit_boost(public_key)).round(2)}x"
     pi["Time Warp Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_s
     pi
   end
@@ -83,7 +83,6 @@ class PowerupTimeWarp < Powerup
     durations.each do |t|
       boost_units *= BigFloat.new t[1]
     end
-
     boost_units.round(2)
   end
 
@@ -92,7 +91,8 @@ class PowerupTimeWarp < Powerup
     if public_key
       if is_available_for_purchase(public_key)
 
-        current_stack = get_player_stack_size(public_key)
+        c_s = get_player_stack_size(public_key)
+        current_stack = c_s.nil? ? 0 : c_s
         price = get_price(public_key)
 
         puts "Purhcased Time Warp!"
@@ -118,6 +118,8 @@ class PowerupTimeWarp < Powerup
         if !active_stack.nil?
             new_active_stack = active_stack + 1
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
+        else
+          @game.set_key_value(public_key, ACTIVE_STACK_KEY, "1")
         end
 
       else
@@ -144,7 +146,6 @@ class PowerupTimeWarp < Powerup
       active_stack = a_s.nil? ? 0 : a_s
 
       durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
-
       if (!durations.nil?) && (!durations.empty?) && (!active_stack.nil?)
         duration = force_big_int durations[0][0]
           current_time = @game.ts

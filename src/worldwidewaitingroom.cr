@@ -9,6 +9,8 @@ require "./powerups/timewarp.cr"
 require "./powerups/overcharge.cr"
 require "./powerups/harvest.cr"
 require "./powerups/unit_multiplier.cr"
+require "./powerups/tedious_gains.cr"
+require "./powerups/amish_life.cr"
 
 require "./powerups/parasite.cr"
 require "./powerups/breach.cr"
@@ -183,6 +185,8 @@ class Game
       PowerupOverCharge.get_powerup_id => PowerupOverCharge.new(self),
       PowerupHarvest.get_powerup_id => PowerupHarvest.new(self),
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
+      PowerupAmishLife.get_powerup_id => PowerupAmishLife.new(self),
+      PowerupTediousGains.get_powerup_id => PowerupTediousGains.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
       PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
       PowerupSynergyMatrix.get_powerup_id => PowerupSynergyMatrix.new(self),

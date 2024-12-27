@@ -2,7 +2,7 @@ require "../powerup.cr"
 require "./cosmic_breakthrough"
 
 class PowerupUnitMultiplier < Powerup
-  BASE_PRICE = BigFloat.new 25.0
+  BASE_PRICE = BigFloat.new 5.0
   BASE_AMOUNT = BigFloat.new 1.0
   KEY = "unit_multiplier_stack"
 
@@ -12,7 +12,8 @@ class PowerupUnitMultiplier < Powerup
 
   def new_multiplier(public_key) : BigFloat
     prestige_multi = get_civ_boost(public_key)
-    get_synergy_boosted_multiplier(public_key, prestige_multi)
+    tedius_boost = get_tedious_boost(public_key, prestige_multi)
+    get_synergy_boosted_multiplier(public_key, tedius_boost)
   end
 
   def self.get_powerup_id
@@ -25,7 +26,7 @@ class PowerupUnitMultiplier < Powerup
 
   def get_description (public_key)
     adjusted_multiplier = new_multiplier(public_key)
-    "Permanently increases unit production by #{(adjusted_multiplier).round(2)} with each purchase. Price increases multiplicatively. Number purchased: #{get_player_stack_size(public_key)}"
+    "Increases unit production by #{(adjusted_multiplier).round(2)} with each purchase. Price increases multiplicatively. Number purchased: #{get_player_stack_size(public_key)}"
   end
 
   def is_stackable
@@ -35,9 +36,11 @@ class PowerupUnitMultiplier < Powerup
   def get_price(public_key)
     stack_size = get_player_stack_size(public_key) + 1
     boost = get_civ_boost(public_key)
-    multi = (boost/1.0)
-    base_increase = (multi == 1) ? 1 : multi/2
-    price = BigFloat.new ((BASE_PRICE * base_increase) * ( stack_size ** 1.75))
+    tiny_inc = BigFloat.new (((2 * stack_size) / 1000))
+
+    cap_boost = (stack_size * tiny_inc) + 1
+    price = (BASE_PRICE * (stack_size ** cap_boost))
+    price = BigFloat.new price
     price.round(2)
   end
 
@@ -49,6 +52,12 @@ class PowerupUnitMultiplier < Powerup
     breakthrough = @game.get_powerup_classes[PowerupCosmicBreak.get_powerup_id]
     breakthrough = breakthrough.as PowerupCosmicBreak
     breakthrough.get_unit_boost(public_key, BASE_AMOUNT)
+  end
+
+  def get_tedious_boost(public_key, amount)
+    tedious_gains = @game.get_powerup_classes[PowerupTediousGains.get_powerup_id]
+    tedious_gains = tedious_gains.as PowerupTediousGains
+    tedious_gains.get_unit_boost(public_key, amount)
   end
 
   def new_prestige(public_key, game : Game)
