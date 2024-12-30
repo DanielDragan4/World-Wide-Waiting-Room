@@ -1,21 +1,62 @@
 require "../powerup"
 require "json"
 require "./force_field.cr"
+require "math"
 
 class PowerupParasite < Powerup
-  BASE_PRICE = BigFloat.new 10_000
+  BASE_PRICE = BigFloat.new 10#_000
   NEXT_TAKE_COOLDOWN = 1
   DURATION = 60 * 10
 
-  PERCENTAGE_STEAL_PER_SECOND = BigFloat.new (0.04 / 60.0)
+  PERCENTAGE_STEAL = BigFloat.new 0.2
   PRICE_MULTIPLIER = BigFloat.new 1.3
 
   KEY_DURATION = "parasite_duration"
   KEY_NEXT_TAKE_COOLDOWN = "parasite_next_take"
   KEY_ACTIVE_STACK = "parasite_active_stack"
+  INITIAL_RATE = BigFloat.new 5e-3
+  GROWTH_KEY = "growth_key"
 
   def new_percentage_steal(public_key)
-    get_synergy_boosted_multiplier public_key, (PERCENTAGE_STEAL_PER_SECOND) * (get_active_parasite_stack public_key)
+    rate = 0.20
+    new_rate = get_synergy_boosted_multiplier public_key, (PERCENTAGE_STEAL) * (get_active_parasite_stack public_key)
+
+    if new_rate < 0.36
+      rate = 0.30
+    elsif new_rate < 0.45
+      rate = 0.375
+    elsif new_rate < 0.52
+      rate = 0.425
+    elsif new_rate < 0.6
+      rate = 0.46
+    elsif new_rate < 0.77
+      rate = 0.485
+    elsif new_rate < 0.84
+      rate = 0.50
+    elsif new_rate < 0.92
+      rate = 0.51
+    elsif new_rate < 1
+      rate = 0.60
+    elsif new_rate < 1.4
+      rate = 0.65
+    elsif new_rate < 2
+      rate = 0.69
+    elsif new_rate < 3
+      rate = 0.72
+    elsif new_rate < 4
+      rate = 0.74
+    elsif new_rate < 6
+      rate = 0.82
+    elsif new_rate < 10
+      rate = 0.87
+    elsif new_rate < 15
+      rate = 0.91
+
+    elsif new_rate < 20
+      rate = 0.95
+    else
+      rate
+    end
   end
 
   def category
@@ -43,6 +84,44 @@ class PowerupParasite < Powerup
 
   def get_description (public_key)
     "Over the course of #{(DURATION / 60).to_i} minutes, steal a fraction of the units from the player directly ahead of you and directly behind you. The price is increased multiplicatively with each purchase. The number of active parasites can be stacked increasing the steal amount. Stacking parasites does not reset the 10 minute timer."
+  end
+
+  def calculate_growth_rate(public_key)
+    lower = BigFloat.new(0.0)
+    upper = BigFloat.new(1.0)
+    tolerance = BigFloat.new(1e-10)
+    max_iterations = 100
+    steal = new_percentage_steal(public_key)
+    
+    max_iterations.times do
+      r = (lower + upper) / 2
+      
+      begin
+        log_sum = Math.log(INITIAL_RATE) + Math.log((Math.exp(r * DURATION) - 1) / (Math.exp(r) - 1))
+        total = Math.exp(log_sum)
+        
+        if (total - steal).abs < tolerance
+          @game.set_key_value public_key, GROWTH_KEY, r.to_s
+        end
+        
+        if total < steal
+          lower = r
+        else
+          upper = r
+        end
+      rescue
+        upper = r 
+      end
+    end
+      @game.set_key_value public_key, GROWTH_KEY, ((lower + upper) / 2).to_s
+  end
+
+  def steal_rate_at(time, public_key) : BigFloat
+    growth_val = BigFloat.new(@game.get_key_value_as_float public_key, GROWTH_KEY)
+    growth = growth_val.nil? ? calculate_growth_rate(public_key) : growth_val
+
+    return BigFloat.new(0) if time >= DURATION || time < 0
+    INITIAL_RATE * Math.exp(growth * time)
   end
 
   def get_price (public_key)
@@ -92,7 +171,8 @@ class PowerupParasite < Powerup
   end
 
   def action (public_key, dt)
-    percent_steal = new_percentage_steal public_key
+    current_time = (DURATION - 1) - (@game.get_timer_seconds_left public_key, KEY_DURATION)
+    percent_steal = steal_rate_at(current_time, public_key)
 
     if !(@game.is_timer_expired public_key, KEY_DURATION) && (@game.is_timer_expired public_key, KEY_NEXT_TAKE_COOLDOWN)
       puts "Parasite action for #{public_key}"

@@ -26,7 +26,7 @@ class PowerupTimeWarp < Powerup
     "Time Warp"
   end
 
-  def is_stackable
+  def is_stackable  
     true
   end
 
@@ -48,8 +48,10 @@ class PowerupTimeWarp < Powerup
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
+    unit_ps = @game.get_player_time_units_ps(public_key)
+    unit_ps_price_multi = (unit_ps / 100000) + 1
     active_stack = (@game.get_key_value_as_int public_key, ACTIVE_STACK_KEY)
-    price = BASE_PRICE * (stack_size ** (((active_stack + 1) / 2) * 4))
+    price = (BASE_PRICE * unit_ps_price_multi) * (stack_size ** (((active_stack + 1) / 2) * 4))
     price.round(2)
   end
 

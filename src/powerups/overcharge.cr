@@ -50,8 +50,10 @@ class PowerupOverCharge < Powerup
 
   def get_price (public_key)
     active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY)
+    unit_ps = @game.get_player_time_units_ps(public_key)
+    unit_ps_price_multi = (unit_ps / 100000) + 1
     stack_size = get_player_stack_size(public_key)
-    price = ((BASE_PRICE * (stack_size ** (((active_stack + 1)/2) * 3)))).round(2)
+    price = (((unit_ps_price_multi * BASE_PRICE) * (stack_size ** (((active_stack + 1)/2) * 3)))).round(2)
     b= BigFloat.new price
     b.round(2)
     b
