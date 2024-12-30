@@ -150,6 +150,10 @@ class Game
     dt = frame_dt_ms
     puts "Last frame #{dt}ms"
 
+    if get_time_left <= 1
+      reset_game
+    end
+
     multiplier = BigFloat.new (dt / 1000.0)
 
     WWWR::R.incrby Keys::TIME_LEFT, -1
@@ -674,7 +678,57 @@ class Game
   end
 
   def reset_game
+    players = get_raw_leaderboard
 
+    save_game_winner(players)
+  
+    players.each do |public_key|
+      set_player_time_units public_key, BigFloat.new(0)
+      set_player_time_units_ps public_key, BigFloat.new(@default_ups)
+      
+      WWWR::R.del("powerups-#{public_key}")
+      
+      powerup_classes = get_powerup_classes
+      powerup_classes.each_key do |powerup_id|
+        set_powerup_stack(public_key, powerup_id, 0)
+      end
+      
+      current_globals = WWWR::R.hget(Keys::GLOBAL_VARS, public_key)
+      if current_globals
+        globals = Hash(String, String).from_json(current_globals)
+        
+        preserved_globals = Hash(String, String).new
+        preserved_globals[Keys::NUMBER_OF_ACTIVES] = "0"
+        
+        WWWR::R.hset(Keys::GLOBAL_VARS, public_key, preserved_globals.to_json)
+      end
+      
+      enable_unit_generation(public_key)
+    end
+    WWWR::R.set(Keys::TIME_LEFT, 604800)
+    
+    @time_units_cache.clear
+    @time_units_ps_cache.clear
+    @last_buy.clear
+    
+    sync
+  end
+
+  def save_game_winner(players)        
+    winner = players.last
+
+    if winner.empty?
+      return
+    end
+    
+    winner_data = {
+      "name" => get_player_name(winner),
+      "public_key" => winner,
+      "units" => get_player_time_units(winner).to_s,
+      "date" => Time.utc.to_s
+    }.to_json
+    
+    WWWR::R.rpush("game_winners", winner_data)
   end
 
   def update_for (public_key : String)
