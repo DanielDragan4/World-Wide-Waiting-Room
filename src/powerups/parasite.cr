@@ -4,7 +4,7 @@ require "./force_field.cr"
 require "math"
 
 class PowerupParasite < Powerup
-  BASE_PRICE = BigFloat.new 10#_000
+  BASE_PRICE = BigFloat.new 10_000
   NEXT_TAKE_COOLDOWN = 1
   DURATION = 60 * 10
 

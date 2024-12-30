@@ -148,8 +148,6 @@ class Game
     dt = frame_dt_ms
     puts "Last frame #{dt}ms"
 
-    puts get_time_left
-
     if get_time_left <= 1
       reset_game
     end

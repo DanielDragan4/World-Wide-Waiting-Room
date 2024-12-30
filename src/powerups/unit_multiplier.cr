@@ -3,7 +3,7 @@ require "./cosmic_breakthrough"
 
 class PowerupUnitMultiplier < Powerup
   BASE_PRICE = BigFloat.new 5.0
-  BASE_AMOUNT = BigFloat.new 100000000.0
+  BASE_AMOUNT = BigFloat.new 1.0
   KEY = "unit_multiplier_stack"
 
   def category
