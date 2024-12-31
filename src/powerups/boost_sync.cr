@@ -2,7 +2,7 @@ require "../powerup.cr"
 require "./cosmic_breakthrough"
 
 class PowerupBoostSync < Powerup
-  BASE_PRICE = BigFloat.new 50.0
+  BASE_PRICE = BigFloat.new 86400.0
   DURATION = 10
   KEY_DURATION = "boost_sync_duration"
   KEY_PASSIVE_BOOSTS = "boost_sync_passive_boosts"
@@ -28,7 +28,11 @@ class PowerupBoostSync < Powerup
   end
 
   def get_price(public_key)
-    BASE_PRICE
+    units_ps = @game.get_player_time_units_ps(public_key)
+    units_stored_multi = (@game.get_player_time_units(public_key) / 100000) + 1
+    price = (BASE_PRICE * units_ps) * units_stored_multi
+
+    return price
   end
 
   def player_card_powerup_icon(public_key)
