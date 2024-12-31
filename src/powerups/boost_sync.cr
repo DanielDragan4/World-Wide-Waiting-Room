@@ -30,7 +30,10 @@ class PowerupBoostSync < Powerup
   def get_price(public_key)
     units_ps = @game.get_player_time_units_ps(public_key)
     units_stored_multi = (@game.get_player_time_units(public_key) / 100000) + 1
-    price = (BASE_PRICE * units_ps) * units_stored_multi
+
+    purchased_passives_multi = calculate_passive_multiplier(public_key)
+
+    price = (BASE_PRICE * units_ps * purchased_passives_multi) * units_stored_multi
 
     return price
   end
