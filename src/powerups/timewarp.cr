@@ -61,8 +61,9 @@ class PowerupTimeWarp < Powerup
 
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
+    is_active = !(@game.has_powerup public_key, PowerupRelativisticShift.get_powerup_id)
 
-    return ((@game.get_player_time_units public_key) >= price)
+    return (((@game.get_player_time_units public_key) >= price) && is_active)
   end
 
   def max_stack_size (public_key)
@@ -73,9 +74,9 @@ class PowerupTimeWarp < Powerup
     @game.get_key_value_as_int(public_key, STACK_KEY, BigInt.new 1)
   end
 
-  def get_player_active_stack_size(public_key)
-    @game.get_key_value_as_int(public_key, STACK_KEY, BigInt.new 0)
-  end
+  # def get_player_active_stack_size(public_key)
+  #   @game.get_key_value_as_int(public_key, STACK_KEY, BigInt.new 0)
+  # end
 
   def get_unit_boost(public_key)
     return 1.0 if !@game.has_powerup(public_key, PowerupTimeWarp.get_powerup_id)
@@ -134,7 +135,7 @@ class PowerupTimeWarp < Powerup
   end
 
   def action (public_key, dt)
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupRelativisticShift.get_powerup_id)
         unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
         timewarp_rate = (unit_rate * (get_unit_boost(public_key))) - unit_rate
 
