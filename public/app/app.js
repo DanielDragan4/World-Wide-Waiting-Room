@@ -136,7 +136,7 @@ export default {
           </container>
         </div>
       </div>
-      <span class="font-bold text-4xl text-center ml-10">Idle Royale</span>
+      <span class="font-bold text-4xl text-center ml-[3em]">Idle Royale</span>
       <cbutton 
         :active="showWhatIsThis"
         @click="showWhatIsThis = !showWhatIsThis">What is this?</cbutton>
@@ -163,8 +163,9 @@ export default {
     <h1 class="font-bold text-center mt-6">Leaderboard</h1>
     <div class="mt-2 flex flex-row w-full mx-auto flex-wrap justify-center pb-8">
       <card
-        v-for="player in leaderboard"
+        v-for="player, i in leaderboard"
         :player="player"
+        :place="i"
         class="m-2"
       />
     </div>

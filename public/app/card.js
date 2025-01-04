@@ -4,6 +4,14 @@ export default {
     player: Object
   },
   computed: {
+    currentPlace() {
+      if (typeof this.place === 'number') {
+        return this.place + 1
+      }
+
+      return null;
+    },
+
     time_units() {
       return this.player.time_units || 0;
     },
@@ -47,10 +55,11 @@ export default {
       border 
       p-2 
       rounded
-      flex flex-col items-center justify-between text-center
+      flex flex-col items-center justify-between text-center relative
     " 
     :style="{ 'color': player.text_color, 'background-color': player.bg_color }">
     <div class="flex flex-col items-center">
+      <div v-show="currentPlace" class="absolute top-2 left-2 text-xs">#{{ currentPlace }}</div>
       <h1 class="text-xl">{{ player.name }}</h1>
       <div class="flex flex-row justify-center space-x-2">
         <div 
