@@ -13,6 +13,7 @@ export default {
         if (this.bgColor === null) {
           this.bgColor = player.bg_color;
         }
+
         this.player = { ...player };
       }
 
@@ -21,12 +22,13 @@ export default {
   
     document.addEventListener("tickEvent", ({ detail: { player, time_left, powerups } }) => {
       this.timeLeft = time_left; 
-      this.powerups = powerups;
+      this.allPowerups = powerups;
     });
   },
 
   data() {
     return {
+      allPowerups: [],
       leaderboard: [],
       timeLeft: 0,
       powerups: [],
@@ -42,6 +44,16 @@ export default {
   watch: {
     playerName(name) {
       this.submitForm('/name', { name })
+    }
+  },
+
+  computed: {
+    achievements() {
+      return this.allPowerups.filter((x) => x.is_achievement_powerup);
+    },
+
+    powerups() {
+      return this.allPowerups.filter((x) => !x.is_achievement_powerup);
     }
   },
 
@@ -83,18 +95,48 @@ export default {
     </modal>
 
     <div class="flex flex-row items-start justify-between mx-2 my-6">
-      <div class="flex flex-col space-y-2">
-        <container class="text-sm text-center">{{ formatTimeString(timeLeft) }}</container>
-        <cbutton 
-          @click="sideContentToShow=(sideContentToShow !== 'powerups' ? 'powerups' : null)"
-          :active="sideContentToShow == 'powerups'"
-        >Powerups</cbutton>
-        <cbutton 
-          @click="sideContentToShow=(sideContentToShow !== 'achievements' ? 'achievements' : null)"
-          :active="sideContentToShow == 'achievements'"
-        >Achievements</cbutton>
+      <div>
+        <div class="flex flex-col space-y-2 absolute w-96">
+          <container class="text-sm text-center">{{ formatTimeString(timeLeft) }}</container>
+          <cbutton 
+            @click="sideContentToShow=(sideContentToShow !== 'powerups' ? 'powerups' : null)"
+            :active="sideContentToShow == 'powerups'"
+          >Powerups</cbutton>
+          <cbutton 
+            @click="sideContentToShow=(sideContentToShow !== 'achievements' ? 'achievements' : null)"
+            :active="sideContentToShow == 'achievements'"
+          >Achievements</cbutton>
+
+          <container v-if="sideContentToShow === 'achievements'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
+            <h1 class="font-bold text-center">Achievements</h1>
+            {{ achievements }}
+            <container 
+              v-for="x in achievements"
+              class="w-full text-center"
+              :class="{ 'bg-white text-black':  player.powerups.includes(x.id) }"
+            >
+                <h1 class="font-bold text-xl">{{ x.name }}</h1>
+                <h2 v-html="x.description"></h2>
+              </container>
+          </container>
+
+          <container v-if="sideContentToShow === 'powerups'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
+            <h1 class="font-bold text-center">Powerups</h1>
+            <container 
+              v-for="powerup in allPowerups"
+              class="w-full"
+            >
+              <div class="flex flex-row justify-between">
+                <div>{{ powerup.name }}</div>
+                <div>{{ powerup.category }}</div>
+                <div> </div>
+              </div>
+              {{ powerup }}
+            </container>
+          </container>
+        </div>
       </div>
-      <span class="font-bold text-4xl">Idle Royale</span>
+      <span class="font-bold text-4xl text-center ml-10">Idle Royale</span>
       <cbutton 
         :active="showWhatIsThis"
         @click="showWhatIsThis = !showWhatIsThis">What is this?</cbutton>
@@ -105,11 +147,11 @@ export default {
       <input @input="updateName" class="rounded p-2 text-2xl text-center bg-[#323237] z-10" v-model="playerName">
       <div class="flex flex-row justify-center">
         <div class="flex flex-col items-center w-32">
-          <input @change="updateTextColor" type="color" class="border-none bg-transparent w-[32px] h-[32px]" v-model="textColor">
+          <input @change="updateTextColor" type="color" class="z-50 border-none bg-transparent w-[32px] h-[32px]" v-model="textColor">
           <span class="text-sm">Text Color</span>
         </div>
         <div class="flex flex-col items-center w-32">
-          <input @change="updateBgColor" type="color" class="border-none bg-transparent w-[32px] h-[32px]" v-model="bgColor">
+          <input @change="updateBgColor" type="color" class="z-50 border-none bg-transparent w-[32px] h-[32px]" v-model="bgColor">
           <span class="text-sm">Background Color</span>
         </div>
       </div>
@@ -119,7 +161,7 @@ export default {
     </div>
 
     <h1 class="font-bold text-center mt-6">Leaderboard</h1>
-    <div class="mt-2 flex flex-row w-full mx-auto flex-wrap justify-center">
+    <div class="mt-2 flex flex-row w-full mx-auto flex-wrap justify-center pb-8">
       <card
         v-for="player in leaderboard"
         :player="player"

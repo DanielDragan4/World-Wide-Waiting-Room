@@ -31,6 +31,10 @@ export default {
 
     player_css_classes() {
       return this.player.player_css_classes || '';
+    },
+
+    input_buttons() {
+      return this.player.input_buttons || [];
     }
   },
   template: `
@@ -49,7 +53,18 @@ export default {
     <div class="flex flex-col items-center">
       <h1 class="text-xl">{{ player.name }}</h1>
       <div class="flex flex-row justify-center space-x-2">
-        <img v-for="icon in player_powerup_icons" :src="icon.icon" class="w-[18px]">
+        <div 
+          class="relative group"
+          v-for="icon in player_powerup_icons" 
+        >
+          <img 
+            :src="icon.icon" 
+            class="w-[25px]"
+          >
+          <div class="absolute text-white bg-black rounded p-1 invisible group-hover:visible ease-in flex flex-col max-w-48 min-w-48 -left-20 text-center">
+            <h3>{{ icon.name }}</h3>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -67,7 +82,11 @@ export default {
       <h6 class="text-sm">Units/s</h6>
     </div>
 
-    <div></div>
+    <div class="flex flex-row space-x-2 items-center">
+      <cbutton 
+        v-for="x in input_buttons"
+      >{{ x.name }}</cbutton> 
+    </div>
   </div>
   `
 }
