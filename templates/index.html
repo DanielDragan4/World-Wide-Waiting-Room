@@ -1,17 +1,17 @@
 <!DOCTYPE HTML>
 <html class="text-white">
   <head>
-    <script src="/tailwind.js"></script>
     <script src="/htmx.js"></script>
+    <script src="/tailwind.js"></script>
     <script type="module" src="/ws.js"></script>
-    <script src="/idiomorph.js"></script>
+    <script defer type="module" src="/app/main.js"></script>
 
     <!-- Place this tag in your head or just before your close body tag. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/png" href="/man.png">
+    <link rel="icon" type="image/png" href="/icon.png">
     <meta property="og:title" content="World Wide Waiting Room" />
     <meta property="og:description" content="Do nothing and you win! But be careful, others might steal your time." />
     <meta property="og:type" content="website" />
@@ -21,130 +21,51 @@
     <title>World Wide Waiting Room</title>
   </head>
   <body>
-    <div class="fixed top-4 right-4">
-      <div class="flex flex-row space-x-2">
-        <div class="relative">
-          <button onclick="toggleWhatIsThis()" class="mx-auto max-w-max text-white border-white hover:text-[#212126] bg-[#212126] hover:bg-white px-2 border border-white hover:border-[#212126] rounded">What is this?</button>
-          <div id="what-is-this" class="w-96 h-96 overflow-y-auto top-10 hidden rounded absolute right-[100%] z-100 bg-[#212126] rounded p-2 text-white border border-white">
-            <div class="mx-auto px-2 space-y-4">
-              <h1 class="text-center font-bold text-lg mb-4">What is this?</h1>
-              <p>PVP Idle Game</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="fixed top-4 right-4 z-100">
-      <div id="notification" class="flex flex-col space-y-2 max-h-64 overflow-y-auto z-100">
-      </div>
-    </div>
-
     <div hx-ext="ws" ws-connect="/ws">
       <input type="hidden" name="sync" value="sync" ws-send hx-trigger="sync, every 1s">
     </div>
-
-    <div class="mx-auto w-full text-center mt-4">
-      <!--<img src="/man.png" class="mt-2 mx-auto w-[360px]">-->
-      <h1 class="font-bold text-white text-[2em]">World Wide Waiting Room</h1>
+    <div id="stars" class="fixed left-0 top-0">
     </div>
-
-    <div class="flex flex-col items-center">
-      <h2 class="text-white mt-4 text-[1.3em]">Like waiting? Join our <a href="https://discord.gg/wBn6d2Vq" target="_blank" class="cursor-pointer hover:underline text-white font-bold">Discord</a>!</h2>
-      <h1 class="text-white mt-4">Your Name</h1>
-      <input 
-        hx-post="/name" 
-        hx-swap="none" 
-        placeholder="Name"
-        name="name"
-        class="outline-none text-[4em] w-full text-center text-white max-w-max mx-auto bg-[#2e2e33] rounded mb-4" 
-        type="text" 
-        value="{{ data.name }}"
-      >
-
-      <div class="flex flex-row space-x-8">
-        <div class="flex flex-col items-center">
-          <h1 class="text-white text-sm text-center">Card Background<br>Color</h1>
-          <input 
-            hx-post="/color" 
-            hx-swap="none" 
-            name="bg"
-            class="border-none bg-transparent w-[32px] h-[32px]" 
-            type="color" 
-            id="bg-color"
-            value="{{ data.bg_color }}"
-          >
-        </div>
-        <div class="flex flex-col items-center">
-          <h1 class="text-white text-sm text-center">Card Text<br>Color</h1>
-          <input 
-            hx-post="/color" 
-            hx-swap="none" 
-            name="text"
-            class="border-none bg-transparent w-[32px] h-[32px]" 
-            type="color" 
-            id="text-color"
-            value="{{ data.text_color }}"
-          > 
-        </div>
-      </div>
+    <div id="app" class="z-0">
+      <app/>
     </div>
-
-    <h3 class="absolute top-4 left-4 border border-white rounded p-2 text-xs" id="time-left"></h3>
-    <button id="show-powerups" class="absolute border rounded p-1 left-4 top-16" onclick="togglePowerups()">Powerups</button>
-    <button id="show-achievements" class="absolute border rounded p-1 left-4 top-28" onclick="toggleAchievements()">Achievements</button>
-    <div id="achievements-container" class="hidden absolute left-4 top-28 border rounded border-white bg-[#212126]">
-      <div class="flex flex-row justify-between items-center w-full mt-2">
-        <span class="ml-2 text-xl w-8 text-center rounded hover:text-black hover:bg-white cursor-pointer" onclick="toggleAchievements()">&times;</span>
-        <h1 class="font-bold">Achievements</h1>
-        <span class="w-2"></span>
-      </div>
-      <div id="achievements" class="max-w-[500px] overflow-y-auto max-h-[700px] flex flex-col space-y-2 p-2">
-      </div>
-    </div>
-    <div 
-      class="
-        hidden 
-        mx-2 
-        my-2
-        max-w-[1000px] 
-        max-h-[1000px]
-        overflow-x-hidden
-        top-1/2
-        -translate-y-1/2
-        max-md:left-1/2
-        max-md:-translate-x-1/2
-        absolute 
-        top-1 
-        z-10 
-        w-full 
-        h-full 
-        space-y-4 
-        flex 
-        bg-[#212126] 
-        border 
-        rounded 
-      " 
-      id="powerups"
-    >
-      <div class="absolute top-2 text-md bg-[#212126] cursor-pointer w-full">
-        <div class="flex flex-row justify-between items-center w-full">
-          <span class="ml-2 text-xl w-8 text-center rounded hover:text-black hover:bg-white" onclick="togglePowerups()">&times;</span>
-          <h1 class="font-bold">Powerups</h1>
-          <span></span>
-        </div>
-        <div id="powerup-categories" class="flex flex-row items-center justify-center mt-4 space-x-2"></div>
-        <div id="powerups-grid" class="grid gap-2 px-4 grid-cols-3 max-md:grid-cols-1 overflow-y-scroll h-[910px]"></div>
-      </div>
-    </div>
-    <div id="waiter-card" class="flex flex-row justify-center"></div>
-    <h1 class="text-center mt-4">Leaderboard</h1>
-    <div class="flex flex-row justify-center flex-wrap mx-auto max-w-[1200px] space-4" id="leaderboard"></div> 
 
     <script>
-      let playerCurrentTimeUnits = {{ data.time_units }}
-      let timeLeft = {{ time_left }}
+      const stars = document.querySelector("#stars");
+
+      function addStar(biasTopLeft) {
+        let max = biasTopLeft ? 25 : 100;
+        if (biasTopLeft) {
+          max -= 27
+        }
+        const x = Math.floor(Math.random() * max)
+        const y = Math.floor(Math.random() * 100)
+        const size = Math.floor(Math.random() * 2);
+
+        const star = document.createElement("div");
+        star.className = "star";
+        star.style = `width: ${size}px; height: ${size}px; top: ${y}%; left: ${x}%`;
+        stars.appendChild(star);
+      }
+
+      for (let i = 0; i < 500; i++) {
+        addStar(false);
+      }
+
+      setInterval(() => {
+        for (let child of document.querySelector("#stars").children) {
+          const left = Number(child.style.left.replace("%", ""));
+          const top = Number(child.style.top.replace("%", ""));
+
+          child.style.left = `${left + 0.01}%`;
+          // child.style.top = `${top + 0.01}%`;
+
+          if (left > 100) {
+            addStar(true);
+            document.querySelector("#stars").removeChild(child);
+          }
+        }
+      }, 8);
     </script>
-    <script defer src="/main.js"></script>
   </body>
 </html>

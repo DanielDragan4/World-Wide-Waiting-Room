@@ -1,5 +1,5 @@
 let players = {}
-
+let thisPlayer = null;
 
 // Based on how fast the update loop ticks
 const NGU_SCALE_FACTOR = 1 / 100
@@ -7,25 +7,29 @@ const NGU_SCALE_FACTOR = 1 / 100
 // Update Loop
 setInterval(() => {
   Object.keys(players).forEach((public_key) => {
-    intervalFunc(public_key)
+    const this_player = players[public_key]
+    players[public_key] = intervalFunc(this_player)
   })
+
+  thisPlayer = intervalFunc(thisPlayer);
 }, 10)
 
 // Render Loop
 setInterval(() => {
   const leaderboard = Object.values(players).sort((a, b) => Number(a.time_units) <= Number(b.time_units) ? 1 : -1)
-  postMessage(leaderboard)
+  postMessage({ leaderboard, player: thisPlayer })
 }, 10)
 
-function intervalFunc(public_key) {
-  const this_player = players[public_key]
+function intervalFunc(this_player) {
+  if (!this_player) return;
+
   const tps = Number(this_player.time_units_per_second) * NGU_SCALE_FACTOR
   const tu = Number(this_player.time_units)
 
   const next_tu = tu + tps;
 
-  players[public_key] = {
-    ...players[public_key],
+  return {
+    ...this_player,
     time_units: next_tu
   }
 }
@@ -34,7 +38,9 @@ function syncProcedure(e) {
   // console.log("Syncing", e);
   players = {}
 
-  const { leaderboard } = e
+  const { leaderboard, player } = e
+
+  thisPlayer = player
 
   leaderboard.forEach((p) => {
     let metadata = p.metadata ?? '{}';

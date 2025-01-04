@@ -562,8 +562,8 @@ class Game
 
   def setup_new_waiter
     puts "Setting up new waiter."
-    secret_token = Random.new.hex
-    public_key = Random.new.hex
+    secret_token = Random.new.urlsafe_base64 64
+    public_key = Random.new.urlsafe_base64
 
     p = WWWR::R.pipelined do |r|
       r.hset(Keys::PLAYER_TOKENS, secret_token, public_key)
@@ -765,7 +765,11 @@ get "/" do |ctx|
   if !public_key
     "Error."
   else
-    templates.render "index.html", ({ "data" => (game.get_data_for public_key), "time_left" => game.get_time_left })
+    templates.render "index.html", ({
+      "data" => (game.get_data_for public_key),
+      "time_left" => game.get_time_left,
+      "secret" => secret_key = ctx.request.cookies[Keys::COOKIE].value
+    })
   end
 end
 
