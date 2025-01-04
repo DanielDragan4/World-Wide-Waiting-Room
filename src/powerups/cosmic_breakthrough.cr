@@ -6,8 +6,8 @@ require "./synergy_matrix"
 class PowerupCosmicBreak < Powerup
   BASE_PRICE = 50_000_000.0
   KEY = "cosmic_break_stack"
-  SYNERGY_VALUES = [1.0, 2.5, 4.0, 6.0, 8.0, 10.0]
-  UNIT_VALUES = [1.0, 5.0, 15.0, 30.0, 50.0, 75.0]
+  SYNERGY_VALUES = [1.0, 2.5, 4.0, 6.0, 8.0, 10.0, 0]
+  UNIT_VALUES = [1.0, 5.0, 15.0, 30.0, 50.0, 75.0, 0]
 
   def get_stack_size(public_key : String) : BigInt
     @game.get_key_value_as_int(public_key, KEY, BigInt.new 0)
