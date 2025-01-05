@@ -60,7 +60,9 @@ export default {
     },
 
     powerups() {
-      return this.allPowerups.filter((x) => !x.is_achievement_powerup);
+      return this.allPowerups
+        .filter((x) => !x.is_achievement_powerup)
+        .sort((a, b) => a.name > b.name ? 1 : -1)
     }
   },
 
@@ -131,7 +133,14 @@ export default {
   },
   template:`
     <modal title="What is this?" @close="showWhatIsThis=false" v-show="showWhatIsThis">
-      This is a description of the game.
+    <!--
+      Welcome to a fast-paced, competitive idle game where you race against other players to gather as many units as possible within a set timeframe. Your units increase automatically at a base rate of 1 per second. You can then use them to:
+
+      Acquire Powerups: Increase your production rate and gain an edge over opponents.
+      Sabotage Rivals: Disrupt other players’ progress to slow them down.
+      Defend Yourself: Protect your own production from sabotage attempts.
+      When the timer runs out, the player with the highest unit count is declared the winner and added to a global leaderboard. All units are then reset, the timer restarts, and the competition begins again—giving everyone a fresh start for the next round.    
+      -->
     </modal>
 
     <modal title="Session" @close="showSession=false" v-show="showSession" >
@@ -152,25 +161,42 @@ export default {
       </div>
     </modal>
 
-    <div class="flex flex-row items-start justify-between mx-2 my-6">
-      <div>
-        <div class="flex flex-col space-y-2 absolute w-96">
+    <div class="flex flex-col items-center w-full">
+      <div class="font-bold text-4xl text-center mt-1">Idle Royale</div>
+      <a class="font-bold hover:underline" href="#">Join our Discord</a>
+    </div>
+
+    <div class="
+      flex 
+      max-lg:flex-col 
+      max-lg:items-center
+      max-lg:w-full
+      lg:flex-row 
+      lg:items-start 
+      lg:justify-between 
+      mx-2 
+      my-6
+    ">
+      <div class="max-lg:w-full">
+        <div class="flex flex-col space-y-2 lg:absolute lg:w-96 max-lg:w-full lg:top-2 lg:left-2">
           <container class="text-sm text-center">{{ formatTimeString(timeLeft) }}</container>
-          <cbutton 
-            @click="sideContentToShow=(sideContentToShow !== 'powerups' ? 'powerups' : null)"
-            :active="sideContentToShow == 'powerups'"
-          >Powerups</cbutton>
-          <cbutton 
-            @click="sideContentToShow=(sideContentToShow !== 'achievements' ? 'achievements' : null)"
-            :active="sideContentToShow == 'achievements'"
-          >Achievements</cbutton>
-          <cbutton 
-            @click="fetchHistory(); sideContentToShow=(sideContentToShow !== 'history' ? 'history' : null)"
-            :active="sideContentToShow == 'history'"
-          >History</cbutton>
+          <div class="w-full flex flex-col space-y-2">
+            <cbutton 
+              @click="sideContentToShow=(sideContentToShow !== 'powerups' ? 'powerups' : null)"
+              :active="sideContentToShow == 'powerups'"
+            >Powerups</cbutton>
+            <cbutton 
+              @click="sideContentToShow=(sideContentToShow !== 'achievements' ? 'achievements' : null)"
+              :active="sideContentToShow == 'achievements'"
+            >Achievements</cbutton>
+            <cbutton 
+              @click="fetchHistory(); sideContentToShow=(sideContentToShow !== 'history' ? 'history' : null)"
+              :active="sideContentToShow == 'history'"
+            >Leaderboard</cbutton>
+          </div>
 
           <container v-if="sideContentToShow === 'history'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
-            <h1 class="font-bold text-center">Winners</h1>
+            <h1 class="font-bold text-center">Leaderboard</h1>
             <h2 class="text-sm text-center">Previous game winners.</h2>
             <container class="grid grid-cols-3 text-center w-full">
               <span class="font-bold text-sm">Player</span>
@@ -220,13 +246,14 @@ export default {
           </container>
         </div>
       </div>
-      <span class="font-bold text-4xl text-center ml-[3em]">Idle Royale</span>
-      <div class="flex flex-row space-x-2">
+      <div class="flex flex-row space-x-2 max-lg:w-full max-lg:mt-2 lg:absolute lg:top-2 lg:right-2">
         <cbutton
+          extra-classes="max-lg:w-full"
           :active="showSession"
           @click="showSession = !showSession"
         >Session</cbutton>
         <cbutton 
+          extra-classes="max-lg:w-full"
           :active="showWhatIsThis"
           @click="showWhatIsThis = !showWhatIsThis">What is this?</cbutton>
       </div>
@@ -251,7 +278,7 @@ export default {
       />
     </div>
 
-    <h1 class="font-bold text-center mt-6">Leaderboard</h1>
+    <h1 class="font-bold text-center mt-6">Online Players</h1>
     <div class="mt-2 flex flex-row w-full mx-auto flex-wrap justify-center pb-8">
       <card
         v-for="p, i in leaderboard"
