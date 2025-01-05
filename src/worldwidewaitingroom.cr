@@ -11,6 +11,7 @@ require "./powerups/harvest.cr"
 require "./powerups/unit_multiplier.cr"
 require "./powerups/tedious_gains.cr"
 require "./powerups/amish_life.cr"
+require "./powerups/relativistic_shift.cr"
 
 require "./powerups/parasite.cr"
 require "./powerups/breach.cr"
@@ -77,6 +78,7 @@ module Events
 end
 
 module Keys
+  GAME_WINNERS = "game_winners"
   PLAYER_POWERUP_ICONS = "player_powerup_icons"
   PLAYER_CARD_CSS_CLASSES = "player_card_css_classes"
   NUMBER_OF_ACTIVES = "number_of_actives_purchased_ever"
@@ -205,6 +207,7 @@ class Game
       PowerupSchrodinger.get_powerup_id => PowerupSchrodinger.new(self),
       PowerupCosmicBreak.get_powerup_id => PowerupCosmicBreak.new(self),
       PowerupUnitVault.get_powerup_id => PowerupUnitVault.new(self),
+      PowerupRelativisticShift.get_powerup_id => PowerupRelativisticShift.new(self),
       PowerupBoostSync.get_powerup_id => PowerupBoostSync.new(self),
 
       AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
@@ -375,6 +378,11 @@ class Game
   def inc_time_units_ps (public_key : String, by : BigFloat)
     player_tu_ps = get_player_time_units_ps public_key
     set_player_time_units_ps public_key, (player_tu_ps + by)
+  end
+
+  def get_game_history
+    lb = WWWR::R.lrange(Keys::GAME_WINNERS, 0, -1)
+    lb.map { |x| Hash(String, String).from_json (x.to_s) }
   end
 
   def get_raw_leaderboard
@@ -679,10 +687,17 @@ class Game
     now - last_frame_time.to_i64
   end
 
-  def reset_game
-    players = get_raw_leaderboard
+  def get_all_players
+    all_player_tokens = WWWR::R.hgetall(Keys::PLAYER_TOKENS)
+    all_players = all_player_tokens.values.uniq
+    all_players
+  end
 
-    save_game_winner(players)
+  def reset_game
+    active_players = get_raw_leaderboard
+    save_game_winner(active_players)
+
+    players = get_all_players
 
     players.each do |public_key|
       set_player_time_units public_key, BigFloat.new(0)
@@ -730,7 +745,7 @@ class Game
       "date" => Time.utc.to_s
     }.to_json
 
-    WWWR::R.rpush("game_winners", winner_data)
+    WWWR::R.rpush(Keys::GAME_WINNERS, winner_data)
   end
 
   def update_for (public_key : String)
@@ -832,6 +847,10 @@ post "/login" do |ctx|
   else
     "Error"
   end
+end
+
+get "/history" do |ctx|
+  game.get_game_history.to_json
 end
 
 get "/" do |ctx|

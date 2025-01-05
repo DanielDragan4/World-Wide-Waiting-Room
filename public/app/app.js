@@ -1,5 +1,7 @@
 export default {
   mounted() {
+    this.fetchHistory();
+
     window.worker.onmessage = ({ data: { leaderboard, player } }) => {
       if (player) {
         if (this.playerName === null) {
@@ -32,6 +34,7 @@ export default {
     return {
       allPowerups: [],
       leaderboard: [],
+      history: [],
       timeLeft: 0,
       player: {},
       playerName: null,
@@ -71,6 +74,15 @@ export default {
           } else {
             alert("Could not load session.");
           }
+        })
+    },
+
+    fetchHistory() {
+      fetch('/history')
+        .then((x) => x.json())
+        .then((history) => { 
+          history.reverse();
+          this.history = history 
         })
     },
 
@@ -152,6 +164,28 @@ export default {
             @click="sideContentToShow=(sideContentToShow !== 'achievements' ? 'achievements' : null)"
             :active="sideContentToShow == 'achievements'"
           >Achievements</cbutton>
+          <cbutton 
+            @click="fetchHistory(); sideContentToShow=(sideContentToShow !== 'history' ? 'history' : null)"
+            :active="sideContentToShow == 'history'"
+          >History</cbutton>
+
+          <container v-if="sideContentToShow === 'history'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
+            <h1 class="font-bold text-center">Winners</h1>
+            <h2 class="text-sm text-center">Previous game winners.</h2>
+            <container class="grid grid-cols-3 text-center w-full">
+              <span class="font-bold text-sm">Player</span>
+              <span class="font-bold text-sm">Final Units</span>
+              <span class="font-bold text-sm">Timestamp</span>
+            </container>
+            <container 
+              v-for="x in history"
+              class="grid grid-cols-3 text-center w-full items-center"
+            >
+              <span class="font-bold text-sm">{{ x.name }}</span>
+              <span class="font-bold text-sm">{{ formatNumber(x.units) }}</span>
+              <span class="font-bold text-sm">{{ x.date }}</span>
+            </container>
+          </container>
 
           <container v-if="sideContentToShow === 'achievements'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
             <h1 class="font-bold text-center">Achievements</h1>

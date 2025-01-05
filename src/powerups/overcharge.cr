@@ -61,8 +61,9 @@ class PowerupOverCharge < Powerup
 
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
+    is_active = !(@game.has_powerup public_key, PowerupRelativisticShift.get_powerup_id)
 
-    return ((@game.get_player_time_units public_key) >= price)
+    return (((@game.get_player_time_units public_key) >= price) && is_active)
   end
 
   def max_stack_size (public_key)
@@ -137,7 +138,7 @@ class PowerupOverCharge < Powerup
 
   def action (public_key, dt)
     puts "OVERCHARGE ACTION #{@game.ts}"
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupRelativisticShift.get_powerup_id)
 
         unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
         overcharge_rate = (unit_rate * (get_unit_boost(public_key))) -unit_rate
