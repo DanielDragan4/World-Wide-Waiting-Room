@@ -2,7 +2,7 @@ require "../powerup.cr"
 require "./cosmic_breakthrough"
 
 class PowerupBoostSync < Powerup
-  BASE_PRICE = BigFloat.new 86400.0
+  BASE_PRICE = BigFloat.new 43200.0
   DURATION = 10
   KEY_DURATION = "boost_sync_duration"
   KEY_PASSIVE_BOOSTS = "boost_sync_passive_boosts"
@@ -20,7 +20,7 @@ class PowerupBoostSync < Powerup
   end
 
   def get_description(public_key)
-    "Temporarily reenables passive powerups for 10 seconds while Overcharge is active, allowing you to benefit from passive effects."
+    "Temporarily reenables passive powerups for 10 seconds while Overcharge is active, allowing you to benefit from passive effects. Cost is based of of 12 hours worth of units for the current rate"
   end
 
   def is_stackable
@@ -29,11 +29,9 @@ class PowerupBoostSync < Powerup
 
   def get_price(public_key)
     units_ps = @game.get_player_time_units_ps(public_key)
-    units_stored_multi = (@game.get_player_time_units(public_key) / 100000) + 1
-
     purchased_passives_multi = calculate_passive_multiplier(public_key)
 
-    price = (BASE_PRICE * units_ps * purchased_passives_multi) * units_stored_multi
+    price = (BASE_PRICE * units_ps * purchased_passives_multi)
 
     return price
   end
@@ -56,7 +54,9 @@ class PowerupBoostSync < Powerup
   end
 
   def is_available_for_purchase(public_key)
-    @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) 
+    price = get_price(public_key)
+
+    (@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) &&  ((@game.get_player_time_units public_key) >= price))
   end
 
   # Method to calculate to overall unit generation boost from passives
