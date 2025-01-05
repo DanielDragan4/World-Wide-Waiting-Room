@@ -1,4 +1,4 @@
-import { createApp, ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js'
+import { createApp } from '/vue.js'
 
 import App from "/app/app.js"
 import Card from "/app/card.js"
@@ -9,6 +9,32 @@ import Modal from "/app/modal.js"
 const worker = new Worker("/worker.js") 
 
 window.worker = worker
+
+function performAnimation(jsonMsg) {
+  const { animation, data, player_public_key } = jsonMsg;
+
+  switch (animation) {
+    case "NUMBER_FLOAT": {
+      const { value, color } = data;
+      const playerElm = document.getElementById(player_public_key); 
+      const br = playerElm.getBoundingClientRect();
+      const floater = document.createElement("div")
+      floater.innerText = `${value ?? 0}`;
+      let yPos = br.y
+      let steps = 100;
+      const r = setInterval(() => {
+        floater.style.cssText = `position: absolute; color: ${color ?? 'white'}; top: ${yPos}px; left: ${br.x + br.width / 2}px; z-index: 1000000; opacity: ${steps / 50}`
+        yPos -= 0.5;
+        steps--;
+        if (steps <= 0) {
+          floater.remove();
+          clearInterval(r); 
+        }
+      }, 1/30)
+      document.body.appendChild(floater);
+    }
+  }
+}
 
 document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
   const { detail: { message } } = wsMsg;

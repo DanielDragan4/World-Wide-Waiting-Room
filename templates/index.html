@@ -31,6 +31,7 @@
     </div>
 
     <script>
+      window.this_player_secret = `{{ secret }}`;
       const stars = document.querySelector("#stars");
 
       function addStar(biasTopLeft) {
@@ -58,7 +59,6 @@
           const top = Number(child.style.top.replace("%", ""));
 
           child.style.left = `${left + 0.01}%`;
-          // child.style.top = `${top + 0.01}%`;
 
           if (left > 100) {
             addStar(true);

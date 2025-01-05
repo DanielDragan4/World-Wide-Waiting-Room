@@ -24,6 +24,8 @@ export default {
       this.timeLeft = time_left; 
       this.allPowerups = powerups;
     });
+
+    this.secret = window.this_player_secret;
   },
 
   data() {
@@ -31,12 +33,14 @@ export default {
       allPowerups: [],
       leaderboard: [],
       timeLeft: 0,
-      powerups: [],
       player: {},
       playerName: null,
       textColor: null,
       bgColor: null,
+      secret: null,
+      newKey: "",
       showWhatIsThis: false,
+      showSession: false,
       sideContentToShow: null,
     }
   },
@@ -58,6 +62,30 @@ export default {
   },
 
   methods: {
+    loadSessionKey() {
+      this.submitForm('/login', { key: this.newKey })
+        .then((v) => v.text())
+        .then((y) => {
+          if (y === this.newKey) {
+            window.location.reload();
+          } else {
+            alert("Could not load session.");
+          }
+        })
+    },
+
+    formatNumber(n) {
+      return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    },
+
+    buy(powerup) {
+      this.submitForm('/buy', { powerup })
+    },
+
+    usePowerup(powerup, on_player_key) {
+      this.submitForm('/use', { powerup, on_player_key })
+    },
+
     updateTextColor() {
       const text = this.textColor;
       this.submitForm('/color', { text })
@@ -73,7 +101,7 @@ export default {
       Object.entries(values).forEach(([k, v]) => {
         body.append(k, v)
       })
-      fetch(to, { method: 'POST', body })
+      return fetch(to, { method: 'POST', body })
     },
 
     formatTimeString(seconds) {
@@ -91,7 +119,25 @@ export default {
   },
   template:`
     <modal title="What is this?" @close="showWhatIsThis=false" v-show="showWhatIsThis">
-      Nice
+      This is a description of the game.
+    </modal>
+
+    <modal title="Session" @close="showSession=false" v-show="showSession" >
+      <div class="flex flex-col items-center">
+        <h2 class="text-sm">Session Key</h2>
+        <div class="text-xs overflow-y-auto my-2 max-w-[300px] text-center">{{ secret }}</div>
+
+        <div class="flex flex-col space-y-2 mt-4 items-center">
+          <h2 class="text-md">Load Key</h2>
+          <input 
+            class="rounded p-2 text-2xl text-center bg-[#323237] z-10" 
+            type="text" 
+            placeholder="Session Key" 
+            v-model="newKey"
+          >
+          <cbutton @click="loadSessionKey()">Load</cbutton>
+        </div>
+      </div>
     </modal>
 
     <div class="flex flex-row items-start justify-between mx-2 my-6">
@@ -109,7 +155,6 @@ export default {
 
           <container v-if="sideContentToShow === 'achievements'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
             <h1 class="font-bold text-center">Achievements</h1>
-            {{ achievements }}
             <container 
               v-for="x in achievements"
               class="w-full text-center"
@@ -123,23 +168,34 @@ export default {
           <container v-if="sideContentToShow === 'powerups'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
             <h1 class="font-bold text-center">Powerups</h1>
             <container 
-              v-for="powerup in allPowerups"
-              class="w-full"
+              v-for="powerup in powerups"
+              class="w-full flex flex-col items-center space-y-1"
             >
-              <div class="flex flex-row justify-between">
-                <div>{{ powerup.name }}</div>
-                <div>{{ powerup.category }}</div>
-                <div> </div>
+              <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
+              <h2 class="text-xs">{{ powerup.category }}</h2>
+              <h3 class="text-sm font-bold">\${{ formatNumber(powerup.price) }}</h3>
+              <div class="my-2 text-center" v-html="powerup.description"></div>
+              <cbutton @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
+              <div v-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
+                <span>Next purchase</span>
+                <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
               </div>
-              {{ powerup }}
+              <div v-else-if="powerup.currently_owns">Purchased</div>
+              <div v-else>Unavailable</div>
             </container>
           </container>
         </div>
       </div>
       <span class="font-bold text-4xl text-center ml-[3em]">Idle Royale</span>
-      <cbutton 
-        :active="showWhatIsThis"
-        @click="showWhatIsThis = !showWhatIsThis">What is this?</cbutton>
+      <div class="flex flex-row space-x-2">
+        <cbutton
+          :active="showSession"
+          @click="showSession = !showSession"
+        >Session</cbutton>
+        <cbutton 
+          :active="showWhatIsThis"
+          @click="showWhatIsThis = !showWhatIsThis">What is this?</cbutton>
+      </div>
     </div>
 
     <div class="flex flex-col items-center space-y-2 w-96 mx-auto">
@@ -157,14 +213,17 @@ export default {
       </div>
       <card
         :player="player"
+        :this-player="player"
       />
     </div>
 
     <h1 class="font-bold text-center mt-6">Leaderboard</h1>
     <div class="mt-2 flex flex-row w-full mx-auto flex-wrap justify-center pb-8">
       <card
-        v-for="player, i in leaderboard"
-        :player="player"
+        v-for="p, i in leaderboard"
+        @activate-input="usePowerup($event, p.public_key)"
+        :this-player="player"
+        :player="p"
         :place="i"
         class="m-2"
       />

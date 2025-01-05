@@ -44,6 +44,8 @@ alias ChannelValueType = String
 
 templates = Templates.new
 
+ONE_WEEK = 604800
+
 module WWWR
   R = Redis::PooledClient.new
   Channels = Set(Tuple(String, Channel(ChannelValueType), Public)).new
@@ -219,8 +221,8 @@ class Game
   def get_time_left
     tl = WWWR::R.get Keys::TIME_LEFT
     if !tl || tl.to_i <= 0
-      WWWR::R.set Keys::TIME_LEFT, 604800
-      return 604800
+      WWWR::R.set Keys::TIME_LEFT, ONE_WEEK
+      return ONE_WEEK
     else
       return tl.to_i
     end
@@ -681,53 +683,53 @@ class Game
     players = get_raw_leaderboard
 
     save_game_winner(players)
-  
+
     players.each do |public_key|
       set_player_time_units public_key, BigFloat.new(0)
       set_player_time_units_ps public_key, BigFloat.new(@default_ups)
-      
+
       WWWR::R.del("powerups-#{public_key}")
-      
+
       powerup_classes = get_powerup_classes
       powerup_classes.each_key do |powerup_id|
         set_powerup_stack(public_key, powerup_id, 0)
       end
-      
+
       current_globals = WWWR::R.hget(Keys::GLOBAL_VARS, public_key)
       if current_globals
         globals = Hash(String, String).from_json(current_globals)
-        
+
         preserved_globals = Hash(String, String).new
         preserved_globals[Keys::NUMBER_OF_ACTIVES] = "0"
-        
+
         WWWR::R.hset(Keys::GLOBAL_VARS, public_key, preserved_globals.to_json)
       end
-      
+
       enable_unit_generation(public_key)
     end
-    WWWR::R.set(Keys::TIME_LEFT, 604800)
-    
+    WWWR::R.set(Keys::TIME_LEFT, ONE_WEEK)
+
     @time_units_cache.clear
     @time_units_ps_cache.clear
     @last_buy.clear
-    
+
     sync
   end
 
-  def save_game_winner(players)        
+  def save_game_winner(players)
     winner = players.last
 
     if winner.empty?
       return
     end
-    
+
     winner_data = {
       "name" => get_player_name(winner),
       "public_key" => winner,
       "units" => get_player_time_units(winner).to_s,
       "date" => Time.utc.to_s
     }.to_json
-    
+
     WWWR::R.rpush("game_winners", winner_data)
   end
 
@@ -789,6 +791,15 @@ class Game
   end
 end
 
+def set_cookie(ctx, secret_key)
+  cookie = HTTP::Cookie.new Keys::COOKIE, secret_key
+  cookie.max_age = (10 * 364 * 24 * 60 * 60).seconds
+  cookie.path = "/"
+
+  ctx.request.cookies <<  cookie
+  ctx.response.cookies << cookie
+end
+
 game = Game.new
 game.spawn_loop
 
@@ -805,12 +816,22 @@ before_all do |ctx|
   end
 
   puts "Setup new waiter"
-  cookie = HTTP::Cookie.new Keys::COOKIE, secret_key
-  cookie.max_age = (10 * 364 * 24 * 60 * 60).seconds
-  cookie.path = "/"
+  set_cookie(ctx, secret_key)
+end
 
-  ctx.request.cookies <<  cookie
-  ctx.response.cookies << cookie
+post "/login" do |ctx|
+  key = ctx.params.body["key"].as String
+  if key
+    lookup = game.secret_to_public key
+    if lookup
+      set_cookie ctx, key
+      key
+    else
+      "Error"
+    end
+  else
+    "Error"
+  end
 end
 
 get "/" do |ctx|
