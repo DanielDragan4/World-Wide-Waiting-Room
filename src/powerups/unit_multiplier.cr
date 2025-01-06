@@ -2,7 +2,7 @@ require "../powerup.cr"
 require "./cosmic_breakthrough"
 
 class PowerupUnitMultiplier < Powerup
-  BASE_PRICE = BigFloat.new 5.0
+  BASE_PRICE = BigFloat.new 2.0
   BASE_AMOUNT = BigFloat.new 1.0
   KEY = "unit_multiplier_stack"
 
