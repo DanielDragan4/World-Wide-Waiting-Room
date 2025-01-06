@@ -9,8 +9,9 @@ export default {
     border 
     rounded 
     min-w-96 
+    h-max
     min-h-[300px] 
-    max-h-[600px] 
+    max-h-[800px] 
     overflow-y-auto 
     p-2 
     fixed 
@@ -26,7 +27,7 @@ export default {
       <h1 class="h1 font-bold">{{ title }}</h1>
       <div></div>
     </div>
-    <div class="mt-2">
+    <div class="mt-2 w-full h-full">
       <slot/>
     </div>
   </div>

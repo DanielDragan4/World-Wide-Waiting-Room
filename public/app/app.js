@@ -34,6 +34,7 @@ export default {
     return {
       allPowerups: [],
       leaderboard: [],
+      discordLink: '#',
       history: [],
       timeLeft: 0,
       player: {},
@@ -133,20 +134,18 @@ export default {
   },
   template:`
     <modal title="What is this?" @close="showWhatIsThis=false" v-show="showWhatIsThis">
-    <!--
-      Welcome to a fast-paced, competitive idle game where you race against other players to gather as many units as possible within a set timeframe. Your units increase automatically at a base rate of 1 per second. You can then use them to:
-
-      Acquire Powerups: Increase your production rate and gain an edge over opponents.
-      Sabotage Rivals: Disrupt other players’ progress to slow them down.
-      Defend Yourself: Protect your own production from sabotage attempts.
-      When the timer runs out, the player with the highest unit count is declared the winner and added to a global leaderboard. All units are then reset, the timer restarts, and the competition begins again—giving everyone a fresh start for the next round.    
-      -->
+      Welcome to Idle Cosmos! An online competitive idle game. Be the person with the most "Units" by the end of the timer to win.
+      Use powerups to increase you Unit generation, sabatoge other players, and protect yourself.
+      <br><br>
+      Head over to our <a class="font-bold hover:underline" :href="discordLink">Discord</a> if you have any questions or concerns about the game.
+      <br><br>
+      Good luck!
     </modal>
 
     <modal title="Session" @close="showSession=false" v-show="showSession" >
       <div class="flex flex-col items-center">
-        <h2 class="text-sm">Session Key</h2>
-        <div class="text-xs overflow-y-auto my-2 max-w-[300px] text-center">{{ secret }}</div>
+        <h2 class="text-sm text-center">Use this key to duplicate your session across different devices. Do not share this key with anyone! Acquiring this key allows anyone to play as you.</h2>
+        <div class="text-xs overflow-y-auto mt-4 p-2 border rounded max-w-[300px] text-center">{{ secret }}</div>
 
         <div class="flex flex-col space-y-2 mt-4 items-center">
           <h2 class="text-md">Load Key</h2>
@@ -162,8 +161,8 @@ export default {
     </modal>
 
     <div class="flex flex-col items-center w-full">
-      <div class="font-bold text-4xl text-center mt-1">Idle Royale</div>
-      <a class="font-bold hover:underline" href="#">Join our Discord</a>
+      <div class="font-bold text-4xl text-center mt-1">Idle Cosmos</div>
+      <a class="font-bold hover:underline" :href="discordLink">Join our Discord</a>
     </div>
 
     <div class="
@@ -176,7 +175,7 @@ export default {
       lg:justify-between 
       mx-2 
       my-6
-    ">
+    " v-show="player.time_units !== undefined">
       <div class="max-lg:w-full">
         <div class="flex flex-col space-y-2 lg:absolute lg:w-96 max-lg:w-full lg:top-2 lg:left-2">
           <container class="text-sm text-center">{{ formatTimeString(timeLeft) }}</container>
@@ -259,7 +258,7 @@ export default {
       </div>
     </div>
 
-    <div class="flex flex-col items-center space-y-2 w-96 mx-auto">
+    <div class="flex flex-col items-center space-y-2 w-96 mx-auto" v-show="player.time_units !== undefined">
       <h2 class="text-xl text-center">Name</h2>
       <input @input="updateName" class="rounded p-2 text-2xl text-center bg-[#323237] z-10" v-model="playerName">
       <div class="flex flex-row justify-center">
@@ -278,7 +277,7 @@ export default {
       />
     </div>
 
-    <h1 class="font-bold text-center mt-6">Online Players</h1>
+    <h1 class="font-bold text-center mt-6" v-show="player.time_units !== undefined">Online Players</h1>
     <div class="mt-2 flex flex-row w-full mx-auto flex-wrap justify-center pb-8">
       <card
         v-for="p, i in leaderboard"
