@@ -15,11 +15,13 @@ class PowerupTediousGains < Powerup
   end
 
   def get_name
-    "Tedious Gains"
+    "Von Neumann Probe"
   end
 
   def get_description (public_key)
-    "Increases unit multiplyer rate by 10% with each purchase. Purchase resets unit multipler to 0. Number of Unit Multiplers Needed: #{get_required_multi_price(public_key)} Number purchased: #{get_stack_size(public_key)}"
+    "Increases gains from Territorial Expanse by 10% with each purchase. Purchasing resets Territorial Expanses owned to 0. 
+    <br>Number of Territorial Expanses Needed: #{get_required_multi_price(public_key)} 
+    <br>Number of Von Neumann Probes: #{get_stack_size(public_key)}"
   end
 
   def is_stackable

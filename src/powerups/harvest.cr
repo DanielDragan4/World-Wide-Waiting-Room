@@ -23,7 +23,7 @@ class PowerupHarvest < Powerup
   end
 
   def get_name
-    "Harvest"
+    "Wormhole"
   end
 
   def player_card_powerup_icon (public_key)
@@ -32,7 +32,8 @@ class PowerupHarvest < Powerup
 
   def get_description(public_key)
     units = ((@game.get_player_frame_ups public_key) * HARVEST_TIME).round(0)
-    "Collects the next hour's worth of units with the current unit production for the hour, but pauses unit generation for that hour: #{units} units. Can only be used once every 6 hours."
+    "Collects the next hour's worth of units based on current unit production rate, but pauses unit generation for the next hour. Has a 6 hour cooldown. 
+    <br>Use to gain #{units} units. "
   end
 
   def cooldown_seconds_left(public_key)
