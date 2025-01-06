@@ -9,7 +9,7 @@ class AchievementTypeV < Powerup
   end
 
   def get_name
-    "Type IV Civilization"
+    "Type V Civilization"
   end
 
   def get_description (public_key)
