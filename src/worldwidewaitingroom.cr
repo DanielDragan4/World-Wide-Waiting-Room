@@ -1001,7 +1001,10 @@ ws "/ws" do |socket, context|
     puts "Socket closed"
     WWWR::Channels.delete ({ channel_key, events, public_key })
     events.close
-    game.broadcast_offline public_key
+
+    if !WWWR::Channels.find { |v| v[2] == public_key }
+      game.broadcast_offline public_key
+    end
   end
 end
 

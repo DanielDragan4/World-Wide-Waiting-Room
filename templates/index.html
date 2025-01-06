@@ -4,21 +4,23 @@
     <script src="/htmx.js"></script>
     <script src="/tailwind.js"></script>
     <script type="module" src="/ws.js"></script>
-    <script defer type="module" src="/app/main.js"></script>
+    <script defer type="module" src="/app/main.js?v=5"></script>
 
-    <!-- Place this tag in your head or just before your close body tag. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="/icon.png">
-    <meta property="og:title" content="World Wide Waiting Room" />
-    <meta property="og:description" content="Do nothing and you win! But be careful, others might steal your time." />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta property="og:title" content="Idle Cosmos" />
+    <meta property="og:description" content="A competitive online idle game." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://worldwidewaitingroom.com" />
-    <meta property="og:site_name" content="World Wide Waiting Room" />
+    <meta property="og:url" content="https://idlecosmos.com" />
+    <meta property="og:site_name" content="Idle Cosmos" />
     <meta property="og:locale" content="en_US" />
-    <title>Idle Royale</title>
+
+    <title>Idle Cosmos</title>
   </head>
   <body>
     <div hx-ext="ws" ws-connect="/ws">
@@ -45,6 +47,7 @@
 
         const star = document.createElement("div");
         star.className = "star";
+        star.setAttribute('speed', (Math.floor(Math.random() * 200) + 50) / 10000)
         star.style = `width: ${size}px; height: ${size}px; top: ${y}%; left: ${x}%`;
         stars.appendChild(star);
       }
@@ -54,11 +57,14 @@
       }
 
       setInterval(() => {
-        for (let child of document.querySelector("#stars").children) {
+        const children = document.querySelector("#stars").children;
+        for (let i = 0; i < children.length; i++) {
+          const child = children[i];
           const left = Number(child.style.left.replace("%", ""));
           const top = Number(child.style.top.replace("%", ""));
+          const speed = Number(child.getAttribute('speed'));
 
-          child.style.left = `${left + 0.01}%`;
+          child.style.left = `${left + speed}%`;
 
           if (left > 100) {
             addStar(true);
