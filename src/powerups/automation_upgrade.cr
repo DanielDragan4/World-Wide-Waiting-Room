@@ -32,7 +32,7 @@ class PowerupAutomationUpgrade < Powerup
       actives_since_purchase = [current_actives - actives_at_purchase, 0].max
       current_bonus = ((adjusted_multiplier * 100).round / 100 * actives_since_purchase * 100).round(2)
 
-      "For each active power up, afer purchasing Automation uprgrade, increases your unit production by #{(adjusted_multiplier * 100).round(0)}%. This powerup was purchased (One time purchase).\n
+      "For each active power up, afer purchasing Automation Upgrade, increase your unit production by #{(adjusted_multiplier * 100).round}%. This powerup was purchased (One time purchase).<br>
       Current boost: #{current_bonus}% from #{actives_since_purchase} purchases."
     else
       adjusted_multiplier = new_multiplier(public_key)

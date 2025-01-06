@@ -35,7 +35,8 @@ class PowerupAmishLife < Powerup
   def get_description(public_key)
 
     amount = (get_unit_boost(public_key)) 
-    "When active reduces total unit generation by 90%, but permanently boosts unit production by 2x after being active for 6 hours."
+    "Permanently multiplies unit production by 2x once the duration expires. 
+    <br>However, for the next 8 hours, total unit generation is reduced by 90%."
   end
 
   def get_price (public_key)

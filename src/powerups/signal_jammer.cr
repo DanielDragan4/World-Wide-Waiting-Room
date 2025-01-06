@@ -30,7 +30,7 @@ class PowerupSignalJammer < Powerup
 
   def get_description (public_key)
     time = get_synergy_boosted_multiplier public_key, BigFloat.new AfflictPowerupSignalJammer::COOLDOWN
-    "Reduce a target player's unit production by 50% for #{time / 60} minutes. The price increases multiplicatively."
+    "Reduce a target player's unit production by 50% for #{(time / 60).round(2)} minutes. The price increases multiplicatively."
   end
 
   def get_price (public_key)

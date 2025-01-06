@@ -14,7 +14,7 @@ class PowerupSchrodinger < Powerup
   end
 
   def get_name
-    "Schrodinger"
+    "Schrödinger"
   end
 
   # def new_base_percent_increase(public_key) : Float64
@@ -27,7 +27,10 @@ class PowerupSchrodinger < Powerup
       multi = 0
     end
 
-    "Like Schrodinger's cat, both the win and lose of units is true. You won't know until you risk your units.\nCurrent Probability of winning: #{((1-get_bet_prob(public_key))*100)}% \nCurrent Bet Precentage: #{(get_bet_amount(public_key)*100)}% \nCurrent Winning multi: #{(multi + 2).round(2)}"
+    "Much like Schrödinger's cat, the outcome of your gamble - whether you win or lose units - exists in uncertainty until you take the risk.
+    <br>Current Probability of winning: #{((1-get_bet_prob(public_key))*100)}% 
+    <br>Current Bet Precentage: #{(get_bet_amount(public_key)*100)}% 
+    <br>Current Winning Multiplier: #{(multi + 2).round(2)}"
   end
 
   def get_price (public_key)
