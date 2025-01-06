@@ -20,7 +20,7 @@ class PowerupAmishLife < Powerup
   end
 
   def get_name
-    "Amish Life"
+    "Fremin Life"
   end
 
   def get_popup_info (public_key) : PopupInfo
@@ -35,7 +35,8 @@ class PowerupAmishLife < Powerup
   def get_description(public_key)
 
     amount = (get_unit_boost(public_key)) 
-    "Multiplies unit production by 2x when is active for 8 hours. When active reduces total unit generation by 90%."
+    "Permanently multiplies unit production by 2x once the duration expires. 
+    <br>However, for the next 8 hours, total unit generation is reduced by 90%."
   end
 
   def get_price (public_key)

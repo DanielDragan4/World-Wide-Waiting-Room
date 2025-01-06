@@ -8,7 +8,7 @@ class PowerupUnitVault < Powerup
   VAULT_UNITS_KEY = "unit_vault_stored_units"
   VAULT_TIMESTAMP_KEY = "unit_vault_timestamp"
   VAULT_GENERATION_RATE_KEY = "unit_vault_generation_rate"
-  VAULT_DURATION = 36 
+  VAULT_DURATION = 60 * 60
 
   def category
     PowerupCategory::DEFENSIVE
@@ -65,12 +65,12 @@ class PowerupUnitVault < Powerup
     vault_units = get_vaulted_units(public_key)
     time_remaining = get_time_remaining(public_key)
   
-    description = "Store 50% of your current units in a vault for the next hour. These units are immune to all effects (both friendly and hostile) and cannot be used until the timer runs out. \n
-    Unit generation on vaulted units is decreased to 50% of current base production (including all passive effects at time of purchase)."
+    description = "Store 50% of your current units in a vault for the next hour. These units are immune to all effects (both friendly and hostile) and cannot be used until the timer runs out.
+    Unit generation on vaulted units is decreased to 50% of current base production (including all passive effects at time of purchase).<br>"
   
     if vault_units > 0
-      description += "Currently Vaulted: #{format_vaulted_units vault_units} units\n "
-      description += "Time Remaining: #{format_time(time_remaining)}"
+      description += "<br>Currently Vaulted: #{format_vaulted_units vault_units} units\n "
+      description += "<br>Time Remaining: #{format_time(time_remaining)}"
     end
     return description
   end
