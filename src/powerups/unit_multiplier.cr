@@ -21,12 +21,12 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def get_name
-    "Unit Multiplier"
+    "Territorial Expanse"
   end
 
   def get_description (public_key)
     adjusted_multiplier = new_multiplier(public_key)
-    "Increases unit production by #{(adjusted_multiplier).round(2)} with each purchase. Price increases multiplicatively. Number purchased: #{get_player_stack_size(public_key)}"
+    "Increases base unit production by #{(adjusted_multiplier).round(2)} with each purchase. <br>Price increases multiplicatively. <br>Number purchased: #{get_player_stack_size(public_key)}"
   end
 
   def is_stackable

@@ -21,16 +21,16 @@ class PowerupBreach < Powerup
   end
 
   def input_button_text (public_key)
-    "Breach"
+    "Hull Breach"
   end
 
   def get_name
-    "Breach"
+    "Hull Breach"
   end
 
   def get_description (public_key)
     time = get_synergy_boosted_multiplier public_key, BigFloat.new AfflictPowerupBreach::COOLDOWN
-    "Disabled all of a player's passive powerups for #{time / 60} minutes. Price increases exponentially."
+    "Disables all of a selected player's passive powerups for #{(time / 60).round} minutes. Price increases exponentially."
   end
 
   def get_price (public_key)
