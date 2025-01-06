@@ -3,8 +3,8 @@ require "../powerup"
 class PowerupBootStrap < Powerup
   STACK_KEY = "bootstrap_stack"
   COOLDOWN_KEY = "bootstrap_cooldown"
-  COOLDOWN_TIME = 6#0 * 60 * 6
-  BASEPRICE = BigFloat.new 5#000
+  COOLDOWN_TIME = 60 * 60 * 6
+  BASEPRICE = BigFloat.new 5000
   COST_PERCENTAGE = 0.15
   BASE_PERCENT_INCREASE = BigFloat.new 0.05
 
