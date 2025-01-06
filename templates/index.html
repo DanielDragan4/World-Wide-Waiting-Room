@@ -57,7 +57,9 @@
       }
 
       setInterval(() => {
-        for (let child of document.querySelector("#stars").children) {
+        const children = document.querySelector("#stars").children;
+        for (let i = 0; i < children.length; i++) {
+          const child = children[i];
           const left = Number(child.style.left.replace("%", ""));
           const top = Number(child.style.top.replace("%", ""));
           const speed = Number(child.getAttribute('speed'));

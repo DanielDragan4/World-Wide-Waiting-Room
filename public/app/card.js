@@ -97,7 +97,7 @@ export default {
             :src="icon.icon" 
             class="w-[22px]"
           >
-          <div class="absolute text-white bg-black rounded p-1 invisible group-hover:visible ease-in flex flex-col max-w-48 min-w-48 -left-20 text-center">
+          <div class="absolute text-white bg-black rounded p-1 invisible group-hover:visible ease-in flex flex-col max-w-48 min-w-48 -left-20 text-center z-[1000]">
             <h3>{{ icon.name }}</h3>
             <div class="flex flex-col space-y-1 items-center">
               <div v-for="[k, v] in popupInfo(icon.powerup)" class="flex flex-row space-x-2">
