@@ -236,7 +236,7 @@ export default {
               <h3 class="text-sm font-bold">\${{ formatNumber(powerup.price) }}</h3>
               <div class="my-2 text-center" v-html="powerup.description"></div>
               <cbutton @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
-              <div v-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
+              <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
                 <span>Next purchase</span>
                 <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
               </div>
