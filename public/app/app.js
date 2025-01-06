@@ -32,6 +32,8 @@ export default {
 
   data() {
     return {
+      alteration: null,
+      alterations: [],
       allPowerups: [],
       leaderboard: [],
       discordLink: '#',
@@ -52,6 +54,16 @@ export default {
   watch: {
     playerName(name) {
       this.submitForm('/name', { name })
+    },
+
+    playerCanAlterUniverse(v) {
+      if (v) {
+        fetch("/altercosmos")
+          .then((x) => x.json())
+          .then((x) => {
+            this.alterations = x.alterations
+          })
+      }
     }
   },
 
@@ -64,10 +76,18 @@ export default {
       return this.allPowerups
         .filter((x) => !x.is_achievement_powerup)
         .sort((a, b) => a.name > b.name ? 1 : -1)
+    },
+
+    playerCanAlterUniverse() {
+      return this.player.player_can_alter_universe;
     }
   },
 
   methods: {
+    applyChange(alteration) {
+      this.submitForm('/altercosmos', { alteration });
+    },
+
     loadSessionKey() {
       this.submitForm('/login', { key: this.newKey })
         .then((v) => v.text())
@@ -157,6 +177,25 @@ export default {
           >
           <cbutton @click="loadSessionKey()">Load</cbutton>
         </div>
+      </div>
+    </modal>
+
+    <modal title="Alter the Cosmos" :no-close="true" v-if="playerCanAlterUniverse">
+      <h1 class="text-center text-lg font-bold">Congratulations, you won this cycle!</h1>
+      <p class="mt-2 text-center">
+        You can now modify one foundational mechanic in the game. This change will get applied to all other players during the next cycle.
+        Choose wisely.
+      </p>
+      
+      <h2 class="text-md text-center font-bold mt-4">Modification Options</h2>
+      <div class="flex flex-col space-y-2 items-center my-4">
+        <div class="flex flex-row space-x-2" v-for="alteration of alterations">
+          <input v-model="alteration" type="radio" name="change" value="test">
+          <label>{{ alteration.text }}</label>
+        </div>
+      </div>
+      <div class="flex justify-center">
+        <cbutton @click="applyChange()">Apply</cbutton>
       </div>
     </modal>
 

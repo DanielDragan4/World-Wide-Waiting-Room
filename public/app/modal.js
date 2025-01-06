@@ -1,6 +1,7 @@
 export default {
   props: {
-    title: String
+    title: String,
+    noClose: Boolean,
   },
   template: `
   <div class="
@@ -21,9 +22,10 @@ export default {
     -translate-y-1/2
   ">
     <div class="flex flex-row justify-between items-center">
-      <button @click="$emit('close')" class="bg-none border-none">
+      <button v-if="!noClose" @click="$emit('close')" class="bg-none border-none">
         x
       </button>
+      <div v-else></div>
       <h1 class="h1 font-bold">{{ title }}</h1>
       <div></div>
     </div>

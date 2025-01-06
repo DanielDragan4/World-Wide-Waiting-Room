@@ -43,16 +43,17 @@
         }
         const x = Math.floor(Math.random() * max)
         const y = Math.floor(Math.random() * 100)
-        const size = Math.floor(Math.random() * 2);
+        const speed = (Math.floor(Math.random() * 200) + 50) / 10000
+        const size = Math.floor(Math.random() * 2) + (150 * speed);
 
         const star = document.createElement("div");
         star.className = "star";
-        star.setAttribute('speed', (Math.floor(Math.random() * 200) + 50) / 10000)
+        star.setAttribute('speed', speed) 
         star.style = `width: ${size}px; height: ${size}px; top: ${y}%; left: ${x}%`;
         stars.appendChild(star);
       }
 
-      for (let i = 0; i < 500; i++) {
+      for (let i = 0; i < 200; i++) {
         addStar(false);
       }
 

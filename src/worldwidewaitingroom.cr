@@ -66,12 +66,13 @@ module Events
     }.to_json
   end
 
-  def self.sync (leaderboard, player_data, powerups, time_left) : String
+  def self.sync (leaderboard, player_data, powerups, time_left, universe_change_log) : String
     {
       "event" => "sync",
       "leaderboard" => leaderboard,
       "time_left" => time_left,
       "player" => player_data,
+      "universe_change_log" => universe_change_log,
       "powerups" => powerups
     }.to_json
   end
@@ -85,6 +86,8 @@ module Keys
   UNIT_GEN_DISABLED = "unit_gen_disabled"
   TIME_LEFT = "time_left"
   COOKIE = "token"
+  UNIVERSE_CHANGE_LOG = "universe_change_log"
+  PLAYER_CAN_ALTER_UNIVERSE = "player_can_alter_universe"
   GLOBAL_VARS = "global_vars"
   LAST_FRAME_TIME = "frame_time"
   LEADERBOARD = "online-leaderboard"
@@ -117,6 +120,8 @@ class Game
 
   @time_units_cache = Hash(Public, BigFloat).new
   @time_units_ps_cache = Hash(Public, BigFloat).new
+
+  @universe_change_log : Array(Hash(String, String)) | Nil = nil
 
   @last_buy = Hash(Public, BigFloat).new
 
@@ -186,6 +191,32 @@ class Game
     end
 
     update_frame_time
+  end
+
+  def get_universe_change_log
+    if @universe_change_log != nil
+      return @universe_change_log
+    end
+
+    cache_universe_change_log
+
+    if @universe_change_log
+      @universe_change_log
+    else
+      Array(Hash(String, String)).new
+    end
+  end
+
+  def cache_universe_change_log
+    change_log = WWWR::R.lrange Keys::UNIVERSE_CHANGE_LOG, 0, -1
+    @universe_change_log = change_log.map { |x| Hash(String, String).from_json (x.to_s) }
+  end
+
+  def log_universe_change(public_key : String, change : String)
+    date = Time.utc.to_unix.to_s
+    json_data = { "public_key" => public_key, "player_name" => (get_player_name public_key), "change" => change, "timestamp" => date }.to_json
+    WWWR::R.rpush Keys::UNIVERSE_CHANGE_LOG, json_data
+    cache_universe_change_log
   end
 
   def get_powerup_classes
@@ -465,7 +496,7 @@ class Game
     WWWR::Channels.each do |c|
       if c[2] == public_key && !c[1].closed?
         begin
-          sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), (get_time_left)
+          sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), (get_time_left), (get_universe_change_log)
           c[1].send sync_data
         rescue e
           puts "Error during sync player #{public_key} #{e}"
@@ -481,7 +512,7 @@ class Game
         public_key = c[2]
         next if channel.closed?
         begin
-          sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), get_time_left
+          sync_data = Events.sync get_leaderboard, (get_data_for public_key), (get_serialized_powerups public_key), get_time_left, get_universe_change_log
           channel.send sync_data
         rescue e
           puts "Error during sync #{e}"
@@ -605,9 +636,11 @@ class Game
     player_text_color = Redis::Future.new
     tps = Redis::Future.new
     metadata = Redis::Future.new
+    player_can_alter_universe = Redis::Future.new
 
     WWWR::R.pipelined do |r|
       time_units = r.hget(Keys::PLAYER_TIME_UNITS, public_key)
+      player_can_alter_universe = r.hget(Keys::PLAYER_CAN_ALTER_UNIVERSE, public_key)
       player_name = r.hget(Keys::PLAYER_NAME, public_key)
       player_bg_color = r.hget(Keys::PLAYER_BG_COLOR, public_key)
       player_text_color = r.hget(Keys::PLAYER_TEXT_COLOR, public_key)
@@ -661,6 +694,7 @@ class Game
       Keys::PLAYER_METADATA => metadata.value,
       Keys::PLAYER_CARD_CSS_CLASSES => css_classes,
       Keys::PLAYER_POWERUP_ICONS => powerup_icons,
+      Keys::PLAYER_CAN_ALTER_UNIVERSE => player_can_alter_universe.value.to_s != "",
     }
   end
 
@@ -746,6 +780,7 @@ class Game
     }.to_json
 
     WWWR::R.rpush(Keys::GAME_WINNERS, winner_data)
+    WWWR::R.hset(Keys::PLAYER_CAN_ALTER_UNIVERSE, winner, "yes")
   end
 
   def update_for (public_key : String)
@@ -853,6 +888,47 @@ get "/history" do |ctx|
   game.get_game_history.to_json
 end
 
+get "/altercosmos" do |ctx|
+  ctx.response.headers["Content-Type"] = "application/json"
+  public_key = game.get_public_key_from_ctx ctx
+  if !public_key
+    ctx.response.status_code = 401
+    { "error" => "invalid key" }.to_json
+  else
+    data = game.get_data_for public_key
+    if data[Keys::PLAYER_CAN_ALTER_UNIVERSE] == true
+      {
+        "alterations" => [
+          { "text" => "Game tick speed" },
+          { "text" => "Game tick speed" },
+          { "text" => "Game tick speed" },
+        ]
+      }.to_json
+    else
+      ctx.response.status_code = 401
+      { "error" => "You cannot alter the cosmos." }.to_json
+    end
+  end
+end
+
+post "/altercosmos" do |ctx|
+  public_key = game.get_public_key_from_ctx ctx
+  if !public_key
+    ctx.response.status_code = 401
+    "Error"
+  else
+    data = game.get_data_for public_key
+    if data[Keys::PLAYER_CAN_ALTER_UNIVERSE] == true
+      WWWR::R.hdel Keys::PLAYER_CAN_ALTER_UNIVERSE, public_key
+      game.sync
+      "You have altered the universe."
+    else
+      ctx.response.status_code = 401
+      "Error"
+    end
+  end
+end
+
 get "/" do |ctx|
   public_key = game.get_public_key_from_ctx ctx
 
@@ -860,8 +936,6 @@ get "/" do |ctx|
     "Error."
   else
     templates.render "index.html", ({
-      "data" => (game.get_data_for public_key),
-      "time_left" => game.get_time_left,
       "secret" => secret_key = ctx.request.cookies[Keys::COOKIE].value
     })
   end

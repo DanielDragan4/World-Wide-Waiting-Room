@@ -49,12 +49,8 @@ export default {
 
     time_units_large() {
       let tu = this.time_units
-      let power = 0;
-
-      while (tu > 10) {
-        tu /= 10
-        power++
-      }
+      const power = Math.floor(Math.log10(tu))
+      tu = tu / (10 ** power)
 
       return { time_units: tu.toFixed(5), power }
     },
