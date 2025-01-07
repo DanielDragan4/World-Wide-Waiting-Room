@@ -58,7 +58,10 @@ class PowerupOverCharge < Powerup
     p1 = BigFloat.new (unit_ps_price_multi * BASE_PRICE)
     p2 = BigInt.new (((active_stack + 1) /2 ) * 3)
 
-    (p1 * (stack_size ** p2)).round(2)
+    price = (p1 * (stack_size ** p2)).round(2)
+
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage price, BigFloat.new alterations.active_price
   end
 
   def is_available_for_purchase(public_key)

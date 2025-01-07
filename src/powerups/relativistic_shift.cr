@@ -25,10 +25,10 @@ class PowerupRelativisticShift < Powerup
     "Relativistic Shift"
   end
 
-  def is_stackable  
+  def is_stackable
     false
   end
-  
+
 
   def get_popup_info (public_key) : PopupInfo
     durations = @game.get_key_value_as_int public_key, KEY_DURATION
@@ -45,8 +45,11 @@ class PowerupRelativisticShift < Powerup
   end
 
   def get_price (public_key)
+    alterations = @game.get_cached_alterations
     stack_size = get_player_stack_size(public_key)
-    price = BASE_PRICE  * (stack_size ** 7)
+
+    price = BASE_PRICE  * (stack_size ** (BigInt.new 7))
+    price = @game.increase_number_by_percentage price, BigFloat.new alterations.passive_price
     price.round(2)
   end
 
@@ -109,7 +112,7 @@ class PowerupRelativisticShift < Powerup
     if public_key
 
       durations = @game.get_key_value_as_float public_key, KEY_DURATION
-      if (!durations.nil?) 
+      if (!durations.nil?)
         duration = durations
         current_time = @game.ts
 

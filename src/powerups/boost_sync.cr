@@ -33,7 +33,8 @@ class PowerupBoostSync < Powerup
 
     price = (BASE_PRICE * units_ps * purchased_passives_multi)
 
-    return price
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage price, BigFloat.new alterations.active_price
   end
 
   def player_card_powerup_icon(public_key)
@@ -42,14 +43,14 @@ class PowerupBoostSync < Powerup
 
   def get_popup_info(public_key) : PopupInfo
     pi = PopupInfo.new
-    
+
     if !@game.get_key_value(public_key, KEY_DURATION).nil?
       durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
       if !durations.empty?
         pi["Time Left"] = (force_big_int(durations[0][0]) - @game.ts).to_s
       end
     end
-    
+
     pi
   end
 
@@ -65,7 +66,7 @@ class PowerupBoostSync < Powerup
     compound_interest_boost = get_compound_interest_boost(public_key)
 
     total_multiplier = unit_multiplier * compound_interest_boost
-    
+
     total_multiplier
   end
 
@@ -92,7 +93,7 @@ class PowerupBoostSync < Powerup
 
         durations = Array(Array(String)).new
         durations << [((@game.ts + DURATION).to_s), "1"]
-        
+
         @game.set_key_value(public_key, KEY_DURATION, durations.to_json)
         @game.add_powerup(public_key, PowerupBoostSync.get_powerup_id)
         @game.add_active(public_key)
@@ -110,11 +111,11 @@ class PowerupBoostSync < Powerup
     if @game.get_key_value(public_key, KEY_DURATION)
       # Dynamically calculate passive multiplier each time action runs
       passive_multiplier = calculate_passive_multiplier(public_key)
-      
+
       # Apply passive boost
       unit_rate = BigFloat.new(@game.get_player_time_units_ps(public_key))
       boost_rate = (unit_rate * passive_multiplier) - unit_rate
-      
+
       @game.inc_time_units_ps(public_key, boost_rate)
     end
   end
@@ -130,7 +131,7 @@ class PowerupBoostSync < Powerup
 
           if duration <= current_time
             durations.delete_at(0)
-            
+
             if durations.empty?
               @game.set_key_value(public_key, KEY_DURATION, "")
               @game.remove_powerup(public_key, PowerupBoostSync.get_powerup_id)

@@ -32,7 +32,7 @@ class PowerupHarvest < Powerup
 
   def get_description(public_key)
     units = ((@game.get_player_frame_ups public_key) * HARVEST_TIME).round(0)
-    "Collects the next hour's worth of units based on current unit production rate, but pauses unit generation for the next hour. Has a 6 hour cooldown. 
+    "Collects the next hour's worth of units based on current unit production rate, but pauses unit generation for the next hour. Has a 6 hour cooldown.
     <br>Use to gain #{units} units. "
   end
 
@@ -53,7 +53,8 @@ class PowerupHarvest < Powerup
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
     price = (BASE_PRICE * (stack_size ** 4)).round(2)
-    BigFloat.new price
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage price, BigFloat.new alterations.active_price
   end
 
   def is_available_for_purchase(public_key)

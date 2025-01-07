@@ -2,7 +2,7 @@ require "../powerup"
 require "./afflict_breach.cr"
 
 class PowerupBreach < Powerup
-  BASE_PRICE = 3_000
+  BASE_PRICE = BigFloat.new 3_000
 
   def category
     PowerupCategory::SABATOGE
@@ -35,7 +35,9 @@ class PowerupBreach < Powerup
 
   def get_price (public_key)
     price = BASE_PRICE * 2 ** (@game.get_powerup_stack public_key, PowerupBreach.get_powerup_id)
-    (BigFloat.new price).round 2
+    alterations = @game.get_cached_alterations
+    price = @game.increase_number_by_percentage price, BigFloat.new alterations.sabatoge_price
+    price.round 2
   end
 
   def is_available_for_purchase (public_key)

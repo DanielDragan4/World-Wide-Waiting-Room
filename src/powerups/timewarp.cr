@@ -26,7 +26,7 @@ class PowerupTimeWarp < Powerup
     "Time Warp"
   end
 
-  def is_stackable  
+  def is_stackable
     true
   end
 
@@ -52,6 +52,10 @@ class PowerupTimeWarp < Powerup
     unit_ps_price_multi = (unit_ps / 100000) + 1
     active_stack = (@game.get_key_value_as_int public_key, ACTIVE_STACK_KEY)
     price = (BASE_PRICE * unit_ps_price_multi) * (stack_size ** (((active_stack + 1) / 2) * 4))
+
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage price, BigFloat.new alterations.active_price
+
     price.round(2)
   end
 

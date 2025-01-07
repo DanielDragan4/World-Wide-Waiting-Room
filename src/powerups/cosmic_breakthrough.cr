@@ -47,7 +47,9 @@ class PowerupCosmicBreak < Powerup
   end
 
   def get_price(public_key, stack_size)
-    BigFloat.new PRICES[stack_size]
+    price = BigFloat.new PRICES[stack_size]
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage price, BigFloat.new alterations.passive_price
   end
 
   def is_available_for_purchase(public_key)

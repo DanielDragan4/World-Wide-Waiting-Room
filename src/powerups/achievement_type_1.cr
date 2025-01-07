@@ -13,18 +13,23 @@ class AchievementTypeI < Powerup
   end
 
   def get_description (public_key)
-    "Reach 4 * 10<sup class=\"font-bold\">12</sup> units.<br>Gives a permanent 100 units/s boost."
+    "Gives a permanent 100 units/s boost."
   end
 
   def is_achievement_powerup (public_key)
     true
   end
 
+  def get_price (public_key : String)
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage(UNITS_MILESTONE, BigFloat.new(alterations.achievement_goal))
+  end
+
   def action (public_key, dt)
     pu_id = AchievementTypeI.get_powerup_id
     if !(@game.has_powerup public_key, pu_id)
       tu = @game.get_player_time_units public_key
-      if tu >= UNITS_MILESTONE
+      if tu >= get_price public_key
         @game.add_powerup public_key, pu_id
         @game.send_animation_event public_key, Animation::NUMBER_FLOAT, { "value" => "Type I Civilization Achieved", "color" => "#05FF05" }
       end

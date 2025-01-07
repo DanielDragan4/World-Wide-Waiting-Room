@@ -13,7 +13,7 @@ class PowerupAmishLife < Powerup
 
   def category
     PowerupCategory::PASSIVE
-  end 
+  end
 
   def self.get_powerup_id
     "amish_life"
@@ -34,13 +34,14 @@ class PowerupAmishLife < Powerup
 
   def get_description(public_key)
 
-    amount = (get_unit_boost(public_key)) 
-    "Permanently multiplies unit production by 2x once the duration expires. 
+    amount = (get_unit_boost(public_key))
+    "Permanently multiplies unit production by 2x once the duration expires.
     <br>However, for the next 8 hours, total unit generation is reduced by 90%."
   end
 
   def get_price (public_key)
-    BASE_PRICE
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage BASE_PRICE, BigFloat.new alterations.passive_price
   end
 
   def player_card_powerup_icon (public_key)
@@ -65,7 +66,7 @@ class PowerupAmishLife < Powerup
     return 1.0 if get_player_stack_size(public_key) == 0
     stack = get_player_stack_size(public_key)
     multiplyer = UNIT_MULTIPLIER ** stack
-    
+
     multiplyer
   end
 
@@ -75,7 +76,7 @@ class PowerupAmishLife < Powerup
       if is_available_for_purchase(public_key)
         price = get_price(public_key)
         puts "Started Fremen Life!"
-        
+
         @game.inc_time_units(public_key, -price)
 
         a_s = get_player_active_stack_size(public_key)
@@ -105,7 +106,7 @@ class PowerupAmishLife < Powerup
   def action (public_key, dt)
     if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
         unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
-        
+
         active_stack = get_player_active_stack_size(public_key)
         duration = @game.get_key_value_as_int(public_key, KEY_DURATION, BigInt.new 0)
         amish_rate = (unit_rate * (get_unit_boost(public_key))) - unit_rate
@@ -132,7 +133,7 @@ class PowerupAmishLife < Powerup
 
         @game.set_key_value(public_key, KEY_DURATION, "0")
         new_stack = current_stack + 1
-        @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)      
+        @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
     end
   end
 end

@@ -45,7 +45,8 @@ class PowerupAutomationUpgrade < Powerup
   end
 
   def get_price(public_key)
-    BigFloat.new BASE_PRICE
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage BASE_PRICE, BigFloat.new alterations.active_price
   end
 
   def is_available_for_purchase(private_key)

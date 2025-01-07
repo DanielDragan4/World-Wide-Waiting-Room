@@ -26,7 +26,7 @@ export default {
   template: `
     <div v-if="!isLarge" :class="classes">{{ smallRep }}</div>
     <div v-else :class="classes">
-      <div class="flex flex-row items-center space-x-2">
+      <div class="flex flex-row items-center space-x-1">
         <span>{{ bigRep.value }}</span>
         <span>x</span>
         <span>10</span>
