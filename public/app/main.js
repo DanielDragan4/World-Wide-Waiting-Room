@@ -1,10 +1,10 @@
 import { createApp } from '/vue.js'
 
-import App from "/app/app.js?v=3"
-import Card from "/app/card.js?v=1"
-import Container from "/app/container.js?v=1"
-import Button from "/app/button.js?v=1"
-import Modal from "/app/modal.js?v=1"
+import App from "/app/app.js?v=4"
+import Card from "/app/card.js?v=4"
+import Container from "/app/container.js?v=4"
+import Button from "/app/button.js?v=4"
+import Modal from "/app/modal.js?v=4"
 
 const worker = new Worker("/worker.js") 
 
