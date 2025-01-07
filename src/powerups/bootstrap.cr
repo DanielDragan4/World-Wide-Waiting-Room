@@ -17,7 +17,7 @@ class PowerupBootStrap < Powerup
   end
 
   def get_name
-    "Boot Strap"
+    "Terraform"
   end
 
   def is_stackable
@@ -29,7 +29,13 @@ class PowerupBootStrap < Powerup
   end
 
   def new_base_percent_increase(public_key) : BigFloat
-    get_synergy_boosted_multiplier(public_key, (percent_increase public_key))
+    precentage = get_synergy_boosted_multiplier(public_key, (percent_increase public_key))
+
+    if precentage > 5
+      precentage = 5.0
+      precentage = BigFloat.new precentage
+    end
+    precentage
   end
 
   def next_units_inc (public_key)
@@ -65,7 +71,7 @@ class PowerupBootStrap < Powerup
     if is_available_for_purchase(public_key)
       puts "Purchased Burst Boost!"
 
-      next_inc = next_units_inc public_key
+      next_inc = (next_units_inc public_key)
 
       @game.inc_time_units public_key, -(get_price public_key) + next_inc
       @game.set_timer public_key, COOLDOWN_KEY, COOLDOWN_TIME
@@ -74,7 +80,7 @@ class PowerupBootStrap < Powerup
       new_stack = (get_player_stack_size public_key) + 1
       @game.set_key_value(public_key, STACK_KEY, new_stack.to_s)
     else
-      puts "Your out of BootStraps today :(. Come back tommorow for another!"
+      puts "Your out of Terraforms today :(. Come back tommorow for another!"
     end
   end
 

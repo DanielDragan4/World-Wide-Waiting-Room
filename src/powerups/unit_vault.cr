@@ -69,7 +69,7 @@ class PowerupUnitVault < Powerup
     Unit generation on vaulted units is decreased to 50% of current base production (including all passive effects at time of purchase).<br>"
   
     if vault_units > 0
-      description += "<br>Currently Vaulted: #{format_vaulted_units vault_units} units\n "
+      description += "<br>Currently Vaulted: #{(format_vaulted_units vault_units.round(2))} units\n "
       description += "<br>Time Remaining: #{format_time(time_remaining)}"
     end
     return description
