@@ -109,10 +109,6 @@ export default {
         })
     },
 
-    formatNumber(n) {
-      return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    },
-
     buy(powerup) {
       this.submitForm('/buy', { powerup })
     },
@@ -246,7 +242,7 @@ export default {
               class="grid grid-cols-3 text-center w-full items-center"
             >
               <span class="font-bold text-sm">{{ x.name }}</span>
-              <span class="font-bold text-sm">{{ formatNumber(x.units) }}</span>
+              <format-number class="font-bold text-xs" :number="x.units" />
               <span class="font-bold text-sm">{{ x.date }}</span>
             </container>
           </container>
@@ -271,7 +267,7 @@ export default {
             >
               <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
               <h2 class="text-xs">{{ powerup.category }}</h2>
-              <h3 class="text-sm font-bold">\${{ formatNumber(powerup.price) }}</h3>
+              <format-number class="font-bold text-xs" :number="powerup.price" />
               <div class="my-2 text-center" v-html="powerup.description"></div>
               <cbutton @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
               <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">

@@ -47,6 +47,14 @@ templates = Templates.new
 
 ONE_WEEK = 604800
 
+ALTERATIONS = {
+  "alterations" => [
+    { "text" => "Game tick speed" },
+    { "text" => "Game tick speed" },
+    { "text" => "Game tick speed" },
+  ]
+}
+
 module WWWR
   R = Redis::PooledClient.new
   Channels = Set(Tuple(String, Channel(ChannelValueType), Public)).new
@@ -286,6 +294,7 @@ class Game
           "currently_owns" => (player_powerups.includes? key),
         }
       rescue e
+        puts e.backtrace.join "\n"
         puts "POWERUP SERIALIZATION ERROR: Failed to serialize powerup #{key} with error #{e}"
       end
     end
@@ -314,6 +323,7 @@ class Game
         begin
           powerup_class.action public_key, dt
         rescue e
+          puts "#{e.backtrace}"
           puts "POWERUP ACTION ERROR: Failed to execute powerup #{powerup_class.get_name} with error #{e}. Skipping."
         end
       end
@@ -889,6 +899,9 @@ get "/history" do |ctx|
 end
 
 get "/altercosmos" do |ctx|
+  # 1. Alter game duration
+  # 2. Base Units/s
+  # 3. Increase price of powerup category by N%
   ctx.response.headers["Content-Type"] = "application/json"
   public_key = game.get_public_key_from_ctx ctx
   if !public_key
@@ -897,13 +910,7 @@ get "/altercosmos" do |ctx|
   else
     data = game.get_data_for public_key
     if data[Keys::PLAYER_CAN_ALTER_UNIVERSE] == true
-      {
-        "alterations" => [
-          { "text" => "Game tick speed" },
-          { "text" => "Game tick speed" },
-          { "text" => "Game tick speed" },
-        ]
-      }.to_json
+      ALTERATIONS.to_json
     else
       ctx.response.status_code = 401
       { "error" => "You cannot alter the cosmos." }.to_json
