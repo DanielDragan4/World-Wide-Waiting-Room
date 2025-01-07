@@ -7,7 +7,7 @@ class PowerupAmishLife < Powerup
   ACTIVE_STACK_KEY = "amish_active_stack"
   BASE_PRICE = BigFloat.new 1.0
   UNIT_MULTIPLIER = BigFloat.new 2.0
-  DURATION = 60 * 60 * 8
+  DURATION = 60 * 60 * 6
   KEY_DURATION = "amish_life_duration"
   DEBUFF_RATE = 0.1
 
@@ -20,7 +20,7 @@ class PowerupAmishLife < Powerup
   end
 
   def get_name
-    "Fremin Life"
+    "Fremen Life"
   end
 
   def get_popup_info (public_key) : PopupInfo
@@ -74,7 +74,7 @@ class PowerupAmishLife < Powerup
     if public_key
       if is_available_for_purchase(public_key)
         price = get_price(public_key)
-        puts "Started Amish Life!"
+        puts "Started Fremen Life!"
         
         @game.inc_time_units(public_key, -price)
 

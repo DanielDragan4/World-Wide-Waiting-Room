@@ -8,13 +8,13 @@ class PowerupCosmicBreak < Powerup
   KEY = "cosmic_break_stack"
   SYNERGY_VALUES = [1.0, 2.5, 4.0, 6.0, 8.0, 10.0, 0]
   UNIT_VALUES = [1.0, 5.0, 15.0, 30.0, 50.0, 75.0, 0]
+  PRICES = [4e12, 4e26, 4e37, 4e46, 4e57, 0]
 
   def get_stack_size(public_key : String) : BigInt
     @game.get_key_value_as_int(public_key, KEY, BigInt.new 0)
   end
 
   def get_unit_boost(public_key : String, base_amount : BigFloat) : BigFloat
-
     stack_size = get_stack_size(public_key)
     unit_boost = UNIT_VALUES[stack_size] * base_amount
 
@@ -39,25 +39,25 @@ class PowerupCosmicBreak < Powerup
 
   def get_description(public_key)
     stack_size = get_stack_size(public_key)
-    "Resets Unit Multiplyer, Synergy Matrix, Automation Upgrade, and Tedious Gains to 0 but increase their base rate by some multiple. Current Civilization Type: #{stack_size} | Next Synergy Precent: #{SYNERGY_VALUES[stack_size+1]*10}% | Next Unit Multiplyer Rate: #{UNIT_VALUES[stack_size+1]}"
+    "Resets Territorial Expanse, Synergy Matrix, Automation Upgrade, and von Neumann probe to 0 but increases their base rate by some multiple. Requires getting the designated Type Achievement before each purchase, <br> Current Civi Type: #{stack_size} <br> Next Synergy Precent: #{SYNERGY_VALUES[stack_size+1]*10}% <br> Next Unit Multiplyer Rate: #{UNIT_VALUES[stack_size+1]}"
   end
 
   def category
     PowerupCategory::PASSIVE
   end
 
-  def get_price(public_key)
-    stack_size = get_stack_size(public_key) + 1
-    price = BASE_PRICE * ((stack_size) **(3 + (stack_size ** 2.25)))
-    BigFloat.new price
+  def get_price(public_key, stack_size)
+    BigFloat.new PRICES[stack_size]
   end
 
   def is_available_for_purchase(public_key)
-    price = get_price(public_key)
-    units = @game.get_player_time_units(public_key)
     stack_size = get_stack_size(public_key)
+    price = get_price(public_key, stack_size)
+    units = @game.get_player_time_units(public_key)
 
-    available = (units > price) && (stack_size < 5)
+    pu_id = [AchievementTypeI.get_powerup_id, AchievementTypeII.get_powerup_id, AchievementTypeIII.get_powerup_id, AchievementTypeIV.get_powerup_id, AchievementTypeV.get_powerup_id]
+
+    available = (units > price) && (stack_size < 5) && (@game.has_powerup public_key, pu_id[stack_size])
     available
   end
 

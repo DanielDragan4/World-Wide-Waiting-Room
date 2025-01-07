@@ -4,7 +4,7 @@ require "json"
 
 class PowerupRelativisticShift < Powerup
   STACK_KEY = "relativistic_shift_stack"
-  BASE_PRICE = BigFloat.new 5_000.0
+  BASE_PRICE = BigFloat.new 100_000.0
   UNIT_MULTIPLIER = BigFloat.new 3.0
   DURATION = 43200
   KEY_DURATION = "relativistic_shift_duration"
@@ -46,7 +46,7 @@ class PowerupRelativisticShift < Powerup
 
   def get_price (public_key)
     stack_size = get_player_stack_size(public_key)
-    price = BASE_PRICE  * (stack_size ** 2.5)
+    price = BASE_PRICE  * (stack_size ** 7)
     price.round(2)
   end
 
@@ -111,10 +111,10 @@ class PowerupRelativisticShift < Powerup
       durations = @game.get_key_value_as_float public_key, KEY_DURATION
       if (!durations.nil?) 
         duration = durations
-          current_time = @game.ts
+        current_time = @game.ts
 
           if (duration < current_time)
-            @game.remove_powerup public_key, PowerupTimeWarp.get_powerup_id
+            @game.remove_powerup public_key, PowerupRelativisticShift.get_powerup_id
           else
             nil
           end

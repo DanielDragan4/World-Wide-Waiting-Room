@@ -5,7 +5,7 @@ require "json"
 class PowerupTimeWarp < Powerup
   STACK_KEY = "timewarp_stack"
   ACTIVE_STACK_KEY = "active_stack"
-  BASE_PRICE = BigFloat.new 10.0
+  BASE_PRICE = BigFloat.new 100.0
   UNIT_MULTIPLIER = BigFloat.new 2.0
   DURATION = 600
   KEY_DURATION = "timewarp_duration"

@@ -36,7 +36,7 @@ class PowerupAutomationUpgrade < Powerup
       Current boost: #{current_bonus}% from #{actives_since_purchase} purchases."
     else
       adjusted_multiplier = new_multiplier(public_key)
-      "Adds an extra #{(adjusted_multiplier * 100).round}% units/s for each active powerup purchased after this powerup is purchased (One time purchase)."
+      "Adds an extra #{(adjusted_multiplier * 100).round(0)}% units/s for each active powerup purchased after this powerup is purchased (One time purchase)."
     end
   end
 
