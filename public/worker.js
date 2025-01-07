@@ -1,3 +1,5 @@
+importScripts('/bignumber.js');
+
 let players = {}
 let thisPlayer = null;
 
@@ -16,21 +18,23 @@ setInterval(() => {
 
 // Render Loop
 setInterval(() => {
-  const leaderboard = Object.values(players).sort((a, b) => Number(a.time_units) <= Number(b.time_units) ? 1 : -1)
+  const leaderboard = Object.values(players).sort(
+    (a, b) => new BigNumber(a.time_units).lte(new BigNumber(b.time_units)) ? 1 : -1
+  )
   postMessage({ leaderboard, player: thisPlayer })
 }, 10)
 
 function intervalFunc(this_player) {
   if (!this_player) return;
 
-  const tps = Number(this_player.time_units_per_second) * NGU_SCALE_FACTOR
-  const tu = Number(this_player.time_units)
+  const tps = new BigNumber(this_player.time_units_per_second).multipliedBy(NGU_SCALE_FACTOR)
+  const tu = new BigNumber(this_player.time_units)
 
-  const next_tu = tu + tps;
+  const next_tu = tu.plus(tps);
 
   return {
     ...this_player,
-    time_units: next_tu
+    time_units: next_tu.toString()
   }
 }
 

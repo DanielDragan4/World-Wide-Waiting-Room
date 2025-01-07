@@ -32,8 +32,7 @@ export default {
 
   data() {
     return {
-      alteration: null,
-      alterations: [],
+      alterations: {},
       allPowerups: [],
       leaderboard: [],
       discordLink: '#',
@@ -61,7 +60,7 @@ export default {
         fetch("/altercosmos")
           .then((x) => x.json())
           .then((x) => {
-            this.alterations = x.alterations
+            this.alterations = x
           })
       }
     }
@@ -84,8 +83,8 @@ export default {
   },
 
   methods: {
-    applyChange(alteration) {
-      this.submitForm('/altercosmos', { alteration });
+    applyChange(alteration_id, increase) {
+      this.submitForm('/altercosmos', { alteration_id, increase: increase ? "yes" : "no" });
     },
 
     loadSessionKey() {
@@ -109,8 +108,14 @@ export default {
         })
     },
 
-    formatNumber(n) {
-      return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    withinMin(data) {
+      const { min, current_value } = data
+      return  min < current_value 
+    },
+
+    withinMax(data) {
+      const { max, current_value } = data
+      return  max > current_value 
     },
 
     buy(powerup) {
@@ -188,14 +193,26 @@ export default {
       </p>
       
       <h2 class="text-md text-center font-bold mt-4">Modification Options</h2>
-      <div class="flex flex-col space-y-2 items-center my-4">
-        <div class="flex flex-row space-x-2" v-for="alteration of alterations">
-          <input v-model="alteration" type="radio" name="change" value="test">
-          <label>{{ alteration.text }}</label>
-        </div>
-      </div>
-      <div class="flex justify-center">
-        <cbutton @click="applyChange()">Apply</cbutton>
+      <div class="grid max-lg:grid-cols-1 lg:grid-cols-2 gap-4 my-4">
+        <container class="w-full flex flex-col items-center text-center justify-center space-x-2" v-for="data, alteration of alterations">
+          <h1 class="mb-2 font-bold">{{ data.text }}</h1>
+          <div class class="flex flex-row items-center space-x-4">
+            <cbutton 
+              @click="applyChange(alteration, false)"
+              v-if="withinMin(data)" 
+              >- {{ data.increment }} {{ data.unit }}</cbutton>
+            <div v-else></div>
+            <div class="flex flex-col items-center">
+              <div class="font-bold text-md">{{ data.current_value }}</div>
+              <div class="text-sm">Current Modifier</div>
+            </div> 
+            <cbutton 
+              @click="applyChange(alteration, true)"
+              v-if="withinMax(data)" 
+            >+ {{ data.increment }} {{ data.unit }}</cbutton>
+            <div v-else></div>
+          </div>
+        </container>
       </div>
     </modal>
 
@@ -246,7 +263,7 @@ export default {
               class="grid grid-cols-3 text-center w-full items-center"
             >
               <span class="font-bold text-sm">{{ x.name }}</span>
-              <span class="font-bold text-sm">{{ formatNumber(x.units) }}</span>
+              <format-number class="font-bold text-xs" :number="x.units" />
               <span class="font-bold text-sm">{{ x.date }}</span>
             </container>
           </container>
@@ -259,7 +276,12 @@ export default {
               :class="{ 'bg-white text-black':  player.powerups.includes(x.id) }"
             >
                 <h1 class="font-bold text-xl">{{ x.name }}</h1>
-                <h2 v-html="x.description"></h2>
+                <div class="flex flex-row text-center justify-center space-x-2">
+                  <span>Reach</span> 
+                  <format-number :number="x.price" /> 
+                  <span>units.</span>
+                </div>
+                <h2 class="text-center">{{ x.description }}</h2>
               </container>
           </container>
 
@@ -271,7 +293,7 @@ export default {
             >
               <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
               <h2 class="text-xs">{{ powerup.category }}</h2>
-              <h3 class="text-sm font-bold">\${{ formatNumber(powerup.price) }}</h3>
+              <format-number class="font-bold text-xs" :number="powerup.price" />
               <div class="my-2 text-center" v-html="powerup.description"></div>
               <cbutton @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
               <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">

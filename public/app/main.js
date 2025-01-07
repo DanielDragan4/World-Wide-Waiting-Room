@@ -5,6 +5,7 @@ import Card from "/app/card.js?v=4"
 import Container from "/app/container.js?v=4"
 import Button from "/app/button.js?v=4"
 import Modal from "/app/modal.js?v=4"
+import FormatNumber from "/app/number.js?v=1"
 
 const worker = new Worker("/worker.js") 
 
@@ -55,7 +56,7 @@ document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
     return;
   }
 
-  console.log(jsonMsg);
+  // console.log(jsonMsg);
 
   worker.postMessage(jsonMsg) 
 
@@ -69,5 +70,6 @@ app.component('card', Card)
 app.component('container', Container)
 app.component('cbutton', Button)
 app.component('modal', Modal)
+app.component('format-number', FormatNumber)
 
 app.mount('#app')

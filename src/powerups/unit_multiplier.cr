@@ -34,6 +34,7 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def get_price(public_key)
+    alterations = @game.get_cached_alterations
     stack_size = get_player_stack_size(public_key) + 1
     boost = get_civ_boost(public_key)
     tiny_inc = BigFloat.new (((2 * stack_size) / 1000))
@@ -41,6 +42,9 @@ class PowerupUnitMultiplier < Powerup
     cap_boost = (stack_size * tiny_inc) + 1
     price = (BASE_PRICE * (stack_size ** cap_boost))
     price = BigFloat.new price
+
+    price = @game.increase_number_by_percentage price, BigFloat.new alterations.passive_price
+
     price.round(2)
   end
 

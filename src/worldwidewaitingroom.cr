@@ -47,6 +47,27 @@ templates = Templates.new
 
 ONE_WEEK = 604800
 
+class Alterations
+  property game_duration : Float64
+  property base_units_per_second : Float64
+  property active_price : Float64
+  property passive_price : Float64
+  property defensive_price : Float64
+  property sabatoge_price : Float64
+  property achievement_goal : Float64
+
+  def initialize(
+    @game_duration : Float64,
+    @base_units_per_second : Float64,
+    @active_price : Float64,
+    @passive_price : Float64,
+    @defensive_price : Float64,
+    @sabatoge_price : Float64,
+    @achievement_goal : Float64
+  ) end
+
+end
+
 module WWWR
   R = Redis::PooledClient.new
   Channels = Set(Tuple(String, Channel(ChannelValueType), Public)).new
@@ -98,6 +119,15 @@ module Keys
   PLAYER_TIME_UNITS = "time_units"
   BUY_RATE_LIMIT = "buy_rate_limit"
 
+  ALTERATION_GAME_DURATION = "alteration_game_duration"
+  ALTERATION_BASE_RATE = "alteration_base_units_per_second"
+  ALTERATION_ACHIEVEMENT_GOAL = "alteration_achievement_goal"
+
+  ALTERATION_ACTIVE_PRICE = "alteration_active_price"
+  ALTERATION_PASSIVE_PRICE = "alteration_passive_price"
+  ALTERATION_SABATOGE_PRICE = "alteration_sabatoge_price"
+  ALTERATION_DEFENSIVE_PRICE = "alteration_defensive_price"
+
   # PLAYER_FRAME_TUPS is the value that is visually present in the UI. PLAYER_TIME_UNITS_PER_SECOND is the manipulatable value
   # The reason for needing both is that at the end of a frame the PLAYER_TIME_UNITS_PER_SECOND is not an accurate representation
   # of the player's TUPS for that frame.
@@ -122,6 +152,7 @@ class Game
   @time_units_ps_cache = Hash(Public, BigFloat).new
 
   @universe_change_log : Array(Hash(String, String)) | Nil = nil
+  @alterations : Alterations
 
   @last_buy = Hash(Public, BigFloat).new
 
@@ -134,6 +165,10 @@ class Game
       @last_buy[public_key] = BigFloat.new Time.utc.to_unix_ms
       true
     end
+  end
+
+  def initialize
+    @alterations = get_alterations
   end
 
   def spawn_loop
@@ -168,10 +203,12 @@ class Game
     WWWR::R.incrby Keys::TIME_LEFT, -1
     get_time_left
 
+    altered_ups = @alterations.base_units_per_second
+
     get_leaderboard.each do |player_data|
       player_public_key = player_data["public_key"].to_s
 
-      set_player_time_units_ps player_public_key, BigFloat.new @default_ups
+      set_player_time_units_ps player_public_key, BigFloat.new (@default_ups + altered_ups)
       do_powerup_actions player_public_key, dt
 
       if !(is_unit_generation_disabled_for player_public_key)
@@ -212,11 +249,87 @@ class Game
     @universe_change_log = change_log.map { |x| Hash(String, String).from_json (x.to_s) }
   end
 
+  def increase_number_by_percentage (number : BigFloat, by : BigFloat) : BigFloat
+    number + (number * (by / 100))
+  end
+
   def log_universe_change(public_key : String, change : String)
     date = Time.utc.to_unix.to_s
     json_data = { "public_key" => public_key, "player_name" => (get_player_name public_key), "change" => change, "timestamp" => date }.to_json
     WWWR::R.rpush Keys::UNIVERSE_CHANGE_LOG, json_data
     cache_universe_change_log
+  end
+
+  def get_alteration_options
+    {
+      Keys::ALTERATION_GAME_DURATION => { "name" => "Cycle Length", "text" => "Alter cycle duration by", "unit" => "hours", "increment" => 1, "min" => -(24 * 5), "max" => 24 * 5, "current_value" => @alterations.game_duration },
+      Keys::ALTERATION_BASE_RATE => { "name" => "Base Unit/s Rate", "text" => "Alter base units per second by", "unit" => "units", "increment" => 0.1, "min" => 0.1, "max" => 1_000_000, "current_value" => @alterations.base_units_per_second },
+      Keys::ALTERATION_ACHIEVEMENT_GOAL => { "name" => "Achievement Goals", "text" => "Alter achievement goals by", "unit" => "%", "increment" => 1, "min" => -50, "max" => 50, "current_value" => @alterations.achievement_goal },
+      Keys::ALTERATION_PASSIVE_PRICE => { "name" => "Passive Powerup Prices", "text" => "Alter PASSIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.passive_price },
+      Keys::ALTERATION_ACTIVE_PRICE => { "name" => "Active Powerup Prices", "text" => "Alter ACTIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.active_price},
+      Keys::ALTERATION_DEFENSIVE_PRICE => { "name" => "Defensive Powerup Prices", "text" => "Alter DEFENSIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.defensive_price },
+      Keys::ALTERATION_SABATOGE_PRICE => { "name" => "Sabatoge Powerup Prices", "text" => "Alter SABATOGE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.sabatoge_price },
+    }
+  end
+
+  def set_alterations
+    @alterations = get_alterations
+  end
+
+  def get_cached_alterations
+    @alterations
+  end
+
+  def get_alterations
+    alter_base_units_per_second_by = Redis::Future.new
+    alter_game_duration_by = Redis::Future.new
+    alter_active_price_by = Redis::Future.new
+    alter_passive_price_by = Redis::Future.new
+    alter_sabatoge_price_by = Redis::Future.new
+    alter_defensive_price_by = Redis::Future.new
+    alter_achievement_goal_by = Redis::Future.new
+
+    WWWR::R.pipelined do |r|
+      alter_base_units_per_second_by = r.get(Keys::ALTERATION_BASE_RATE)
+      alter_game_duration_by = r.get(Keys::ALTERATION_GAME_DURATION)
+      alter_active_price_by = r.get(Keys::ALTERATION_ACTIVE_PRICE)
+      alter_passive_price_by = r.get(Keys::ALTERATION_PASSIVE_PRICE)
+      alter_sabatoge_price_by = r.get(Keys::ALTERATION_SABATOGE_PRICE)
+      alter_defensive_price_by = r.get(Keys::ALTERATION_DEFENSIVE_PRICE)
+      alter_achievement_goal_by = r.get(Keys::ALTERATION_ACHIEVEMENT_GOAL)
+    end
+
+    game_duration = alter_game_duration_by.value.to_s.to_f64?
+    game_duration ||= 0.0
+
+    base_units_per_second = alter_base_units_per_second_by.value.to_s.to_f64?
+    base_units_per_second ||= 0.0
+
+    active_price = alter_active_price_by.value.to_s.to_f64?
+    active_price ||= 0.0
+
+    passive_price = alter_passive_price_by.value.to_s.to_f64?
+    passive_price ||= 0.0
+
+    sabatoge_price = alter_sabatoge_price_by.value.to_s.to_f64?
+    sabatoge_price ||= 0.0
+
+    defensive_price = alter_defensive_price_by.value.to_s.to_f64?
+    defensive_price ||= 0.0
+
+    achievement_goal = alter_achievement_goal_by.value.to_s.to_f64?
+    achievement_goal ||= 0.0
+
+    Alterations.new(
+      game_duration,
+      base_units_per_second,
+      active_price,
+      passive_price,
+      defensive_price,
+      sabatoge_price,
+      achievement_goal,
+    )
+
   end
 
   def get_powerup_classes
@@ -253,12 +366,14 @@ class Game
   end
 
   def get_time_left
+    alter_game_duration_by = (@alterations.game_duration * 60 * 60) # alter by number of hours
+
     tl = WWWR::R.get Keys::TIME_LEFT
     if !tl || tl.to_i <= 0
       WWWR::R.set Keys::TIME_LEFT, ONE_WEEK
-      return ONE_WEEK
+      return ONE_WEEK + alter_game_duration_by
     else
-      return tl.to_i
+      return tl.to_i + alter_game_duration_by
     end
   end
 
@@ -286,6 +401,7 @@ class Game
           "currently_owns" => (player_powerups.includes? key),
         }
       rescue e
+        puts e.backtrace.join "\n"
         puts "POWERUP SERIALIZATION ERROR: Failed to serialize powerup #{key} with error #{e}"
       end
     end
@@ -314,6 +430,7 @@ class Game
         begin
           powerup_class.action public_key, dt
         rescue e
+          puts "#{e.backtrace}"
           puts "POWERUP ACTION ERROR: Failed to execute powerup #{powerup_class.get_name} with error #{e}. Skipping."
         end
       end
@@ -897,13 +1014,7 @@ get "/altercosmos" do |ctx|
   else
     data = game.get_data_for public_key
     if data[Keys::PLAYER_CAN_ALTER_UNIVERSE] == true
-      {
-        "alterations" => [
-          { "text" => "Game tick speed" },
-          { "text" => "Game tick speed" },
-          { "text" => "Game tick speed" },
-        ]
-      }.to_json
+      game.get_alteration_options.to_json
     else
       ctx.response.status_code = 401
       { "error" => "You cannot alter the cosmos." }.to_json
@@ -919,9 +1030,41 @@ post "/altercosmos" do |ctx|
   else
     data = game.get_data_for public_key
     if data[Keys::PLAYER_CAN_ALTER_UNIVERSE] == true
-      WWWR::R.hdel Keys::PLAYER_CAN_ALTER_UNIVERSE, public_key
-      game.sync
-      "You have altered the universe."
+      alteration_id = ctx.params.body["alteration_id"].as String
+      increase = ctx.params.body["increase"].as String == "yes"
+
+      puts "#{alteration_id} #{increase}"
+
+      alterations = game.get_alteration_options[alteration_id]
+
+      min = alterations["min"].to_f64
+      max = alterations["max"].to_f64
+      alteration_name = alterations["name"]
+      current_value = alterations["current_value"].to_f64
+      inc = alterations["increment"].to_f64
+
+      if increase
+        new_value = current_value + inc
+      else
+        new_value = current_value - inc
+      end
+
+      if new_value >= min && new_value <= max
+        WWWR::R.hdel Keys::PLAYER_CAN_ALTER_UNIVERSE, public_key
+        if increase
+          alteration_text = "#{alteration_name} increased by #{inc} to #{new_value}"
+        else
+          alteration_text = "#{alteration_name} decreased by #{inc} to #{new_value}"
+        end
+        game.log_universe_change public_key, alteration_text
+        WWWR::R.set alteration_id, new_value
+        game.set_alterations
+        game.sync
+        "You have altered the universe."
+      else
+        ctx.response.status_code = 400
+        "That value is invalid."
+      end
     else
       ctx.response.status_code = 401
       "Error"

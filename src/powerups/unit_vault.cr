@@ -21,7 +21,7 @@ class PowerupUnitVault < Powerup
 
     base_generation = BASE_GENERATION
     total_multiplier = base_generation * unit_multiplier * compound_interest_boost
-    
+
     total_multiplier
   end
 
@@ -44,10 +44,10 @@ class PowerupUnitVault < Powerup
   def new_multiplier(public_key) : BigFloat
     # Retrieves the stored generation rate for this vault
     stored_rate_str = @game.get_key_value(public_key, VAULT_GENERATION_RATE_KEY)
-    
+
     # In case no rate exists
     if stored_rate_str.to_s.empty?
-      return calculate_vault_generation_multiplier(public_key) 
+      return calculate_vault_generation_multiplier(public_key)
     end
 
     BigFloat.new(stored_rate_str)
@@ -64,10 +64,10 @@ class PowerupUnitVault < Powerup
   def get_description(public_key)
     vault_units = get_vaulted_units(public_key)
     time_remaining = get_time_remaining(public_key)
-  
+
     description = "Store 50% of your current units in a vault for the next hour. These units are immune to all effects (both friendly and hostile) and cannot be used until the timer runs out.
     Unit generation on vaulted units is decreased to 50% of current base production (including all passive effects at time of purchase).<br>"
-  
+
     if vault_units > 0
       description += "<br>Currently Vaulted: #{(format_vaulted_units vault_units.round(2))} units\n "
       description += "<br>Time Remaining: #{format_time(time_remaining)}"
@@ -99,7 +99,7 @@ class PowerupUnitVault < Powerup
     hours = (seconds / 3600).floor.to_i
     minutes = ((seconds % 3600) / 60).floor.to_i
     secs = (seconds % 60).floor.to_i
-    
+
     "#{hours}h #{minutes}m #{secs}s"
   end
 
@@ -108,7 +108,9 @@ class PowerupUnitVault < Powerup
   end
 
   def get_price(public_key)
-    @game.get_player_time_units(public_key) / 2
+    alterations = @game.get_cached_alterations
+    price = @game.get_player_time_units(public_key) / 2
+    @game.increase_number_by_percentage price, BigFloat.new alterations.defensive_price
   end
 
   def is_available_for_purchase(public_key)
@@ -132,11 +134,11 @@ class PowerupUnitVault < Powerup
     if public_key
       timestamp = @game.get_key_value(public_key, VAULT_TIMESTAMP_KEY)
       return 0 if timestamp.to_s.empty?
-      
+
       vault_start = BigFloat.new(timestamp)
       time_passed = @game.ts - vault_start
       remaining = BigFloat.new(VAULT_DURATION) - time_passed
-      
+
       [remaining.to_i, 0].max
     else
       0
@@ -153,9 +155,9 @@ class PowerupUnitVault < Powerup
 
       if units >= price
         vault_amount = BigFloat.new(units * 0.5).round
-        
+
         vault_generation_rate = calculate_vault_generation_multiplier(public_key)
-        
+
         @game.inc_time_units(public_key, -price)
         @game.add_powerup(public_key, PowerupUnitVault.get_powerup_id)
 
@@ -177,10 +179,10 @@ class PowerupUnitVault < Powerup
     if public_key && is_purchased(public_key)
       vaulted_units = get_vaulted_units(public_key)
       time_remaining = get_time_remaining(public_key)
-  
+
       if vaulted_units > BigFloat.new(0) && time_remaining > 0
         generation_rate = new_multiplier(public_key)
-  
+
         @game.set_key_value(public_key, VAULT_UNITS_KEY, (vaulted_units + generation_rate).to_s)
       end
     end
@@ -190,7 +192,7 @@ class PowerupUnitVault < Powerup
     if public_key && is_purchased(public_key)
       vaulted_units = get_vaulted_units(public_key)
       time_remaining = get_time_remaining(public_key)
-  
+
       if vaulted_units > BigFloat.new(0) && time_remaining <= 0
         @game.inc_time_units(public_key, vaulted_units)
         @game.set_key_value(public_key, VAULT_UNITS_KEY, "")

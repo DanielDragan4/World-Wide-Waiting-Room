@@ -55,7 +55,8 @@ class PowerupBootStrap < Powerup
 
   def get_price (public_key)
     price = (BASEPRICE + (@game.get_player_time_units public_key) * (COST_PERCENTAGE ** 1.5)).round(2)
-    BigFloat.new price
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage price, BigFloat.new alterations.active_price
   end
 
   def is_available_for_purchase(public_key)

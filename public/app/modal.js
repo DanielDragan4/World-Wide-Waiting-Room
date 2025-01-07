@@ -11,6 +11,8 @@ export default {
     rounded 
     min-w-96 
     h-max
+    lg:w-max
+    max-lg:w-11/12
     min-h-[300px] 
     max-h-[800px] 
     overflow-y-auto 

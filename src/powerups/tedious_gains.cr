@@ -19,8 +19,8 @@ class PowerupTediousGains < Powerup
   end
 
   def get_description (public_key)
-    "Increases gains from Territorial Expanse by 10% with each purchase. Purchasing resets Territorial Expanses owned to 0. 
-    <br>Number of Territorial Expanses Needed: #{get_required_multi_price(public_key)} 
+    "Increases gains from Territorial Expanse by 10% with each purchase. Purchasing resets Territorial Expanses owned to 0.
+    <br>Number of Territorial Expanses Needed: #{get_required_multi_price(public_key)}
     <br>Number of Von Neumann Probes: #{get_stack_size(public_key)}"
   end
 
@@ -35,7 +35,8 @@ class PowerupTediousGains < Powerup
   end
 
   def get_price(public_key)
-    1.0
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage BASE_PRICE, BigFloat.new alterations.passive_price
   end
 
   def get_stack_size(public_key : String) : BigInt
@@ -50,7 +51,7 @@ class PowerupTediousGains < Powerup
 
   def get_unit_boost(public_key : String, base_amount : BigFloat) : BigFloat
     stack_size = get_stack_size(public_key)
-    if stack_size == 0 
+    if stack_size == 0
       return base_amount
     end
     unit_boost = base_amount * ((stack_size * BASE_AMOUNT) + 1)

@@ -45,7 +45,7 @@ class PowerupOverCharge < Powerup
 
   def get_description(public_key)
         amount = ((get_unit_boost(public_key)) * new_multiplier(public_key)).round(2)
-        "Increases unit production by #{amount}x for 1 min, but disables all passive powerups while active. 
+        "Increases unit production by #{amount}x for 1 min, but disables all passive powerups while active.
         <br>Price increases exponentially as active stack size increases. Base price increases with each purchase."
   end
 
@@ -53,11 +53,15 @@ class PowerupOverCharge < Powerup
     active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY)
     unit_ps = @game.get_player_time_units_ps(public_key)
     unit_ps_price_multi = (unit_ps / 100000) + 1
-    stack_size = get_player_stack_size(public_key)
-    price = (((unit_ps_price_multi * BASE_PRICE) * (stack_size ** (((active_stack + 1)/2) * 3)))).round(2)
-    b= BigFloat.new price
-    b.round(2)
-    b
+
+    stack_size = BigInt.new get_player_stack_size(public_key)
+    p1 = BigFloat.new (unit_ps_price_multi * BASE_PRICE)
+    p2 = BigInt.new (((active_stack + 1) /2 ) * 3)
+
+    price = (p1 * (stack_size ** p2)).round(2)
+
+    alterations = @game.get_cached_alterations
+    @game.increase_number_by_percentage price, BigFloat.new alterations.active_price
   end
 
   def is_available_for_purchase(public_key)
@@ -79,8 +83,8 @@ class PowerupOverCharge < Powerup
     @game.get_key_value_as_int(public_key, STACK_KEY, BigInt.new 1)
   end
 
-  def get_unit_boost(public_key)
-    return 1.0 if !@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)
+  def get_unit_boost(public_key) : BigFloat
+    return BigFloat.new 1.0 if !@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)
 
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
     boost_units = BigFloat.new 1.0

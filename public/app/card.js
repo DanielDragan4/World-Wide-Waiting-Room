@@ -34,29 +34,16 @@ export default {
       return null;
     },
 
-    time_units() {
-      return this.player.time_units || 0;
+    time_units_ps() {
+      return this.player.time_units_per_second || new BigNumber(0);
     },
 
-    time_units_small() {
-      const tu = this.time_units;
-      return tu.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    time_units() {
+      return this.player.time_units || new BigNumber(0);
     },
 
     player_powerup_icons() {
       return this.player.player_powerup_icons;
-    },
-
-    time_units_large() {
-      let tu = this.time_units
-      const power = Math.floor(Math.log10(tu))
-      tu = tu / (10 ** power)
-
-      return { time_units: tu.toFixed(5), power }
-    },
-
-    time_units_ps() {
-      return Number(this.player.time_units_per_second).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
     },
 
     player_css_classes() {
@@ -107,16 +94,10 @@ export default {
     </div>
 
     <div class="text-center">
-      <div v-if="time_units < 100_000_000" class="text-lg font-bold">{{ time_units_small }}</div>
-      <div class="flex flex-row items-center space-x-2 font-bold" v-else>
-        <span>{{ time_units_large.time_units }}</span>
-        <span>x</span>
-        <span>10</span>
-        <sup>{{ time_units_large.power }}</sup>
-      </div>
+      <format-number class="font-bold" :number="time_units" /> 
       <h6 class="text-sm">Units</h6>
       
-      <div class="text-md font-bold mt-4">{{ time_units_ps }}</div>
+      <format-number class="font-bold" :number="time_units_ps"/>
       <h6 class="text-sm">Units/s</h6>
     </div>
 
