@@ -234,7 +234,7 @@ export default {
       lg:flex-row 
       lg:items-start 
       lg:justify-between 
-      mx-2 
+      lg:mx-2 
       my-6
     " v-show="player.time_units !== undefined">
       <div class="max-lg:w-full">
