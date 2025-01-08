@@ -7,7 +7,7 @@ class AfflictPowerupBlackHole < Powerup
   
 
   def get_name
-    "Black Hole"
+    "Afflict Black Hole"
   end
 
   def self.get_powerup_id
@@ -16,6 +16,14 @@ class AfflictPowerupBlackHole < Powerup
 
   def is_afflication_powerup (public_key)
     true
+  end
+  def player_card_powerup_icon(public_key)
+    "/afflict_black_hole.png"
+  end
+
+  def get_popup_info(public_key) : PopupInfo
+    pi = PopupInfo.new
+    pi
   end
 
   def dec_amount(public_key)
@@ -28,10 +36,8 @@ class AfflictPowerupBlackHole < Powerup
     i = 0
     while !black_hole_found
         if (i < left.size) && !(left.empty?)
-            puts "#{public_key} searching for blackhole #{left[i]} \n"
             if (@game.has_powerup left[i], PowerupBlackHole.get_powerup_id)
                 black_hole_found = true
-                puts "#{left[i]} owns blackhole"
                 return BigFloat.new(STEAL_AMOUNTS[i])
             end
         end
@@ -58,8 +64,7 @@ class AfflictPowerupBlackHole < Powerup
     amount_dec = player_tups * dec
 
     # puts "#{amount_dec} FROM LEFT #{public_key} (#{@game.get_player_name public_key}) who has #{player_tups}"
-
-    @game.send_animation_event public_key, Animation::NUMBER_FLOAT, { "value" => "black_hole -#{amount_dec.round(2)}", "color" => "#df1700" }
+    #@game.send_animation_event public_key, Animation::NUMBER_FLOAT, { "value" => "black_hole -#{amount_dec.round(2)}", "color" => "#df1700" }
 
     @game.inc_time_units_ps public_key, -amount_dec
   end
