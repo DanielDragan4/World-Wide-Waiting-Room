@@ -5,7 +5,7 @@
     <script src="/tailwind.js"></script>
     <script src="/bignumber.js"></script>
     <script type="module" src="/ws.js"></script>
-    <script defer type="module" src="/app/main.js?v=6"></script>
+    <script defer type="module" src="/app/main.js?v=10"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +25,7 @@
   </head>
   <body>
     <div hx-ext="ws" ws-connect="/ws">
-      <input type="hidden" name="sync" value="sync" ws-send hx-trigger="sync, every 1s">
+      <input id="sync" type="hidden" name="sync" value="sync" ws-send hx-trigger="sync, load">
     </div>
     <div id="stars" class="fixed left-0 top-0">
     </div>
@@ -54,7 +54,7 @@
         stars.appendChild(star);
       }
 
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 50; i++) {
         addStar(false);
       }
 

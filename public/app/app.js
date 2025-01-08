@@ -47,6 +47,7 @@ export default {
       showWhatIsThis: false,
       showSession: false,
       sideContentToShow: null,
+      powerupSearch: "",
     }
   },
 
@@ -74,6 +75,10 @@ export default {
     powerups() {
       return this.allPowerups
         .filter((x) => !x.is_achievement_powerup)
+        .filter((y) => {
+          if (!this.powerupSearch) return true;
+          return y.name.toLowerCase().includes(this.powerupSearch.toLowerCase()) || y.category.toLowerCase().includes(this.powerupSearch.toLowerCase())
+        })
         .sort((a, b) => a.name > b.name ? 1 : -1)
     },
 
@@ -229,9 +234,9 @@ export default {
       lg:flex-row 
       lg:items-start 
       lg:justify-between 
-      mx-2 
+      lg:mx-2 
       my-6
-    " v-show="player.time_units !== undefined">
+    " v-show="player.time_units">
       <div class="max-lg:w-full">
         <div class="flex flex-col space-y-2 lg:absolute lg:w-96 max-lg:w-full lg:top-2 lg:left-2">
           <container class="text-sm text-center">{{ formatTimeString(timeLeft) }}</container>
@@ -287,6 +292,12 @@ export default {
 
           <container v-if="sideContentToShow === 'powerups'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
             <h1 class="font-bold text-center">Powerups</h1>
+            <input 
+              type="search" 
+              placeholder="Search"
+              class="w-full rounded p-2 text-md text-center bg-[#323237] z-10" 
+              v-model="powerupSearch"
+            >
             <container 
               v-for="powerup in powerups"
               class="w-full flex flex-col items-center space-y-1"

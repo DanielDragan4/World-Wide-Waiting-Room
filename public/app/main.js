@@ -1,13 +1,30 @@
 import { createApp } from '/vue.js'
 
-import App from "/app/app.js?v=4"
-import Card from "/app/card.js?v=4"
-import Container from "/app/container.js?v=4"
-import Button from "/app/button.js?v=4"
-import Modal from "/app/modal.js?v=4"
-import FormatNumber from "/app/number.js?v=1"
+import App from "/app/app.js?v=7"
+import Card from "/app/card.js?v=5"
+import Container from "/app/container.js?v=5"
+import Button from "/app/button.js?v=5"
+import Modal from "/app/modal.js?v=5"
+import FormatNumber from "/app/number.js?v=2"
 
 const worker = new Worker("/worker.js") 
+let lastSync = null 
+let nextSync = null;
+
+function queueSync() {
+  nextSync = setTimeout(() => {
+    lastSync = new Date();
+    htmx.trigger("#sync", "sync");
+    nextSync = null;
+  }, 1000)
+}
+
+setInterval(() => {
+  if (lastSync === null || ((new Date() - lastSync) / 1000) >= 10) {
+    console.log("Haven't received a sync in 10 seconds, queuing another one.");
+    queueSync();
+  }
+}, 10000);
 
 window.worker = worker
 
@@ -22,7 +39,7 @@ function performAnimation(jsonMsg) {
       const floater = document.createElement("div")
       floater.innerText = `${value ?? 0}`;
       let yPos = br.y
-      let steps = 100;
+      let steps = data.steps || 200;
       const r = setInterval(() => {
         floater.style.cssText = `position: absolute; color: ${color ?? 'white'}; top: ${yPos}px; left: ${br.x + br.width / 2}px; z-index: 1000000; opacity: ${steps / 50}`
         yPos -= 0.5;
@@ -59,6 +76,10 @@ document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
   // console.log(jsonMsg);
 
   worker.postMessage(jsonMsg) 
+
+  if (nextSync === null && jsonMsg.event === "sync") {
+    queueSync();
+  }
 
   document.dispatchEvent(new CustomEvent("tickEvent", { detail: jsonMsg }))
 })
