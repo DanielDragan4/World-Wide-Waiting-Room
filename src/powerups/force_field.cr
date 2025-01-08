@@ -4,9 +4,9 @@ require "./force_field.cr"
 require "../worldwidewaitingroom.cr"
 
 class PowerupForceField < Powerup
-  BASE_PRICE = 10_000
+  BASE_PRICE = BigFloat.new 10_000
   COOLDOWN = 60 * 60
-  PRICE_MULTIPLIER = 1.3
+  PRICE_MULTIPLIER = BigFloat.new 1.3
   NEXT_USE_COOLDOWN = 60 * 60 * 3
   NEXT_USE_COOLDOWN_KEY = "forcefield_next_use_cooldown"
   COOLDOWN_KEY = "forcefield_cooldown_time"

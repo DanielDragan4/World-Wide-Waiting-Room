@@ -1,41 +1,22 @@
 require "../powerup"
 require "json"
 require "./force_field.cr"
+require "./afflict_black_hole.cr"
 require "math"
 
-class PowerupbBlackHole < Powerup
-  BASE_PRICE = BigFloat.new -1
+class PowerupBlackHole < Powerup
+  BASE_PRICE = BigFloat.new 100_000
   NEXT_TAKE_COOLDOWN = 1
   DURATION = 60 * 10
 
-  BASE_STEAL_RATE = BigFloat.new 0.2
   PRICE_MULTIPLIER = BigFloat.new 1.3
-
   KEY_DURATION = "black_hole_duration"
   KEY_NEXT_TAKE_COOLDOWN = "black_hole_next_take"
-  KEY_ACTIVE_STACK = "black_hole_active_stack"
+  KEY_ACTIVE_STACK = "black_hole_active"
+  KEY_DISTANCE = "black_hole_dist"
+  KEY_PLAYERS = "black_hole_players"
+  KEY_BIGGEST_DEC = "black_hole_dec"
 
-  def calculate_steal_amount(target_units : BigFloat, current_units : BigFloat) : BigFloat
-    log_diff = Math.log10(target_units) - Math.log10(current_units)
-    if log_diff > 5
-      steal_amount = target_units * (log_diff / 200000)
-      return BigFloat.new (steal_amount / DURATION)
-    end
-    if log_diff > 4
-      steal_amount = target_units * (log_diff / 14000)
-      return BigFloat.new (steal_amount / DURATION)
-    end
-    if log_diff > 3
-      steal_amount = target_units * (log_diff / 1100)
-      return BigFloat.new (steal_amount / DURATION)
-    end
-    if log_diff >= 2
-      steal_amount = target_units * (log_diff / 100)
-      return BigFloat.new (steal_amount / DURATION)
-    end
-
-    return BigFloat.new ((target_units * BASE_STEAL_RATE) / DURATION)
-  end
 
   def category
     PowerupCategory::SABATOGE
@@ -48,12 +29,11 @@ class PowerupbBlackHole < Powerup
   def get_popup_info(public_key) : PopupInfo
     pi = PopupInfo.new
     pi["Timer Left"] = (@game.get_timer_seconds_left public_key, KEY_DURATION)
-    pi["black_hole Stack"] = (get_active_black_hole_stack public_key).to_s
     pi
   end
 
   def get_name
-    "black_hole"
+    "Black Hole"
   end
 
   def player_card_powerup_icon(public_key)
@@ -65,13 +45,13 @@ class PowerupbBlackHole < Powerup
   end
 
   def get_price(public_key)
-    stack_size = @game.get_powerup_stack public_key, Powerupblack_hole.get_powerup_id
+    stack_size = @game.get_powerup_stack public_key, PowerupBlackHole.get_powerup_id
     price = stack_size > 0 ? BASE_PRICE * (PRICE_MULTIPLIER * stack_size) : BASE_PRICE
     BigFloat.new price
   end
 
   def is_available_for_purchase(public_key)
-    ((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0
+    (((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0) && !(@game.has_powerup(public_key, PowerupBlackHole.get_powerup_id)) 
   end
 
   def get_active_black_hole_stack(public_key)
@@ -99,7 +79,7 @@ class PowerupbBlackHole < Powerup
 
     inc_active_black_hole_stack public_key
 
-    @game.add_powerup public_key, Powerupblack_hole.get_powerup_id
+    @game.add_powerup public_key, PowerupBlackHole.get_powerup_id
     @game.inc_time_units public_key, -(get_price public_key)
 
     if @game.is_timer_expired public_key, KEY_DURATION
@@ -107,58 +87,70 @@ class PowerupbBlackHole < Powerup
     end
 
     @game.set_timer public_key, KEY_NEXT_TAKE_COOLDOWN, NEXT_TAKE_COOLDOWN
-    @game.inc_powerup_stack public_key, Powerupblack_hole.get_powerup_id
+    @game.inc_powerup_stack public_key, PowerupBlackHole.get_powerup_id
   end
+
 
   def action(public_key, dt)
     if !(@game.is_timer_expired public_key, KEY_DURATION) && (@game.is_timer_expired public_key, KEY_NEXT_TAKE_COOLDOWN)
       puts "black_hole action for #{public_key}"
-      player_left_and_right = @game.get_player_to_left_and_right public_key
+      players_left_and_right = @game.get_black_hole_players public_key
       current_units = @game.get_player_time_units public_key
 
-      left = player_left_and_right[0]
-      right = player_left_and_right[1]
+      @game.set_key_value public_key, KEY_PLAYERS, players_left_and_right.to_json
+
+      left = players_left_and_right[0]
+      right = players_left_and_right[1]
 
       puts "#{public_key} LEFT #{left} RIGHT #{right}"
 
       total = BigFloat.new(0)
 
-      if left && left != public_key && !@game.has_powerup left, PowerupForceField.get_powerup_id
-        left_units = @game.get_player_time_units left
-        amount = calculate_steal_amount(left_units, current_units) * get_active_black_hole_stack(public_key)
+      if left
+        i = 4
+        left.each do |x|
+            if x && x != public_key && !@game.has_powerup x, PowerupForceField.get_powerup_id
+                @game.add_powerup x, AfflictPowerupBlackHole.get_powerup_id
+                @game.set_key_value x, KEY_DISTANCE, i.to_s
 
-        total += amount
-
-        puts "#{public_key} TAKING #{amount} FROM LEFT #{left} (#{@game.get_player_name left}) who has #{left_units}"
-
-        @game.inc_time_units left, -amount
-        @game.inc_time_units public_key, amount
-        @game.send_animation_event left, Animation::NUMBER_FLOAT, { "value" => "black_hole -#{amount.round(2)}", "color" => "#E9CFA0" }
+                i -= 1
+            end
+        end
       end
 
-      if right && right != public_key && !@game.has_powerup right, PowerupForceField.get_powerup_id
-        right_units = @game.get_player_time_units right
-        amount = calculate_steal_amount(right_units, current_units) * get_active_black_hole_stack(public_key)
+      if right
+        i = 4
+        right.each do |x|
+            if x && x != public_key && !@game.has_powerup x, PowerupForceField.get_powerup_id
+                @game.add_powerup x, AfflictPowerupBlackHole.get_powerup_id
+                @game.set_key_value x, KEY_DISTANCE, i.to_s
 
-        puts "#{public_key} TAKING #{amount} FROM RIGHT #{right} (#{@game.get_player_name right}) who has #{right_units}"
-
-        total += amount
-
-        @game.inc_time_units right, -amount
-        @game.inc_time_units public_key, amount
-        @game.send_animation_event right, Animation::NUMBER_FLOAT, { "value" => "black_hole -#{amount.round(2)}", "color" => "#E9CFA0" }
+                i -= 1
+            end
+        end
+        @game.set_timer public_key, KEY_NEXT_TAKE_COOLDOWN, NEXT_TAKE_COOLDOWN
       end
-
-      @game.send_animation_event public_key, Animation::NUMBER_FLOAT, { "value" => "black_hole +#{total.round(2)}", "color" => "#E9A0CF" }
-      @game.set_timer public_key, KEY_NEXT_TAKE_COOLDOWN, NEXT_TAKE_COOLDOWN
     end
   end
 
   def cleanup(public_key)
     if @game.is_timer_expired public_key, KEY_DURATION
+
+    players = Tuple(Array(String) | Nil, Array(String) | Nil)
+        
+      players = Tuple(Array(String) | Nil, Array(String) | Nil).from_json(@game.get_key_value public_key, KEY_PLAYERS)
+      players.each do |left_or_right|
+        if !(left_or_right.nil?)
+            left_or_right.each do |player|
+                @game.set_key_value player, KEY_BIGGEST_DEC, "0"
+            end
+        end
+    end
+
+
       puts "black_hole expired for #{public_key}"
       reset_active_black_hole_stack public_key
-      @game.remove_powerup public_key, Powerupblack_hole.get_powerup_id
+      @game.remove_powerup public_key, PowerupBlackHole.get_powerup_id
     end
   end
 end

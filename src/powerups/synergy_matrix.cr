@@ -2,7 +2,7 @@ require "../powerup.cr"
 require "./cosmic_breakthrough"
 
 class PowerupSynergyMatrix < Powerup
-  BASE_PRICE = BigFloat.new 50.0
+  BASE_PRICE = BigFloat.new 35.0
   BASE_AMOUNT = BigFloat.new 0.1
   KEY = "synergy_matrix_stack"
 
@@ -47,7 +47,11 @@ class PowerupSynergyMatrix < Powerup
     boost = get_civ_boost(public_key)
     multi = (boost/0.1)
     base_increase = (multi == 1) ? 1 : multi/2
-    price = BASE_PRICE * base_increase * ((stack_size) **(5 +(stack_size * (BigFloat.new 0.2))))
+
+    p1 = BigFloat.new((BASE_PRICE * base_increase))
+    p2 = BigFloat.new((5 +(stack_size * (BigFloat.new 0.2))))
+
+    price = (p1 * (stack_size ** p2)).round(2)
 
     alterations = @game.get_cached_alterations
     @game.increase_number_by_percentage price, BigFloat.new alterations.passive_price

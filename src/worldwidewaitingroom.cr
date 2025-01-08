@@ -12,6 +12,7 @@ require "./powerups/unit_multiplier.cr"
 require "./powerups/tedious_gains.cr"
 require "./powerups/amish_life.cr"
 require "./powerups/relativistic_shift.cr"
+require "./powerups/blackhole.cr"
 
 require "./powerups/parasite.cr"
 require "./powerups/breach.cr"
@@ -29,6 +30,7 @@ require "./powerups/schrodinger"
 require "./powerups/cosmic_breakthrough"
 require "./powerups/unit_vault"
 require "./powerups/boost_sync"
+require "./powerups/afflict_black_hole"
 
 
 require "./powerups/achievement_type_1.cr"
@@ -353,9 +355,11 @@ class Game
       PowerupUnitVault.get_powerup_id => PowerupUnitVault.new(self),
       PowerupRelativisticShift.get_powerup_id => PowerupRelativisticShift.new(self),
       PowerupBoostSync.get_powerup_id => PowerupBoostSync.new(self),
+      PowerupBlackHole.get_powerup_id => PowerupBlackHole.new(self),
 
       AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
       AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
+      AfflictPowerupBlackHole.get_powerup_id => AfflictPowerupBlackHole.new(self),
 
       AchievementTypeI.get_powerup_id => AchievementTypeI.new(self),
       AchievementTypeII.get_powerup_id => AchievementTypeII.new(self),
@@ -520,6 +524,42 @@ class Game
       { left, right }
     else
       { nil, nil }
+    end
+  end
+
+  def get_black_hole_players(public_key : String) : Tuple(Array(String), Array(String))
+    count = 4
+    player_index = get_leaderboard_index public_key
+    raw_leaderboard = get_raw_leaderboard
+    
+    if player_index
+      left_players = [] of String
+      right_players = [] of String
+      
+      (1..count).each do |offset|
+        left_i = player_index + offset
+        if left_player = raw_leaderboard.fetch(left_i, nil)
+          left_players << left_player.to_s
+        end
+      end
+      
+      (1..count).each do |offset|
+        right_i = player_index - offset
+
+        next if right_i < 0
+        
+        if right_player = raw_leaderboard.fetch(right_i, nil)
+          if !right_players.includes?(right_player.to_s) && right_player.to_s != public_key
+            right_players << right_player.to_s
+          end
+        end
+      end
+      
+      puts "Player Index #{player_index} Left Players #{left_players} Right Players #{right_players}"
+      
+      { left_players, right_players }
+    else
+      { [] of String, [] of String }
     end
   end
 

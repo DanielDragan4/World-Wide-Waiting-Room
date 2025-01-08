@@ -4,7 +4,7 @@ require "./force_field.cr"
 require "math"
 
 class PowerupParasite < Powerup
-  BASE_PRICE = BigFloat.new -1
+  BASE_PRICE = BigFloat.new 10_000
   NEXT_TAKE_COOLDOWN = 1
   DURATION = 60 * 10
 
@@ -61,7 +61,7 @@ class PowerupParasite < Powerup
   end
 
   def get_description(public_key)
-    "Over the course of #{(DURATION / 60).to_i} minutes, steal units from players directly ahead and behind you. For players with less than 1000x your units, steals 20% of their units. For players with 1000x or more units, steals based on 10 raised to 1/4 of the logarithmic difference in units. The price increases with each purchase. Multiple parasites can be stacked to increase the steal amount."
+    "Over the course of #{(DURATION / 60).to_i} minutes, steal units from players directly ahead and behind you. For players with less than 100x your units, steals 20% of their units. For players with 100x or more units, steals a smaller percentage decreasing as the difference in units is higher. The price increases with each purchase."
   end
 
   def get_price(public_key)
@@ -72,7 +72,7 @@ class PowerupParasite < Powerup
   end
 
   def is_available_for_purchase(public_key)
-    ((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0
+    (((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0) && !(@game.has_powerup(public_key, PowerupParasite.get_powerup_id)) 
   end
 
   def get_active_parasite_stack(public_key)
