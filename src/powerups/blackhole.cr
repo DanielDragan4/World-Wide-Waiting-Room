@@ -5,10 +5,10 @@ require "./afflict_black_hole.cr"
 require "math"
 
 class PowerupBlackHole < Powerup
-  BASE_PRICE = BigFloat.new 1#00_000
+  BASE_PRICE = BigFloat.new 100_000
   NEXT_TAKE_COOLDOWN = 1
   DURATION = 60 * 10
-  
+
   PRICE_MULTIPLIER = BigFloat.new 1.3
   KEY_DURATION = "black_hole_duration"
   KEY_NEXT_TAKE_COOLDOWN = "black_hole_next_take"
