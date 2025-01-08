@@ -2,7 +2,7 @@ require "../powerup.cr"
 require "./cosmic_breakthrough"
 
 class PowerupUnitMultiplier < Powerup
-  BASE_PRICE = BigFloat.new 1.0
+  BASE_PRICE = BigFloat.new 2.5
   BASE_AMOUNT = BigFloat.new 1.0
   KEY = "unit_multiplier_stack"
 
@@ -37,7 +37,7 @@ class PowerupUnitMultiplier < Powerup
     alterations = @game.get_cached_alterations
     stack_size = get_player_stack_size(public_key) + 1
     boost = get_civ_boost(public_key)
-    tiny_inc = BigFloat.new (((2 * stack_size) / 1000))
+    tiny_inc = BigFloat.new (((1.8 * stack_size) / 1000))
 
     cap_boost = (stack_size * tiny_inc) + 1
     price = (BASE_PRICE * (stack_size ** cap_boost))
