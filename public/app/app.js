@@ -35,7 +35,7 @@ export default {
       alterations: {},
       allPowerups: [],
       leaderboard: [],
-      discordLink: '#',
+      discordLink: 'https://discord.gg/vQnnjhQGqu',
       history: [],
       timeLeft: 0,
       player: {},
