@@ -1059,6 +1059,11 @@ post "/altercosmos" do |ctx|
         game.log_universe_change public_key, alteration_text
         WWWR::R.set alteration_id, new_value
         game.set_alterations
+
+        WWWR::Channels.each do |x|
+          game.send_animation_event x[2], Animation::NUMBER_FLOAT, { "value" => alteration_text, "color" => "#FFFFFF", "steps" => 1000 }
+        end
+
         game.sync
         "You have altered the universe."
       else

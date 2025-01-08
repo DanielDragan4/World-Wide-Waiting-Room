@@ -47,6 +47,7 @@ export default {
       showWhatIsThis: false,
       showSession: false,
       sideContentToShow: null,
+      powerupSearch: "",
     }
   },
 
@@ -74,6 +75,10 @@ export default {
     powerups() {
       return this.allPowerups
         .filter((x) => !x.is_achievement_powerup)
+        .filter((y) => {
+          if (!this.powerupSearch) return true;
+          return y.name.toLowerCase().includes(this.powerupSearch.toLowerCase())
+        })
         .sort((a, b) => a.name > b.name ? 1 : -1)
     },
 
@@ -287,6 +292,12 @@ export default {
 
           <container v-if="sideContentToShow === 'powerups'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
             <h1 class="font-bold text-center">Powerups</h1>
+            <input 
+              type="search" 
+              placeholder="Search"
+              class="w-full rounded p-2 text-md text-center bg-[#323237] z-10" 
+              v-model="powerupSearch"
+            >
             <container 
               v-for="powerup in powerups"
               class="w-full flex flex-col items-center space-y-1"
