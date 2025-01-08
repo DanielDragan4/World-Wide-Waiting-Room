@@ -9,7 +9,7 @@ class PowerupAmishLife < Powerup
   UNIT_MULTIPLIER = BigFloat.new 2.0
   DURATION = 60 * 60 * 6
   KEY_DURATION = "amish_life_duration"
-  DEBUFF_RATE = 0.1
+  DEBUFF_RATE = BigFloat.new 0.1
 
   def category
     PowerupCategory::PASSIVE
