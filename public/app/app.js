@@ -236,7 +236,7 @@ export default {
       lg:justify-between 
       lg:mx-2 
       my-6
-    " v-show="player.time_units !== undefined">
+    " v-show="player.time_units">
       <div class="max-lg:w-full">
         <div class="flex flex-col space-y-2 lg:absolute lg:w-96 max-lg:w-full lg:top-2 lg:left-2">
           <container class="text-sm text-center">{{ formatTimeString(timeLeft) }}</container>
