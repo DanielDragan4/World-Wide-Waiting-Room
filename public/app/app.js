@@ -77,7 +77,7 @@ export default {
         .filter((x) => !x.is_achievement_powerup)
         .filter((y) => {
           if (!this.powerupSearch) return true;
-          return y.name.toLowerCase().includes(this.powerupSearch.toLowerCase())
+          return y.name.toLowerCase().includes(this.powerupSearch.toLowerCase()) || y.category.toLowerCase().includes(this.powerupSearch.toLowerCase())
         })
         .sort((a, b) => a.name > b.name ? 1 : -1)
     },
