@@ -222,11 +222,6 @@ class Game
       do_powerup_cleanup player_public_key
     end
 
-    if @sync_next_frame
-      sync
-      @sync_next_frame = false
-    end
-
     update_frame_time
   end
 
@@ -651,10 +646,6 @@ class Game
         end
       end
     end
-  end
-
-  def defer_sync
-    @sync_next_frame = true
   end
 
   def broadcast_animation_event (public_key : String)
@@ -1094,7 +1085,7 @@ post "/name" do |ctx|
   name = ctx.params.body["name"].as String
   if name && public_key
     game.set_name_for public_key, name
-    game.sync
+    #game.sync
   end
 end
 
@@ -1122,7 +1113,7 @@ post "/buy" do |ctx|
   else
     if public_key
       resp = powerups[name].buy_action public_key
-      game.sync
+      # game.sync
       resp
     end
   end
@@ -1165,10 +1156,10 @@ post "/color" do |ctx|
   if public_key
     if bg_color && regex.match bg_color
       game.set_bg_color_for public_key, bg_color
-      game.sync
+      #game.sync
     elsif text_color && regex.match text_color
       game.set_text_color_for public_key, text_color
-      game.sync
+      #game.sync
     end
   end
 end
@@ -1210,7 +1201,7 @@ ws "/ws" do |socket, context|
     game.broadcast_online public_key
   end
 
-  socket.on_message do
+  socket.on_message do |msg|
     if public_key && !WWWR::Channels.find { |v| v[0] == channel_key }
       WWWR::Channels.add ({ channel_key, events, public_key })
       game.broadcast_online public_key
