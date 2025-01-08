@@ -8,6 +8,23 @@ import Modal from "/app/modal.js?v=5"
 import FormatNumber from "/app/number.js?v=2"
 
 const worker = new Worker("/worker.js") 
+let lastSync = null 
+let nextSync = null;
+
+function queueSync() {
+  nextSync = setTimeout(() => {
+    lastSync = new Date();
+    htmx.trigger("#sync", "sync");
+    nextSync = null;
+  }, 1000)
+}
+
+setInterval(() => {
+  if (lastSync === null || ((new Date() - lastSync) / 1000) >= 10) {
+    console.log("Haven't received a sync in 10 seconds, queuing another one.");
+    queueSync();
+  }
+}, 10000);
 
 window.worker = worker
 
@@ -59,6 +76,10 @@ document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
   // console.log(jsonMsg);
 
   worker.postMessage(jsonMsg) 
+
+  if (nextSync === null && jsonMsg.event === "sync") {
+    queueSync();
+  }
 
   document.dispatchEvent(new CustomEvent("tickEvent", { detail: jsonMsg }))
 })
