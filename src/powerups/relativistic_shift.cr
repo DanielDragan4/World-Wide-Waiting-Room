@@ -84,7 +84,6 @@ class PowerupRelativisticShift < Powerup
         puts "Purhcased Relativistic Shift!"
         @game.add_powerup public_key, PowerupRelativisticShift.get_powerup_id
         @game.set_player_time_units public_key, ((@game.get_player_time_units public_key) - price)
-        @game.add_active public_key
 
         durations = (@game.ts + DURATION).to_s
         @game.set_key_value public_key, KEY_DURATION, durations

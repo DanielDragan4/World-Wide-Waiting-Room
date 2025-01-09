@@ -7,7 +7,7 @@ class PowerupAmishLife < Powerup
   ACTIVE_STACK_KEY = "amish_active_stack"
   BASE_PRICE = BigFloat.new 1.0
   UNIT_MULTIPLIER = BigFloat.new 2.0
-  DURATION = 60 * 60 * 6
+  DURATION = 60 * 60 * 8
   KEY_DURATION = "amish_life_duration"
   DEBUFF_RATE = BigFloat.new 0.1
 
@@ -33,10 +33,13 @@ class PowerupAmishLife < Powerup
   end
 
   def get_description(public_key)
+    e_d = enable_disable(public_key)
 
-    amount = (get_unit_boost(public_key))
     "Permanently multiplies unit production by 2x once the duration expires.
-    <br>However, for the next 8 hours, total unit generation is reduced by 90%."
+    <br>However, in order to recive the boost, for 8 hours total unit generation is reduced by 90%.
+    <br> You are able to pause the duration at any point without restarting the duration by purchasing the powerup again. The duration
+    only ticks down while you are online. The duration does not tick down during Wormholes unit generation cooldown.
+    <br> Current State: #{e_d}"
   end
 
   def get_price (public_key)
@@ -68,6 +71,17 @@ class PowerupAmishLife < Powerup
     multiplyer = UNIT_MULTIPLIER ** stack
 
     multiplyer
+  end
+
+  def enable_disable(public_key) : String
+    a_s = get_player_active_stack_size(public_key)
+    active_stack = a_s.nil? ? 0 : a_s
+
+      if active_stack > 0
+        return "Enabled"
+      else
+        return "Disabled"
+    end
   end
 
   def buy_action (public_key)
@@ -117,7 +131,6 @@ class PowerupAmishLife < Powerup
             @game.inc_time_units_ps public_key, debuff_rate.round(2)
             new_duration = duration + 1
             @game.set_key_value(public_key, KEY_DURATION, new_duration.to_s)
-            puts "tick"
         else
             @game.inc_time_units_ps public_key, amish_rate.round(2)
         end
