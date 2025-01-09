@@ -14,8 +14,11 @@ export default {
     },
 
     bigRep() {
-      const [ value, power ] = this.bigNumber.precision(8).toExponential().split("e+");
-      return { value, power }
+      let [ value, power ] = this.bigNumber.precision(8).toExponential().split("e+");
+      if (value.length <= 8) {
+        value = value + "0".repeat(9 - value.length)
+      }
+      return { value, power }    
     },
 
     isLarge() {
