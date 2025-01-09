@@ -5,7 +5,7 @@ import Card from "/app/card.js?v=5"
 import Container from "/app/container.js?v=5"
 import Button from "/app/button.js?v=5"
 import Modal from "/app/modal.js?v=5"
-import FormatNumber from "/app/number.js?v=2"
+import FormatNumber from "/app/number.js?v=3"
 
 const worker = new Worker("/worker.js") 
 let lastSync = null 
