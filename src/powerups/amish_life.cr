@@ -104,7 +104,6 @@ class PowerupAmishLife < Powerup
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, "0")
         else
             @game.add_powerup public_key, PowerupAmishLife.get_powerup_id
-            @game.add_active public_key
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, "1")
             if(duration == 0)
                 @game.set_key_value(public_key, KEY_DURATION, "0")

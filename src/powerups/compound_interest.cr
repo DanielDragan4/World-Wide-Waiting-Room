@@ -255,7 +255,7 @@ class PowerupCompoundInterest < Powerup
     end
 
     # Applies any active boosts if no "blocking" powerups applied
-    if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id)) && !(@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)) && !(@game.has_powerup(public_key, AfflictPowerupBreach.get_powerup_id))
+    if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id)) && !(@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)) && (!(@game.has_powerup(public_key, AfflictPowerupBreach.get_powerup_id)) || (@game.has_powerup(public_key, PowerupForceField.get_powerup_id)))
       unit_rate = @game.get_player_time_units_ps(public_key)
       boost_multiplier = get_unit_boost(public_key)
       boost_amount = (unit_rate * boost_multiplier) - unit_rate

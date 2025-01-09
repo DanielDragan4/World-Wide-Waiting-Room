@@ -98,7 +98,7 @@ class PowerupUnitMultiplier < Powerup
   end
 
   def action(public_key, dt)
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && !@game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && !(@game.has_powerup public_key, PowerupOverCharge.get_powerup_id) && (!(@game.has_powerup(public_key, AfflictPowerupBreach.get_powerup_id)) || (@game.has_powerup(public_key, PowerupForceField.get_powerup_id)))
       current_rate = @game.get_player_time_units_ps(public_key)
       stack_size = get_player_stack_size(public_key) + 1
       adjusted_multiplier = new_multiplier(public_key)
