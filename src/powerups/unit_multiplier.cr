@@ -68,13 +68,20 @@ class PowerupUnitMultiplier < Powerup
     game.set_key_value(public_key, KEY, (0).to_s)
   end
 
+  def is_available_for_purchase(public_key)
+    price = get_price(public_key)
+    units = @game.get_player_time_units(public_key)
+    available = (units > price)
+
+    available
+  end
+
   def buy_action(public_key)
     if public_key
-      price = get_price(public_key)
-      units = @game.get_player_time_units(public_key)
-      if units >= price
+      if is_available_for_purchase(public_key)
         current_stack = get_player_stack_size(public_key)
         powerup = PowerupUnitMultiplier.get_powerup_id
+        price = get_price(public_key)
 
         @game.inc_time_units(public_key, -price)
         @game.add_powerup(public_key, powerup)

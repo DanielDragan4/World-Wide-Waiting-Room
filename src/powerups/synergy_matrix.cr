@@ -56,6 +56,14 @@ class PowerupSynergyMatrix < Powerup
     alterations = @game.get_cached_alterations
     @game.increase_number_by_percentage price, BigFloat.new alterations.passive_price
   end
+  
+  def is_available_for_purchase(public_key)
+    price = get_price(public_key)
+    units = @game.get_player_time_units(public_key)
+    available = (units > price)
+
+    available
+  end
 
   def get_civ_boost(public_key)
     breakthrough = @game.get_powerup_classes[PowerupCosmicBreak.get_powerup_id]
@@ -70,12 +78,11 @@ class PowerupSynergyMatrix < Powerup
   def buy_action(public_key)
     puts "Purchasing Synergy Matrix"
     if public_key
-      price = get_price(public_key)
-      units = @game.get_player_time_units(public_key)
 
-      if units > price
+      if is_available_for_purchase(public_key)
         current_stack = get_player_stack_size(public_key)
         new_stack = current_stack + 1
+        price = get_price(public_key)
 
         @game.inc_time_units(public_key, -price)
         @game.set_key_value(public_key, KEY, new_stack.to_s)
