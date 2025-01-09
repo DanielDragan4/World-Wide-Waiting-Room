@@ -680,6 +680,10 @@ class Game
   end
 
   def broadcast_animation_event
+    if @animation_queue.size == 0
+      return
+    end
+
     animation_batch = { "event" => "animation", "animations" => @animation_queue }.to_json
     WWWR::Channels.each do |c|
       spawn do
