@@ -7,7 +7,7 @@ class PowerupAmishLife < Powerup
   ACTIVE_STACK_KEY = "amish_active_stack"
   BASE_PRICE = BigFloat.new 1.0
   UNIT_MULTIPLIER = BigFloat.new 2.0
-  DURATION = 6#0 * 60 * 8
+  DURATION = 60 * 60 * 8
   KEY_DURATION = "amish_life_duration"
   DEBUFF_RATE = BigFloat.new 0.1
 
