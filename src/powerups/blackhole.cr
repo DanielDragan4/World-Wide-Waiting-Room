@@ -84,7 +84,8 @@ class PowerupBlackHole < Powerup
     if @game.is_timer_expired public_key, KEY_DURATION
       @game.set_timer public_key, KEY_DURATION, DURATION
     end
-    @game.set_key_value public_key, KEY_COOLDOWN, COOLDOWN_DURATION.to_s
+    time = @game.ts
+    @game.set_key_value public_key, KEY_COOLDOWN, (COOLDOWN_DURATION + time).to_s
     @game.set_timer public_key, KEY_NEXT_TAKE_COOLDOWN, NEXT_TAKE_COOLDOWN
     @game.inc_powerup_stack public_key, PowerupBlackHole.get_powerup_id
   end
