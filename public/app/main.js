@@ -37,7 +37,7 @@ function performAnimation(jsonMsg) {
       const playerElm = document.getElementById(player_public_key); 
       const br = playerElm.getBoundingClientRect();
       const floater = document.createElement("div")
-      const speed = Math.max(Math.random() + 0.5, 0.75)
+      const speed = Math.max(Math.random() + 0.25, 0.5)
 
       floater.innerText = `${value ?? 0}`;
       let yPos = br.y
