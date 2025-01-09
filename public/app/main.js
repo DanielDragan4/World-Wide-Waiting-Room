@@ -69,6 +69,10 @@ document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
     return
   }
 
+  if (nextSync === null) {
+    queueSync();
+  }
+
   const { event } = jsonMsg;
   if (event === 'animation' && document.visibilityState === 'visible') {
     performAnimation(jsonMsg);
@@ -78,10 +82,6 @@ document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
   // console.log(jsonMsg);
 
   worker.postMessage(jsonMsg) 
-
-  if (nextSync === null && jsonMsg.event === "sync") {
-    queueSync();
-  }
 
   document.dispatchEvent(new CustomEvent("tickEvent", { detail: jsonMsg }))
 })
