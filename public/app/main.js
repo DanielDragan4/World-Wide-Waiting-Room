@@ -75,7 +75,17 @@ document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
 
   const { event } = jsonMsg;
   if (event === 'animation' && document.visibilityState === 'visible') {
-    performAnimation(jsonMsg);
+    const animations = jsonMsg.animations || []
+
+    animations.forEach((a) => {
+      let parsed;
+      try {
+        parsed = JSON.parse(a);
+      } catch(e) {
+        return;
+      }
+      performAnimation(parsed)
+    })
     return;
   }
 
