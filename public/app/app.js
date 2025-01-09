@@ -35,7 +35,7 @@ export default {
       alterations: {},
       allPowerups: [],
       leaderboard: [],
-      discordLink: '#',
+      discordLink: 'https://discord.gg/vQnnjhQGqu',
       history: [],
       timeLeft: 0,
       player: {},
@@ -167,7 +167,7 @@ export default {
       Welcome to Idle Cosmos! An online competitive idle game. Be the person with the most "Units" by the end of the timer to win.
       Use powerups to increase you Unit generation, sabatoge other players, and protect yourself.
       <br><br>
-      Head over to our <a class="font-bold hover:underline" :href="discordLink">Discord</a> if you have any questions or concerns about the game.
+      Head over to our <a class="font-bold hover:underline" target="_blank" :href="discordLink">Discord</a> if you have any questions or concerns about the game.
       <br><br>
       Good luck!
     </modal>
@@ -223,7 +223,7 @@ export default {
 
     <div class="flex flex-col items-center w-full">
       <div class="font-bold text-4xl text-center mt-1">Idle Cosmos</div>
-      <a class="font-bold hover:underline" :href="discordLink">Join our Discord</a>
+      <a class="font-bold hover:underline" target="_blank" :href="discordLink">Join our Discord</a>
     </div>
 
     <div class="
