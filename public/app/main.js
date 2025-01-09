@@ -41,7 +41,7 @@ function performAnimation(jsonMsg) {
       let yPos = br.y
       let steps = data.steps || 200;
       const r = setInterval(() => {
-        floater.style.cssText = `position: absolute; color: ${color ?? 'white'}; top: ${yPos}px; left: ${br.x + br.width / 2}px; z-index: 1000000; opacity: ${steps / 50}`
+        floater.style.cssText = `position: absolute; color: ${color ?? 'white'}; top: ${yPos}px; left: ${br.x + br.width / 2}px; z-index: 75; opacity: ${steps / 50}`
         yPos -= 0.5;
         steps--;
         if (steps <= 0) {
