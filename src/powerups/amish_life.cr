@@ -25,9 +25,11 @@ class PowerupAmishLife < Powerup
 
   def get_popup_info (public_key) : PopupInfo
     durations = @game.get_key_value public_key, KEY_DURATION
+    e_d = enable_disable(public_key)
 
     pi = PopupInfo.new
     pi["Time Left"] = (DURATION - BigFloat.new(durations)).to_s
+    pi["Boost State"] = e_d
     pi["Units/s Boost"] = "#{(get_unit_boost(public_key)).round(2)}x"
     pi
   end
