@@ -41,7 +41,6 @@ class PowerupForceField < Powerup
     alterations = @game.get_cached_alterations
     stack_size = @game.get_powerup_stack public_key, PowerupForceField.get_powerup_id
     price = stack_size == 0 ? BASE_PRICE : BASE_PRICE * (PRICE_MULTIPLIER * stack_size)
-    price = @game.get_player_time_units(public_key) / 2
     @game.increase_number_by_percentage price, BigFloat.new alterations.defensive_price
   end
 

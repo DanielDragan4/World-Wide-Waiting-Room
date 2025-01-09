@@ -37,12 +37,14 @@ function performAnimation(jsonMsg) {
       const playerElm = document.getElementById(player_public_key); 
       const br = playerElm.getBoundingClientRect();
       const floater = document.createElement("div")
+      const speed = Math.max(Math.random() + 0.5, 0.75)
+
       floater.innerText = `${value ?? 0}`;
       let yPos = br.y
       let steps = data.steps || 200;
       const r = setInterval(() => {
         floater.style.cssText = `position: absolute; color: ${color ?? 'white'}; top: ${yPos}px; left: ${br.x + br.width / 2}px; z-index: 75; opacity: ${steps / 50}`
-        yPos -= 0.5;
+        yPos -= speed;
         steps--;
         if (steps <= 0) {
           floater.remove();
