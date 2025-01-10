@@ -58,9 +58,9 @@ class PowerupCompoundInterest < Powerup
     boost_count = get_stored_boost_count(public_key)
     boost_multiplier = (new_multiplier(public_key) * 100).round
     if !is_purchased(public_key)
-    "Earn a #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.<br>"
+    "Earn a 10 minute #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.<br>"
     else
-    "Earn a #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.<br>
+    "Earn a 10 minute #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.<br>
     Stored boosts: #{boost_count}<br>
     (Purchase again to use stored boosts)"
     end
