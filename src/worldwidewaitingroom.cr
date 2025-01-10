@@ -1190,6 +1190,7 @@ post "/use" do |ctx|
     activates = pu_class.input_activates public_key
     puts "Powerup will activate #{activates}"
     pu_classes[activates].buy_action on_player_key
+    game.set_key_value on_player_key, "#{activates}_afflicted_by", public_key
     game.remove_powerup public_key, powerup
   end
 end
