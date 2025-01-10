@@ -560,6 +560,24 @@ class Game
     end
   end
 
+  # Formats vaulted units with commas for scientific notation based on value
+  def format_units(value : BigFloat)
+    if value < 1_000_000_000
+      integer_part, decimal_part = value.to_s.split(".")
+      formatted_integer = integer_part.reverse.chars.each_slice(3).map(&.join).join(",").reverse
+      decimal_part ? "#{formatted_integer}.#{decimal_part}" : formatted_integer
+    else
+      format_in_scientific_notation(value)
+    end
+  end
+
+  # Helper method to format numbers in scientific notation
+  def format_in_scientific_notation(value : BigFloat) : String
+    exponent = Math.log10(value).floor
+    base = value / (10.0 ** exponent)
+    "#{base.round(2)} x 10^#{exponent}"
+  end
+
   def inc_time_units_ps (public_key : String, by : BigFloat)
     player_tu_ps = get_player_time_units_ps public_key
     set_player_time_units_ps public_key, (player_tu_ps + by)

@@ -33,25 +33,7 @@ class PowerupHarvest < Powerup
   def get_description(public_key)
     units = ((@game.get_player_frame_ups public_key) * HARVEST_TIME).round(0)
     "Collects the next hour's worth of units based on current unit production rate, but pauses unit generation for the next hour. Has a 6 hour cooldown.
-    <br>Use to gain #{(format_harvest_units units.round(2))} units. "
-  end
-
-  # Formats vaulted units with commas for scientific notation based on value
-  def format_harvest_units(value : BigFloat)
-    if value < 1_000_000_000
-      integer_part, decimal_part = value.to_s.split(".")
-      formatted_integer = integer_part.reverse.chars.each_slice(3).map(&.join).join(",").reverse
-      decimal_part ? "#{formatted_integer}.#{decimal_part}" : formatted_integer
-    else
-      format_in_scientific_notation(value)
-    end
-  end
-
-  # Helper method to format numbers in scientific notation
-  def format_in_scientific_notation(value : BigFloat) : String
-    exponent = Math.log10(value).floor
-    base = value / (10.0 ** exponent)
-    "#{base.round(2)} x 10^#{exponent}"
+    <br>Use to gain #{(@game.format_units units.round(2))} units. "
   end
 
   def cooldown_seconds_left(public_key)

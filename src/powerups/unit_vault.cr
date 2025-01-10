@@ -83,7 +83,7 @@ class PowerupUnitVault < Powerup
   end
 
 
-  # Formats vaulted units with commas for scientific notation based on value
+  # Formats vaulted units with commas or scientific notation based on value
   def format_vaulted_units(value : BigFloat)
     if value < 1_000_000_000
       integer_part, decimal_part = value.to_s.split(".")
