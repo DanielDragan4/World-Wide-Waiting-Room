@@ -9,7 +9,7 @@ class PowerupAutomationUpgrade < Powerup
   BONUS_APPLIED_KEY = "automation_upgrade_bonus_applied"
 
   def category
-    PowerupCategory::ACTIVE
+    PowerupCategory::PASSIVE
   end
 
   def new_multiplier(public_key) : BigFloat
