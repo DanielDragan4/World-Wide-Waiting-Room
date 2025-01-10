@@ -164,6 +164,8 @@ export default {
   },
   template:`
     <modal title="What is this?" @close="showWhatIsThis=false" v-show="showWhatIsThis">
+      Welcome to <strong>Idle Cosmos</strong>! A multi-player competitive online idle game. 
+      <br/><br/>
       By the end of the in-game timer (currently set to 7 days) be the player online with the most "Units" to win. Use powerups to increase your unit production, sabotage other players' unit production, and protect yourself. The game is played in cycles. At the end of each cycle all progress is reset and the game starts anew.
       <br/><br/>
       The winner of each cycle is given the power to incrementally change one of the foundational mechanics of the game. This changes the game permanently for everyone in future cycles.      
