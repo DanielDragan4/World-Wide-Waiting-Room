@@ -5,7 +5,7 @@ class PowerupBreach < Powerup
   BASE_PRICE = BigFloat.new 3_000
 
   def category
-    PowerupCategory::SABATOGE
+    PowerupCategory::SABOTAGE
   end
 
   def self.get_powerup_id
@@ -38,7 +38,7 @@ class PowerupBreach < Powerup
   def get_price (public_key)
     price = BASE_PRICE * 2 ** (@game.get_powerup_stack public_key, PowerupBreach.get_powerup_id)
     alterations = @game.get_cached_alterations
-    price = @game.increase_number_by_percentage price, BigFloat.new alterations.sabatoge_price
+    price = @game.increase_number_by_percentage price, BigFloat.new alterations.sabotage_price
     price.round 2
   end
 

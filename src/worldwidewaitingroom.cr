@@ -55,7 +55,7 @@ class Alterations
   property active_price : Float64
   property passive_price : Float64
   property defensive_price : Float64
-  property sabatoge_price : Float64
+  property sabotage_price : Float64
   property achievement_goal : Float64
 
   def initialize(
@@ -64,7 +64,7 @@ class Alterations
     @active_price : Float64,
     @passive_price : Float64,
     @defensive_price : Float64,
-    @sabatoge_price : Float64,
+    @sabotage_price : Float64,
     @achievement_goal : Float64
   ) end
 
@@ -126,7 +126,7 @@ module Keys
 
   ALTERATION_ACTIVE_PRICE = "alteration_active_price"
   ALTERATION_PASSIVE_PRICE = "alteration_passive_price"
-  ALTERATION_SABATOGE_PRICE = "alteration_sabatoge_price"
+  ALTERATION_SABOTAGE_PRICE = "alteration_sabotage_price"
   ALTERATION_DEFENSIVE_PRICE = "alteration_defensive_price"
 
   # PLAYER_FRAME_TUPS is the value that is visually present in the UI. PLAYER_TIME_UNITS_PER_SECOND is the manipulatable value
@@ -267,7 +267,7 @@ class Game
       Keys::ALTERATION_PASSIVE_PRICE => { "name" => "Passive Powerup Prices", "text" => "Alter PASSIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.passive_price },
       Keys::ALTERATION_ACTIVE_PRICE => { "name" => "Active Powerup Prices", "text" => "Alter ACTIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.active_price},
       Keys::ALTERATION_DEFENSIVE_PRICE => { "name" => "Defensive Powerup Prices", "text" => "Alter DEFENSIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.defensive_price },
-      Keys::ALTERATION_SABATOGE_PRICE => { "name" => "Sabatoge Powerup Prices", "text" => "Alter SABATOGE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.sabatoge_price },
+      Keys::ALTERATION_SABOTAGE_PRICE => { "name" => "Sabotage Powerup Prices", "text" => "Alter SABOTAGE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.sabotage_price },
     }
   end
 
@@ -284,7 +284,7 @@ class Game
     alter_game_duration_by = Redis::Future.new
     alter_active_price_by = Redis::Future.new
     alter_passive_price_by = Redis::Future.new
-    alter_sabatoge_price_by = Redis::Future.new
+    alter_sabotage_price_by = Redis::Future.new
     alter_defensive_price_by = Redis::Future.new
     alter_achievement_goal_by = Redis::Future.new
 
@@ -293,7 +293,7 @@ class Game
       alter_game_duration_by = r.get(Keys::ALTERATION_GAME_DURATION)
       alter_active_price_by = r.get(Keys::ALTERATION_ACTIVE_PRICE)
       alter_passive_price_by = r.get(Keys::ALTERATION_PASSIVE_PRICE)
-      alter_sabatoge_price_by = r.get(Keys::ALTERATION_SABATOGE_PRICE)
+      alter_sabotage_price_by = r.get(Keys::ALTERATION_SABOTAGE_PRICE)
       alter_defensive_price_by = r.get(Keys::ALTERATION_DEFENSIVE_PRICE)
       alter_achievement_goal_by = r.get(Keys::ALTERATION_ACHIEVEMENT_GOAL)
     end
@@ -310,8 +310,8 @@ class Game
     passive_price = alter_passive_price_by.value.to_s.to_f64?
     passive_price ||= 0.0
 
-    sabatoge_price = alter_sabatoge_price_by.value.to_s.to_f64?
-    sabatoge_price ||= 0.0
+    sabotage_price = alter_sabotage_price_by.value.to_s.to_f64?
+    sabotage_price ||= 0.0
 
     defensive_price = alter_defensive_price_by.value.to_s.to_f64?
     defensive_price ||= 0.0
@@ -325,7 +325,7 @@ class Game
       active_price,
       passive_price,
       defensive_price,
-      sabatoge_price,
+      sabotage_price,
       achievement_goal,
     )
 

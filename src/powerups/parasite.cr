@@ -38,7 +38,7 @@ class PowerupParasite < Powerup
   end
 
   def category
-    PowerupCategory::SABATOGE
+    PowerupCategory::SABOTAGE
   end
 
   def self.get_powerup_id
@@ -68,7 +68,7 @@ class PowerupParasite < Powerup
     stack_size = @game.get_powerup_stack public_key, PowerupParasite.get_powerup_id
     price = stack_size > 0 ? BASE_PRICE * (PRICE_MULTIPLIER * stack_size) : BASE_PRICE
     alterations = @game.get_cached_alterations
-    @game.increase_number_by_percentage price, BigFloat.new alterations.sabatoge_price
+    @game.increase_number_by_percentage price, BigFloat.new alterations.sabotage_price
   end
 
   def is_available_for_purchase(public_key)

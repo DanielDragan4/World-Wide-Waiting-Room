@@ -8,7 +8,7 @@ enum PowerupCategory
   PASSIVE
   DEFENSIVE
   ACTIVE
-  SABATOGE
+  SABOTAGE
 end
 
 class Powerup

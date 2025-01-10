@@ -9,7 +9,7 @@ class PowerupSignalJammer < Powerup
   end
 
   def category
-    PowerupCategory::SABATOGE
+    PowerupCategory::SABOTAGE
   end
 
   def is_input_powerup (public_key)
@@ -39,7 +39,7 @@ class PowerupSignalJammer < Powerup
     mult = ((@game.get_powerup_stack public_key, PowerupSignalJammer.get_powerup_id) * 5)
     price = BASE_PRICE * (mult == 0 ? 1 : mult)
     alterations = @game.get_cached_alterations
-    @game.increase_number_by_percentage price, BigFloat.new alterations.sabatoge_price
+    @game.increase_number_by_percentage price, BigFloat.new alterations.sabotage_price
   end
 
   def is_available_for_purchase (public_key)

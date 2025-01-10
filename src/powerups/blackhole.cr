@@ -17,7 +17,7 @@ class PowerupBlackHole < Powerup
   COOLDOWN_DURATION = 12 * 60 *60
 
   def category
-    PowerupCategory::SABATOGE
+    PowerupCategory::SABOTAGE
   end
 
   def self.get_powerup_id

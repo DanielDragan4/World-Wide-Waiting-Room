@@ -165,7 +165,7 @@ export default {
   template:`
     <modal title="What is this?" @close="showWhatIsThis=false" v-show="showWhatIsThis">
       Welcome to Idle Cosmos! An online competitive idle game. Be the person with the most "Units" by the end of the timer to win.
-      Use powerups to increase you Unit generation, sabatoge other players, and protect yourself.
+      Use powerups to increase you Unit generation, sabotage other players, and protect yourself.
       <br><br>
       Head over to our <a class="font-bold hover:underline" target="_blank" :href="discordLink">Discord</a> if you have any questions or concerns about the game.
       <br><br>
