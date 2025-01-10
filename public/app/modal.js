@@ -11,7 +11,7 @@ export default {
     rounded 
     min-w-96 
     h-max
-    lg:w-max
+    lg:w-[1200px]
     max-lg:w-11/12
     min-h-[300px] 
     max-h-[800px] 
