@@ -1,5 +1,6 @@
 require "../powerup.cr"
 require "./cosmic_breakthrough"
+require "math"
 
 class PowerupTediousGains < Powerup
   BASE_PRICE = BigFloat.new 10
@@ -19,7 +20,8 @@ class PowerupTediousGains < Powerup
   end
 
   def get_description (public_key)
-    "Increases gains from Territorial Expanse by 10% with each purchase. Purchasing resets Territorial Expanses owned to 0.
+    unit_boost = get_unit_boost(public_key, BigFloat.new 1.0) - 1
+    "Increases gains from Territorial Expanse by #{(unit_boost*100).round()}% your next purchase. Purchasing resets Territorial Expanses owned to 0.
     <br>Number of Territorial Expanses Needed: #{get_required_multi_price(public_key)}
     <br>Number of Von Neumann Probes: #{get_stack_size(public_key)}"
   end
@@ -54,9 +56,11 @@ class PowerupTediousGains < Powerup
     if stack_size == 0
       return base_amount
     end
-    unit_boost = base_amount * ((stack_size * BASE_AMOUNT) + 1)
+    base_multi = (1 + BASE_AMOUNT) ** stack_size
+    base_multi = BigFloat.new base_multi
+    unit_boost = base_amount * base_multi
 
-    unit_boost
+    BigFloat.new unit_boost
   end
 
   def is_available_for_purchase(public_key)

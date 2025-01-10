@@ -552,7 +552,7 @@ class Game
         end
       end
 
-      puts "Player Index #{player_index} Left Players #{left_players} Right Players #{right_players}"
+      #puts "Player Index #{player_index} Left Players #{left_players} Right Players #{right_players}"
 
       { left_players, right_players }
     else

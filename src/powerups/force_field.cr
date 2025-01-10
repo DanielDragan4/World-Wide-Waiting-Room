@@ -34,7 +34,21 @@ class PowerupForceField < Powerup
   end
 
   def get_description (public_key)
-    "Blocks all sabotoge effects for 1 hour. Can be used every 3 hours. The price is increased multiplicatively with each purchase."
+    "Blocks all sabotoge effects for #{(get_cooldown_time(public_key)/3600).round(2)} hour(s). Can be used again 2 hours after Force Feild expires. The price is increased multiplicatively with each purchase."
+  end
+
+  def get_cooldown_time(public_key)
+    multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
+    reduced_multi = multi/10
+    
+    COOLDOWN * (1 + reduced_multi)
+  end
+
+  def get_next_use_cooldown (public_key)
+    multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
+    reduced_multi = multi/10
+    
+    NEXT_USE_COOLDOWN * (1 + reduced_multi)
   end
 
   def get_price (public_key)
@@ -71,8 +85,8 @@ class PowerupForceField < Powerup
 
     @game.inc_time_units public_key, -(get_price public_key)
     @game.add_powerup public_key, PowerupForceField.get_powerup_id
-    @game.set_timer public_key, COOLDOWN_KEY, COOLDOWN
-    @game.set_timer public_key, NEXT_USE_COOLDOWN_KEY, NEXT_USE_COOLDOWN
+    @game.set_timer public_key, COOLDOWN_KEY, (get_cooldown_time(public_key)).to_i
+    @game.set_timer public_key, NEXT_USE_COOLDOWN_KEY, (get_next_use_cooldown(public_key)).to_i
     @game.inc_powerup_stack public_key, PowerupForceField.get_powerup_id
   end
 
