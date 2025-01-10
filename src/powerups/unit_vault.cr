@@ -18,9 +18,10 @@ class PowerupUnitVault < Powerup
   def calculate_vault_generation_multiplier(public_key) : BigFloat
     unit_multiplier = get_unit_multiplier(public_key)
     compound_interest_boost = get_compound_interest_boost(public_key)
+    fremen_boost = get_fremen_boost(public_key)
 
     base_generation = BASE_GENERATION
-    total_multiplier = base_generation * unit_multiplier * compound_interest_boost
+    total_multiplier = base_generation * unit_multiplier * compound_interest_boost * fremen_boost
 
     total_multiplier
   end
@@ -39,6 +40,12 @@ class PowerupUnitVault < Powerup
     compound_powerup = @game.get_powerup_classes[PowerupCompoundInterest.get_powerup_id]
     compound_powerup = compound_powerup.as PowerupCompoundInterest
     compound_powerup.get_unit_boost(public_key)
+  end
+
+  def get_fremen_boost(public_key) : BigFloat
+    fremen_powerup = @game.get_powerup_classes[PowerupAmishLife.get_powerup_id]
+    fremen_powerup = fremen_powerup.as PowerupAmishLife
+    fremen_powerup.get_unit_boost(public_key)
   end
 
   def new_multiplier(public_key) : BigFloat
