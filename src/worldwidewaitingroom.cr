@@ -560,7 +560,7 @@ class Game
     end
   end
 
-  # Formats vaulted units with commas for scientific notation based on value
+  # Formats units with commas or scientific notation based on value
   def format_units(value : BigFloat)
     if value < 1_000_000_000
       integer_part, decimal_part = value.to_s.split(".")
