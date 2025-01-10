@@ -45,7 +45,7 @@ class PowerupUnitVault < Powerup
   def get_fremen_boost(public_key) : BigFloat
     fremen_powerup = @game.get_powerup_classes[PowerupAmishLife.get_powerup_id]
     fremen_powerup = fremen_powerup.as PowerupAmishLife
-    fremen_powerup.get_unit_boost(public_key)
+    BigFloat.new(fremen_powerup.get_unit_boost(public_key))
   end
 
   def new_multiplier(public_key) : BigFloat
@@ -76,7 +76,7 @@ class PowerupUnitVault < Powerup
     Unit generation on vaulted units is decreased to 50% of current base production (including all passive effects at time of purchase).<br>"
 
     if vault_units > 0
-      description += "<br>Currently Vaulted: #{(format_vaulted_units vault_units.round(2))} units\n "
+      description += "<br>Currently Vaulted: #{(format_vaulted_units vault_units.round(2))} units"
       description += "<br>Time Remaining: #{format_time(time_remaining)}"
     end
     return description
@@ -85,7 +85,7 @@ class PowerupUnitVault < Powerup
 
   # Formats vaulted units with commas for scientific notation based on value
   def format_vaulted_units(value : BigFloat)
-    if value < 1_000_000
+    if value < 1_000_000_000
       integer_part, decimal_part = value.to_s.split(".")
       formatted_integer = integer_part.reverse.chars.each_slice(3).map(&.join).join(",").reverse
       decimal_part ? "#{formatted_integer}.#{decimal_part}" : formatted_integer
