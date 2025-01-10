@@ -10,7 +10,7 @@ export default {
     },
 
     smallRep() {
-      return this.bigNumber.toNumber().toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      return (this.bigNumber.toNumber() || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     },
 
     bigRep() {
