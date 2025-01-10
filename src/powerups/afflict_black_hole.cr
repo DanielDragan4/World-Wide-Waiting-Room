@@ -67,7 +67,7 @@ class AfflictPowerupBlackHole < Powerup
   end
 
   def cleanup (public_key)
-    if (dec_amount public_key) <= 0
+    if (@game.has_powerup public_key, PowerupForceField.get_powerup_id) || (dec_amount public_key) <= 0
       @game.remove_powerup public_key, AfflictPowerupBlackHole.get_powerup_id
     end
   end
