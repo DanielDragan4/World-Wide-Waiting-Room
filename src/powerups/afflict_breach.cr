@@ -7,7 +7,7 @@ require "./force_field.cr"
 
 class AfflictPowerupBreach < Powerup
   COOLDOWN = BigFloat.new 60 * 10
-  COOLDOWN_KEY = "afflict_signal_jammer_cooldown"
+  COOLDOWN_KEY = "afflict_breach_cooldown"
 
   def self.get_powerup_id
     "afflict_breach"
@@ -32,7 +32,11 @@ class AfflictPowerupBreach < Powerup
   end
 
   def get_cooldown_time (public_key)
-    get_synergy_boosted_multiplier public_key, COOLDOWN
+    afflictor = @game.get_key_value(public_key, "afflict_breach_afflicted_by")
+    multi = (get_synergy_boosted_multiplier afflictor, BigFloat.new 1.0) -1
+    reduced_multi = multi/10
+    
+    COOLDOWN * (1 + reduced_multi)
   end
 
   def is_available_for_purchase (public_key)
@@ -45,7 +49,7 @@ class AfflictPowerupBreach < Powerup
     end
 
     @game.add_powerup public_key, AfflictPowerupBreach.get_powerup_id
-    @game.set_timer public_key, COOLDOWN_KEY, (get_cooldown_time public_key).to_i64
+    @game.set_timer public_key, COOLDOWN_KEY, (get_cooldown_time(public_key)).to_i64
   end
 
   def action (public_key, dt)

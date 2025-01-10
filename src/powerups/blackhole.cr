@@ -39,7 +39,7 @@ class PowerupBlackHole < Powerup
   end
 
   def get_description(public_key)
-    "Over the course of #{(DURATION / 60).to_i} minutes, Reduce the unit generation of the four people ahead and behind you. The effect becomes less powerful the further away the player is from you. "
+    "Over the course of #{(DURATION / 60).to_i} minutes, reduce the unit generation of the four people ahead and behind you. The effect becomes less powerful the further away the player is from you. "
   end
 
   def get_price(public_key)
@@ -84,7 +84,8 @@ class PowerupBlackHole < Powerup
     if @game.is_timer_expired public_key, KEY_DURATION
       @game.set_timer public_key, KEY_DURATION, DURATION
     end
-    @game.set_key_value public_key, KEY_COOLDOWN, COOLDOWN_DURATION.to_s
+    time = @game.ts
+    @game.set_key_value public_key, KEY_COOLDOWN, (COOLDOWN_DURATION + time).to_s
     @game.set_timer public_key, KEY_NEXT_TAKE_COOLDOWN, NEXT_TAKE_COOLDOWN
     @game.inc_powerup_stack public_key, PowerupBlackHole.get_powerup_id
   end

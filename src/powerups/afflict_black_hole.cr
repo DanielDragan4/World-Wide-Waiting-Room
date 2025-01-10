@@ -5,7 +5,6 @@ class AfflictPowerupBlackHole < Powerup
   STEAL_AMOUNTS = [0.5, 0.25, 0.125, 0.05]
   KEY_DISTANCE = "black_hole_dist"
 
-
   def get_name
     "Afflict Black Hole"
   end
@@ -17,12 +16,15 @@ class AfflictPowerupBlackHole < Powerup
   def is_afflication_powerup (public_key)
     true
   end
+  
   def player_card_powerup_icon(public_key)
     "/afflict_black_hole.png"
   end
 
   def get_popup_info(public_key) : PopupInfo
+    dec = dec_amount(public_key)
     pi = PopupInfo.new
+    pi["UPS Deacrease"] = ("#{dec*100}%")
     pi
   end
 
@@ -31,28 +33,21 @@ class AfflictPowerupBlackHole < Powerup
 
     left = players_left_and_right[0]
     right = players_left_and_right[1]
-    black_hole_found = false
 
-    i = 0
-    while !black_hole_found
-      if (i < left.size) && !(left.empty?)
-        if (@game.has_powerup left[i], PowerupBlackHole.get_powerup_id)
-          black_hole_found = true
-          return BigFloat.new(STEAL_AMOUNTS[i])
+    (0..3).each do |i|
+        if (i < left.size) && !(left.empty?)
+            if (@game.has_powerup left[i], PowerupBlackHole.get_powerup_id)
+                  return BigFloat.new(STEAL_AMOUNTS[i])
+            end
         end
-      end
-      if (i < right.size) && !(right.empty?)
-        if (@game.has_powerup right[i], PowerupBlackHole.get_powerup_id)
-          black_hole_found = true
-          return BigFloat.new(STEAL_AMOUNTS[i])
+        if (i < right.size) && !(right.empty?)
+            if (@game.has_powerup right[i], PowerupBlackHole.get_powerup_id)
+                return BigFloat.new(STEAL_AMOUNTS[i])
+            end
         end
-      end
-      i += 1
     end
     return BigFloat.new(0.0)
   end
-
-
 
   def action (public_key, dt)
     if (@game.has_powerup public_key, PowerupForceField.get_powerup_id)
@@ -67,7 +62,7 @@ class AfflictPowerupBlackHole < Powerup
   end
 
   def cleanup (public_key)
-    if (@game.has_powerup public_key, PowerupForceField.get_powerup_id) || (dec_amount public_key) <= 0
+    if (@game.has_powerup public_key, PowerupForceField.get_powerup_id) || ((dec_amount public_key) <= 0)
       @game.remove_powerup public_key, AfflictPowerupBlackHole.get_powerup_id
     end
   end

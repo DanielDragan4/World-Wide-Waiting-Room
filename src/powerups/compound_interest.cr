@@ -58,10 +58,10 @@ class PowerupCompoundInterest < Powerup
     boost_count = get_stored_boost_count(public_key)
     boost_multiplier = (new_multiplier(public_key) * 100).round
     if !is_purchased(public_key)
-    "Earn a #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.\n"
+    "Earn a #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.<br>"
     else
-    "Earn a #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.\n
-    Stored boosts: #{boost_count}\n
+    "Earn a #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.<br>
+    Stored boosts: #{boost_count}<br>
     (Purchase again to use stored boosts)"
     end
   end
@@ -255,7 +255,7 @@ class PowerupCompoundInterest < Powerup
     end
 
     # Applies any active boosts if no "blocking" powerups applied
-    if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id)) && !(@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)) && !(@game.has_powerup(public_key, AfflictPowerupBreach.get_powerup_id))
+    if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id)) && !(@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id)) && (!(@game.has_powerup(public_key, AfflictPowerupBreach.get_powerup_id)) || (@game.has_powerup(public_key, PowerupForceField.get_powerup_id)))
       unit_rate = @game.get_player_time_units_ps(public_key)
       boost_multiplier = get_unit_boost(public_key)
       boost_amount = (unit_rate * boost_multiplier) - unit_rate

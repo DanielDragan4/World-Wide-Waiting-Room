@@ -104,7 +104,6 @@ class PowerupAmishLife < Powerup
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, "0")
         else
             @game.add_powerup public_key, PowerupAmishLife.get_powerup_id
-            @game.add_active public_key
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, "1")
             if(duration == 0)
                 @game.set_key_value(public_key, KEY_DURATION, "0")
@@ -120,21 +119,27 @@ class PowerupAmishLife < Powerup
   end
 
   def action (public_key, dt)
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
+    if public_key 
         unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
 
         active_stack = get_player_active_stack_size(public_key)
         duration = @game.get_key_value_as_int(public_key, KEY_DURATION, BigInt.new 0)
         amish_rate = (unit_rate * (get_unit_boost(public_key))) - unit_rate
-
+        enabled_breach_rate = (DEBUFF_RATE * unit_rate) - unit_rate
 
         if  active_stack > 0
             debuff_rate = (unit_rate * (DEBUFF_RATE * get_unit_boost(public_key))) - unit_rate
-            @game.inc_time_units_ps public_key, debuff_rate.round(2)
+            if  (!(@game.has_powerup(public_key, AfflictPowerupBreach.get_powerup_id)) || (@game.has_powerup(public_key, PowerupForceField.get_powerup_id)))
+              @game.inc_time_units_ps public_key, debuff_rate.round(2)
+            else
+              @game.inc_time_units_ps public_key, enabled_breach_rate
+            end
             new_duration = duration + 1
             @game.set_key_value(public_key, KEY_DURATION, new_duration.to_s)
         else
+          if  (!(@game.has_powerup(public_key, AfflictPowerupBreach.get_powerup_id)) || (@game.has_powerup(public_key, PowerupForceField.get_powerup_id)))
             @game.inc_time_units_ps public_key, amish_rate.round(2)
+          end
         end
     end
   end

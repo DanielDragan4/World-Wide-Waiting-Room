@@ -5,8 +5,8 @@ require "json"
 class PowerupRelativisticShift < Powerup
   STACK_KEY = "relativistic_shift_stack"
   BASE_PRICE = BigFloat.new 100_000.0
-  UNIT_MULTIPLIER = BigFloat.new 3.0
-  DURATION = 43200
+  UNIT_MULTIPLIER = BigFloat.new 4.0
+  DURATION = 28_800
   KEY_DURATION = "relativistic_shift_duration"
 
   def category
@@ -41,7 +41,7 @@ class PowerupRelativisticShift < Powerup
 
   def get_description(public_key)
     amount = (new_multiplier(public_key)).round(2)
-    "Multiplies unit production by #{amount}x for the next 12 hours, but disables the purchase and use of Time Warp and Over Charge during that time. These are not stackable. Price increases exponentially with each purchase."
+    "Multiplies unit production by #{amount}x for the next 8 hours, but disables the purchase and use of Time Warp and Over Charge during that time. These are not stackable. Price increases exponentially with each purchase."
   end
 
   def get_price (public_key)
@@ -99,7 +99,7 @@ class PowerupRelativisticShift < Powerup
   end
 
   def action (public_key, dt)
-    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id)
+    if public_key && !(@game.has_powerup public_key, PowerupHarvest.get_powerup_id) && (!(@game.has_powerup(public_key, AfflictPowerupBreach.get_powerup_id)) || (@game.has_powerup(public_key, PowerupForceField.get_powerup_id)))
         unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
         relativistic_shift_rate = (unit_rate * (new_multiplier(public_key))) - unit_rate
 

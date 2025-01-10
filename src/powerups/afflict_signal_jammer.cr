@@ -34,12 +34,16 @@ class AfflictPowerupSignalJammer < Powerup
   end
 
   def get_cooldown_time (public_key)
-    get_synergy_boosted_multiplier public_key, COOLDOWN
+    afflictor = @game.get_key_value(public_key, "afflict_signal_jammer_afflicted_by")
+    multi = (get_synergy_boosted_multiplier afflictor, BigFloat.new 1.0) -1
+    reduced_multi = multi/10
+    
+    COOLDOWN * (1 + reduced_multi)
   end
 
   def buy_action (public_key)
     @game.add_powerup public_key, AfflictPowerupSignalJammer.get_powerup_id
-    @game.set_timer public_key, COOLDOWN_KEY, (get_cooldown_time public_key).to_i64
+    @game.set_timer public_key, COOLDOWN_KEY, (get_cooldown_time(public_key)).to_i64
   end
 
   def action (public_key, dt)
