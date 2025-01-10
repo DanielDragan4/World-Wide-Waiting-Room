@@ -82,7 +82,6 @@ end
 module Events
   def self.animation (public_key : String, animation : Animation, data) : String
     {
-      "event" => "animation",
       "player_public_key" => public_key,
       "animation" => animation.to_s,
       "data" => data
@@ -158,6 +157,8 @@ class Game
 
   @last_buy = Hash(Public, BigFloat).new
 
+  @animation_queue = Array(String).new
+
   def can_buy(public_key : Public) : Bool
     last_buy = @last_buy.fetch public_key, BigFloat.new 0
 
@@ -224,6 +225,7 @@ class Game
       do_powerup_cleanup player_public_key
     end
 
+    broadcast_animation_event
     update_frame_time
   end
 
@@ -526,32 +528,32 @@ class Game
     count = 4
     player_index = get_leaderboard_index public_key
     raw_leaderboard = get_raw_leaderboard
-    
+
     if player_index
       left_players = [] of String
       right_players = [] of String
-      
+
       (1..count).each do |offset|
         left_i = player_index + offset
         if left_player = raw_leaderboard.fetch(left_i, nil)
           left_players << left_player.to_s
         end
       end
-      
+
       (1..count).each do |offset|
         right_i = player_index - offset
 
         next if right_i < 0
-        
+
         if right_player = raw_leaderboard.fetch(right_i, nil)
           if !right_players.includes?(right_player.to_s) && right_player.to_s != public_key
             right_players << right_player.to_s
           end
         end
       end
-      
+
       puts "Player Index #{player_index} Left Players #{left_players} Right Players #{right_players}"
-      
+
       { left_players, right_players }
     else
       { [] of String, [] of String }
@@ -674,21 +676,28 @@ class Game
   end
 
   def send_animation_event (public_key : String, animation : Animation, data)
-    animation = Events.animation public_key, animation, data
+    @animation_queue.push Events.animation public_key, animation, data
+  end
+
+  def broadcast_animation_event
+    if @animation_queue.size == 0
+      return
+    end
+
+    animation_batch = { "event" => "animation", "animations" => @animation_queue }.to_json
     WWWR::Channels.each do |c|
       spawn do
         channel = c[1]
         public_key = c[2]
         next if channel.closed?
         begin
-          channel.send animation
+          channel.send animation_batch
         rescue
         end
       end
     end
-  end
 
-  def broadcast_animation_event (public_key : String)
+    @animation_queue.clear
   end
 
   def broadcast_online (public_key : String)
@@ -1181,6 +1190,7 @@ post "/use" do |ctx|
     activates = pu_class.input_activates public_key
     puts "Powerup will activate #{activates}"
     pu_classes[activates].buy_action on_player_key
+    game.set_key_value on_player_key, "#{activates}_afflicted_by", public_key
     game.remove_powerup public_key, powerup
   end
 end

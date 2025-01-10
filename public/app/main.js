@@ -69,19 +69,29 @@ document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
     return
   }
 
+  if (nextSync === null) {
+    queueSync();
+  }
+
   const { event } = jsonMsg;
   if (event === 'animation' && document.visibilityState === 'visible') {
-    performAnimation(jsonMsg);
+    const animations = jsonMsg.animations || []
+
+    animations.forEach((a) => {
+      let parsed;
+      try {
+        parsed = JSON.parse(a);
+      } catch(e) {
+        return;
+      }
+      performAnimation(parsed)
+    })
     return;
   }
 
   // console.log(jsonMsg);
 
   worker.postMessage(jsonMsg) 
-
-  if (nextSync === null && jsonMsg.event === "sync") {
-    queueSync();
-  }
 
   document.dispatchEvent(new CustomEvent("tickEvent", { detail: jsonMsg }))
 })
