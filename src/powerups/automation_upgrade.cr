@@ -49,8 +49,8 @@ class PowerupAutomationUpgrade < Powerup
     @game.increase_number_by_percentage BASE_PRICE, BigFloat.new alterations.active_price
   end
 
-  def is_available_for_purchase(private_key)
-    !is_purchased(private_key)
+  def is_available_for_purchase(public_key)
+    !is_purchased(public_key) && ((@game.get_player_time_units public_key) >= get_price(public_key))
   end
 
   def is_purchased(public_key)
