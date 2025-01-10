@@ -33,7 +33,7 @@ class PowerupHarvest < Powerup
   def get_description(public_key)
     units = ((@game.get_player_frame_ups public_key) * HARVEST_TIME).round(0)
     "Collects the next hour's worth of units based on current unit production rate, but pauses unit generation for the next hour. Has a 6 hour cooldown.
-    <br>Use to gain #{units} units. "
+    <br>Use to gain #{(@game.format_units units.round(2))} units. "
   end
 
   def cooldown_seconds_left(public_key)

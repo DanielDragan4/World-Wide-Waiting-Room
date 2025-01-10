@@ -103,20 +103,20 @@ class PowerupBlackHole < Powerup
       if left
         i = 3
         left.each do |x|
-            if x && x != public_key && !@game.has_powerup x, PowerupForceField.get_powerup_id
-                @game.add_powerup x, AfflictPowerupBlackHole.get_powerup_id
-                i -= 1
-            end
+          if x && x != public_key && !@game.has_powerup x, PowerupForceField.get_powerup_id
+            @game.add_powerup x, AfflictPowerupBlackHole.get_powerup_id
+            i -= 1
+          end
         end
       end
 
       if right
         i = 3
         right.each do |x|
-            if x && x != public_key && !@game.has_powerup x, PowerupForceField.get_powerup_id
-                @game.add_powerup x, AfflictPowerupBlackHole.get_powerup_id
-                i -= 1
-            end
+          if x && x != public_key && !@game.has_powerup x, PowerupForceField.get_powerup_id
+            @game.add_powerup x, AfflictPowerupBlackHole.get_powerup_id
+            i -= 1
+          end
         end
         @game.set_timer public_key, KEY_NEXT_TAKE_COOLDOWN, NEXT_TAKE_COOLDOWN
       end
