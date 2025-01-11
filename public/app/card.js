@@ -15,10 +15,6 @@ export default {
 
       return Object.entries(info)
     },
-
-    toggleIconData(icon) {
-      document.querySelector(`#${icon}-icon`).classList.toggle('hidden');
-    },
   },
 
   computed: {
@@ -77,17 +73,14 @@ export default {
       <h1 class="text-xl">{{ player.name }}</h1>
       <div class="flex flex-row justify-center space-x-2">
         <div 
-          class="relative"
+          class="relative group"
           v-for="icon in player_powerup_icons" 
         >
           <img 
-            :onclick="() => toggleIconData(icon.powerup)"
-            :onmouseover="() => toggleIconData(icon.powerup)"
-            :onmouseleave="() => toggleIconData(icon.powerup)"
             :src="icon.icon" 
             class="w-[22px]"
           >
-          <div :id="icon.powerup + '-icon'" class="absolute text-white bg-black rounded p-1 hidden ease-in flex flex-col max-w-max min-w-48 -left-20 text-center z-[1000]">
+          <div class="absolute text-white bg-black rounded p-1 invisible group-hover:visible ease-in flex flex-col max-w-max min-w-48 -left-20 text-center z-[1000]">
             <h3>{{ icon.name }}</h3>
             <div class="flex flex-col space-y-1 items-center">
               <div v-for="[k, v] in popupInfo(icon.powerup)" class="flex flex-row space-x-2">
