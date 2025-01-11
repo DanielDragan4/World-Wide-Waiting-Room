@@ -261,7 +261,7 @@ class Game
 
   def get_alteration_options
     {
-      Keys::ALTERATION_GAME_DURATION => { "name" => "Cycle Length", "text" => "Alter cycle duration by", "unit" => "hours", "increment" => 1, "min" => -(24 * 5), "max" => 24 * 5, "current_value" => @alterations.game_duration },
+      Keys::ALTERATION_GAME_DURATION => { "name" => "Cycle Length", "text" => "Alter cycle duration by", "unit" => "days", "increment" => 1, "min" => -6, "max" => 7, "current_value" => @alterations.game_duration },
       Keys::ALTERATION_BASE_RATE => { "name" => "Base Unit/s Rate", "text" => "Alter base units per second by", "unit" => "units", "increment" => 0.1, "min" => 0.1, "max" => 1_000_000, "current_value" => @alterations.base_units_per_second },
       Keys::ALTERATION_ACHIEVEMENT_GOAL => { "name" => "Achievement Goals", "text" => "Alter achievement goals by", "unit" => "%", "increment" => 1, "min" => -50, "max" => 50, "current_value" => @alterations.achievement_goal },
       Keys::ALTERATION_PASSIVE_PRICE => { "name" => "Passive Powerup Prices", "text" => "Alter PASSIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.passive_price },
@@ -367,7 +367,7 @@ class Game
   end
 
   def get_time_left
-    alter_game_duration_by = (@alterations.game_duration * 60 * 60) # alter by number of hours
+    alter_game_duration_by = (@alterations.game_duration * 60 * 60 * 24) # alter by number of days
 
     tl = WWWR::R.get Keys::TIME_LEFT
     if !tl || tl.to_i <= 0
