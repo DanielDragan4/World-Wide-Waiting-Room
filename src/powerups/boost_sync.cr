@@ -30,7 +30,8 @@ class PowerupBoostSync < Powerup
   def get_price(public_key)
     units_ps = BigFloat.new(@game.get_player_time_units_ps(public_key)) 
     purchased_passives_multi = BigFloat.new(calculate_passive_multiplier(public_key)) 
-    price =  BigFloat.new((BASE_PRICE * purchased_passives_multi))
+    passives_and_fremen = purchased_passives_multi * get_fremen_boost(public_key)
+    price =  BigFloat.new((BASE_PRICE * passives_and_fremen))
 
     alterations = @game.get_cached_alterations
     @game.increase_number_by_percentage price, BigFloat.new alterations.active_price
@@ -64,9 +65,8 @@ class PowerupBoostSync < Powerup
     unit_multiplier = get_unit_multiplier(public_key)
     compound_interest_boost = get_compound_interest_boost(public_key)
     auto_boost = get_auto_upgrade_boost(public_key)
-    fremen_boost = get_fremen_boost(public_key)
 
-    total_multiplier = unit_multiplier * compound_interest_boost * auto_boost * fremen_boost
+    total_multiplier = unit_multiplier * compound_interest_boost * auto_boost
 
     total_multiplier
   end
