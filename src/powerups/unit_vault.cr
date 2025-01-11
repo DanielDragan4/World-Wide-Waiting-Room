@@ -19,9 +19,10 @@ class PowerupUnitVault < Powerup
     unit_multiplier = get_unit_multiplier(public_key)
     compound_interest_boost = get_compound_interest_boost(public_key)
     fremen_boost = get_fremen_boost(public_key)
+    auto_boost = get_auto_upgrade_boost(public_key)
 
     base_generation = BASE_GENERATION
-    total_multiplier = base_generation * unit_multiplier * compound_interest_boost * fremen_boost
+    total_multiplier = base_generation * unit_multiplier * compound_interest_boost * fremen_boost * auto_boost
 
     total_multiplier
   end
@@ -46,6 +47,12 @@ class PowerupUnitVault < Powerup
     fremen_powerup = @game.get_powerup_classes[PowerupAmishLife.get_powerup_id]
     fremen_powerup = fremen_powerup.as PowerupAmishLife
     BigFloat.new(fremen_powerup.get_unit_boost(public_key))
+  end
+
+  def get_auto_upgrade_boost(public_key) : BigFloat
+    auto_upgrade_powerup = @game.get_powerup_classes[PowerupAutomationUpgrade.get_powerup_id]
+    auto_upgrade_powerup = auto_upgrade_powerup.as PowerupAutomationUpgrade
+    auto_upgrade_powerup.get_auto_boost(public_key)
   end
 
   def new_multiplier(public_key) : BigFloat
@@ -76,29 +83,10 @@ class PowerupUnitVault < Powerup
     Unit generation on vaulted units is decreased to 50% of current base production (including all passive effects at time of purchase).<br>"
 
     if vault_units > 0
-      description += "<br>Currently Vaulted: #{(format_vaulted_units vault_units.round(2))} units"
+      description += "<br>Currently Vaulted: #{(@game.format_units vault_units.round(2))} units"
       description += "<br>Time Remaining: #{format_time(time_remaining)}"
     end
     return description
-  end
-
-
-  # Formats vaulted units with commas or scientific notation based on value
-  def format_vaulted_units(value : BigFloat)
-    if value < 1_000_000_000
-      integer_part, decimal_part = value.to_s.split(".")
-      formatted_integer = integer_part.reverse.chars.each_slice(3).map(&.join).join(",").reverse
-      decimal_part ? "#{formatted_integer}.#{decimal_part}" : formatted_integer
-    else
-      format_in_scientific_notation(value)
-    end
-  end
-
-  # Helper method to format numbers in scientific notation
-  def format_in_scientific_notation(value : BigFloat) : String
-    exponent = Math.log10(value).floor
-    base = value / (10.0 ** exponent)
-    "#{base.round(2)} x 10^#{exponent}"
   end
 
   #Helper method to format timer
