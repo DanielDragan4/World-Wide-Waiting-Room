@@ -35,6 +35,7 @@ export default {
       alterations: {},
       allPowerups: [],
       leaderboard: [],
+      powerupClassChosen: 'ACTIVE',
       discordLink: 'https://discord.gg/vQnnjhQGqu',
       history: [],
       timeLeft: 0,
@@ -79,8 +80,29 @@ export default {
           if (!this.powerupSearch) return true;
           return y.name.toLowerCase().includes(this.powerupSearch.toLowerCase()) || y.category.toLowerCase().includes(this.powerupSearch.toLowerCase())
         })
-        .sort((a, b) => a.name > b.name ? 1 : -1)
+        .sort((a, b) => a.is_available_for_purchase ? -1 : 1)
     },
+
+    availablePowerups() {
+      return this.powerups.filter((x) => x.is_available_for_purchase);
+    },
+
+    unavailablePowerups() {
+      return this.powerups.filter((x) => !x.is_available_for_purchase);
+    },
+
+    availablePowerupsByCategory() {
+      if (this.powerupSearch) return this.availablePowerups
+
+      return this.availablePowerups.filter((x) => x.category === this.powerupClassChosen);
+    },
+
+    unavailablePowerupsByCategory() {
+      if (this.powerupSearch) return this.unavailablePowerups
+
+      return this.unavailablePowerups.filter((x) => x.category === this.powerupClassChosen);
+    },
+
 
     playerCanAlterUniverse() {
       return this.player.player_can_alter_universe;
@@ -293,7 +315,69 @@ export default {
               </container>
           </container>
 
-          <container v-if="sideContentToShow === 'powerups'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
+          <modal @close="sideContentToShow=null" v-if="sideContentToShow === 'powerups'" class="max-lg:hidden" title="Powerups">
+            <div class="flex flex-col space-y-4"> 
+              <input 
+                type="search" 
+                placeholder="Search"
+                class="w-full rounded p-2 text-md text-center bg-[#323237] z-10" 
+                v-model="powerupSearch"
+              >
+              <div class="flex flex-row items-center justify-center space-x-2" v-show="!powerupSearch">
+                <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'ACTIVE' }" @click="powerupClassChosen = 'ACTIVE'">ACTIVE</cbutton>
+                <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'PASSIVE' }" @click="powerupClassChosen = 'PASSIVE'">PASSIVE</cbutton>
+                <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'SABOTAGE' }" @click="powerupClassChosen = 'SABOTAGE'">SABOTAGE</cbutton>
+                <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'DEFENSIVE' }" @click="powerupClassChosen = 'DEFENSIVE'">DEFENSIVE</cbutton>
+              </div>
+
+              <div class="overflow-y-auto max-h-[500px]">
+                <h1 v-if="availablePowerupsByCategory.length > 0" class="text-lg font-bold text-center">Available for Purchase</h1>
+                <div class="grid grid-cols-3 gap-2">
+                  <container 
+                    v-for="powerup in availablePowerupsByCategory"
+                    class="w-full flex flex-col items-center justify-between space-y-1"
+                  >
+                    <div class="flex flex-col text-center space-y-2">
+                      <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
+                      <h2 class="text-xs">{{ powerup.category }}</h2>
+                      <format-number class="font-bold text-xs" :number="powerup.price" />
+                    </div>
+                    <div class="my-2 text-center" v-html="powerup.description"></div>
+                    <cbutton @click="buy(powerup.id)" extraClasses="w-full" v-if="powerup.is_available_for_purchase">Buy</cbutton>
+                    <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
+                      <span>Next purchase</span>
+                      <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
+                    </div>
+                    <div v-else-if="powerup.currently_owns">Purchased</div>
+                  </container>
+                </div>
+                <hr class="w-full mt-4">
+                <h1 v-if="unavailablePowerupsByCategory.length > 0" class="text-lg font-bold text-center my-2">Not Available for Purchase</h1>
+                <div class="grid grid-cols-3 gap-2">
+                  <container 
+                    v-for="powerup in unavailablePowerupsByCategory"
+                    class="w-full flex flex-col items-center justify-between space-y-1"
+                  >
+                    <div class="flex flex-col text-center space-y-2">
+                      <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
+                      <h2 class="text-xs">{{ powerup.category }}</h2>
+                      <format-number class="font-bold text-xs" :number="powerup.price" />
+                    </div>
+                    <div class="my-2 text-center" v-html="powerup.description"></div>
+                    <cbutton @click="buy(powerup.id)" extraClasses="w-full" v-if="powerup.is_available_for_purchase">Buy</cbutton>
+                    <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
+                      <span>Next purchase</span>
+                      <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
+                    </div>
+                    <div v-else-if="powerup.currently_owns">Purchased</div>
+                  </container>
+                </div>
+
+              </div>
+            </div>
+          </modal>
+
+          <container v-if="sideContentToShow === 'powerups'" class="flex flex-col items-center justify-between space-y-4 max-h-[600px] lg:hidden overflow-y-auto">
             <h1 class="font-bold text-center">Powerups</h1>
             <input 
               type="search" 
@@ -301,22 +385,38 @@ export default {
               class="w-full rounded p-2 text-md text-center bg-[#323237] z-10" 
               v-model="powerupSearch"
             >
-            <container 
-              v-for="powerup in powerups"
-              class="w-full flex flex-col items-center space-y-1"
-            >
-              <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
-              <h2 class="text-xs">{{ powerup.category }}</h2>
-              <format-number class="font-bold text-xs" :number="powerup.price" />
-              <div class="my-2 text-center" v-html="powerup.description"></div>
-              <cbutton @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
-              <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
-                <span>Next purchase</span>
-                <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
-              </div>
-              <div v-else-if="powerup.currently_owns">Purchased</div>
-              <div v-else>Unavailable</div>
-            </container>
+            <div class="w-full flex flex-col space-y-1">
+              <h1 v-if="availablePowerups.length > 0" class="text-lg font-bold text-center my-2">Available for Purchase</h1>
+              <container 
+                v-for="powerup in availablePowerups"
+                class="w-full flex flex-col items-center "
+              >
+                <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
+                <h2 class="text-xs">{{ powerup.category }}</h2>
+                <format-number class="font-bold text-xs" :number="powerup.price" />
+                <div class="my-2 text-center" v-html="powerup.description"></div>
+                <cbutton extraClasses="w-full" @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
+              </container>
+
+              <hr class="w-full mb-4 !mt-4">
+
+              <h1 v-if="unavailablePowerups.length > 0" class="text-lg font-bold text-center mb-2 mt-2">Not Available for Purchase</h1>
+
+              <container 
+                v-for="powerup in availablePowerups"
+                class="w-full flex flex-col items-center "
+              >
+                <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
+                <h2 class="text-xs">{{ powerup.category }}</h2>
+                <format-number class="font-bold text-xs" :number="powerup.price" />
+                <div class="my-2 text-center" v-html="powerup.description"></div>
+                <div v-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
+                  <span>Next purchase</span>
+                  <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
+                </div>
+                <div v-else-if="powerup.currently_owns">Purchased</div>
+              </container>
+            </div>
           </container>
         </div>
       </div>

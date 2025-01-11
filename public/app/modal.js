@@ -2,9 +2,12 @@ export default {
   props: {
     title: String,
     noClose: Boolean,
+    extraClasses: String,
   },
   template: `
-  <div class="
+  <div 
+    :class="extraClasses" 
+    class="
     z-[1000] 
     bg-[#212126] 
     border 
