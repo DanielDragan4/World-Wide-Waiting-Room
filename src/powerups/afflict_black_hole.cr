@@ -16,7 +16,7 @@ class AfflictPowerupBlackHole < Powerup
   def is_afflication_powerup (public_key)
     true
   end
-  
+
   def player_card_powerup_icon(public_key)
     "/afflict_black_hole.png"
   end
@@ -24,7 +24,7 @@ class AfflictPowerupBlackHole < Powerup
   def get_popup_info(public_key) : PopupInfo
     dec = dec_amount(public_key)
     pi = PopupInfo.new
-    pi["UPS Deacrease"] = ("#{dec*100}%")
+    pi["UPS Decrease"] = ("#{dec*100}%")
     pi
   end
 
