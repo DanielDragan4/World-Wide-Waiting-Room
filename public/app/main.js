@@ -7,7 +7,7 @@ import Button from "/app/button.js?v=5"
 import Modal from "/app/modal.js?v=6"
 import FormatNumber from "/app/number.js?v=4"
 
-const worker = new Worker("/worker.js") 
+const worker = new Worker("/worker.js?v=1") 
 let lastSync = null 
 let nextSync = null;
 
