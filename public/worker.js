@@ -4,7 +4,8 @@ let players = {}
 let thisPlayer = null;
 
 // Based on how fast the update loop ticks
-const NGU_SCALE_FACTOR = 1 / 100
+const LOOP_SPEED_MS = 100
+const NGU_SCALE_FACTOR = LOOP_SPEED_MS / 1000
 
 // Update Loop
 setInterval(() => {
@@ -14,7 +15,7 @@ setInterval(() => {
   })
 
   thisPlayer = intervalFunc(thisPlayer);
-}, 10)
+}, LOOP_SPEED_MS)
 
 // Render Loop
 setInterval(() => {
@@ -22,7 +23,7 @@ setInterval(() => {
     (a, b) => new BigNumber(a.time_units).lte(new BigNumber(b.time_units)) ? 1 : -1
   )
   postMessage({ leaderboard, player: thisPlayer })
-}, 10)
+}, LOOP_SPEED_MS)
 
 function intervalFunc(this_player) {
   if (!this_player) return;
