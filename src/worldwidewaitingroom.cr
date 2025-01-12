@@ -31,6 +31,7 @@ require "./powerups/cosmic_breakthrough"
 require "./powerups/unit_vault"
 require "./powerups/boost_sync"
 require "./powerups/afflict_black_hole"
+require "./powerups/necrovoid"
 
 
 require "./powerups/achievement_type_1.cr"
@@ -113,6 +114,7 @@ module Keys
   GLOBAL_VARS = "global_vars"
   LAST_FRAME_TIME = "frame_time"
   LEADERBOARD = "online-leaderboard"
+  NECROVOIDERS = "necrovoiders"
   PLAYER_PUBLIC_KEY = "public_key"
   PLAYER_POWERUPS = "powerups"
   PLAYER_METADATA = "metadata"
@@ -246,7 +248,7 @@ class Game
   def is_player_online (public_key : String) : Bool
     is_online = false
     WWWR::Channels.each do |x|
-      if x[3] == public_key
+      if x[2] == public_key
         is_online = true
       end
     end
@@ -351,6 +353,7 @@ class Game
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupAmishLife.get_powerup_id => PowerupAmishLife.new(self),
       PowerupTediousGains.get_powerup_id => PowerupTediousGains.new(self),
+      PowerupNecrovoid.get_powerup_id => PowerupNecrovoid.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
       PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
       PowerupSynergyMatrix.get_powerup_id => PowerupSynergyMatrix.new(self),
@@ -617,8 +620,26 @@ class Game
     lb.map { |x| Hash(String, String).from_json (x.to_s) }
   end
 
+  def add_necrovoider(public_key : String)
+    remove_necrovoider public_key
+    WWWR::R.rpush Keys::NECROVOIDERS, public_key
+  end
+
+  def remove_necrovoider(public_key : String)
+    WWWR::R.lrem Keys::NECROVOIDERS, 0, public_key
+  end
+
+  def get_necrovoiders
+    WWWR::R.lrange(Keys::NECROVOIDERS, 0, -1)
+  end
+
   def get_raw_leaderboard
     lb = WWWR::R.lrange(Keys::LEADERBOARD, 0, -1)
+
+    get_necrovoiders.each do |pk|
+      lb.push pk
+    end
+
     lb.map { |x| x.to_s }.sort { |a, b| (get_player_time_units a.to_s) <=> (get_player_time_units b.to_s) }
   end
 
