@@ -1,9 +1,9 @@
 import { createApp } from '/vue.js'
 
-import App from "/app/app.js?v=12"
+import App from "/app/app.js?v=13"
 import Card from "/app/card.js?v=7"
 import Container from "/app/container.js?v=6"
-import Button from "/app/button.js?v=6"
+import Button from "/app/button.js?v=7"
 import Modal from "/app/modal.js?v=7"
 import FormatNumber from "/app/number.js?v=5"
 
