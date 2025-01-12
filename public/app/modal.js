@@ -15,7 +15,7 @@ export default {
     border 
     rounded 
     min-w-96 
-    h-max
+    h-full
     lg:w-[1200px]
     max-lg:w-11/12
     min-h-[300px] 
