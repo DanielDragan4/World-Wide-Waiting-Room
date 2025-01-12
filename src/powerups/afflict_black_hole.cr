@@ -24,7 +24,7 @@ class AfflictPowerupBlackHole < Powerup
   def get_popup_info(public_key) : PopupInfo
     dec = dec_amount(public_key)
     pi = PopupInfo.new
-    pi["UPS Decrease"] = ("#{dec*100}%")
+    pi["Units/s Decrease"] = ("#{dec*100}%")
     pi
   end
 

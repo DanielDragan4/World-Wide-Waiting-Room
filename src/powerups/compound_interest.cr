@@ -37,7 +37,7 @@ class PowerupCompoundInterest < Powerup
 
     pi = PopupInfo.new
     if durations.any?
-      time_left = (BigFloat.new(durations[0][0]) - @game.ts).to_s
+      time_left = @game.format_time (BigFloat.new(durations[0][0]) - @game.ts)
       pi["Time Left"] = time_left
     else
       pi["Time Left"] = "No active boosts"

@@ -26,7 +26,7 @@ class PowerupTimeWarp < Powerup
     "Time Warp"
   end
 
-  def is_stackable  
+  def is_stackable
     true
   end
 
@@ -34,7 +34,7 @@ class PowerupTimeWarp < Powerup
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
     pi = PopupInfo.new
-    pi["Time Left"] = (BigFloat.new(durations[0][0]) - @game.ts).to_s
+    pi["Time Left"] = @game.format_time (BigFloat.new(durations[0][0]) - @game.ts)
     pi["Units/s Boost"] = "#{(get_unit_boost(public_key)).round(2)}x"
     pi["Time Warp Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_s
     pi

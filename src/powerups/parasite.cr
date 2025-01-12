@@ -47,7 +47,7 @@ class PowerupParasite < Powerup
 
   def get_popup_info(public_key) : PopupInfo
     pi = PopupInfo.new
-    pi["Timer Left"] = (@game.get_timer_seconds_left public_key, KEY_DURATION)
+    pi["Timer Left"] = (@game.get_timer_time_left public_key, KEY_DURATION)
     pi["Parasite Stack"] = (get_active_parasite_stack public_key).to_s
     pi
   end

@@ -29,7 +29,7 @@ class PowerupForceField < Powerup
 
   def get_popup_info (public_key) : PopupInfo
     pi = PopupInfo.new
-    pi["Time Left"] = (@game.get_timer_seconds_left public_key, COOLDOWN_KEY)
+    pi["Time Left"] = (@game.get_timer_time_left public_key, COOLDOWN_KEY)
     pi
   end
 
@@ -40,14 +40,14 @@ class PowerupForceField < Powerup
   def get_cooldown_time(public_key)
     multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
     reduced_multi = multi/10
-    
+
     COOLDOWN * (1 + reduced_multi)
   end
 
   def get_next_use_cooldown (public_key)
     multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
     reduced_multi = multi/10
-    
+
     NEXT_USE_COOLDOWN * (1 + reduced_multi)
   end
 

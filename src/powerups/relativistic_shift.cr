@@ -34,7 +34,7 @@ class PowerupRelativisticShift < Powerup
     durations = @game.get_key_value_as_int public_key, KEY_DURATION
 
     pi = PopupInfo.new
-    pi["Time Left"] = (BigFloat.new(durations) - @game.ts).to_s
+    pi["Time Left"] = @game.get_timer_time_left public_key, KEY_DURATION
     pi["Units/s Boost"] = "#{(new_multiplier(public_key)).round(2)}x"
     pi
   end

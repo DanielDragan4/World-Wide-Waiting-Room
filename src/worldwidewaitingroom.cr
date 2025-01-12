@@ -243,6 +243,17 @@ class Game
     end
   end
 
+  def is_player_online (public_key : String) : Bool
+    is_online = false
+    WWWR::Channels.each do |x|
+      if x[3] == public_key
+        is_online = true
+      end
+    end
+
+    is_online
+  end
+
   def cache_universe_change_log
     change_log = WWWR::R.lrange Keys::UNIVERSE_CHANGE_LOG, 0, -1
     @universe_change_log = change_log.map { |x| Hash(String, String).from_json (x.to_s) }
@@ -472,6 +483,16 @@ class Game
     end
   end
 
+  def format_time (tl) : String
+    tl = tl.to_i
+    seconds = tl % 60
+    minutes = (tl // 60) % 60
+    hours = (tl // 60 // 60) % 24
+    days = tl // 60 // 60 // 24
+
+    "#{days}d #{hours}h #{minutes}m #{seconds}s"
+  end
+
   def update_frame_time
     WWWR::R.set(Keys::LAST_FRAME_TIME, Time.utc.to_unix_ms)
   end
@@ -646,6 +667,11 @@ class Game
 
   def get_timer_seconds_left (public_key : String, timer_key : String) : Int32
     ((get_key_value_as_float public_key, timer_key) - ts).to_i
+  end
+
+  def get_timer_time_left (public_key : String, timer_key : String) : String
+    seconds_left = get_timer_seconds_left public_key, timer_key
+    format_time seconds_left
   end
 
   def is_timer_expired (public_key : String, timer_key : String) : Bool

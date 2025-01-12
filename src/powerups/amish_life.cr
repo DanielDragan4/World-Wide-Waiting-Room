@@ -28,7 +28,7 @@ class PowerupAmishLife < Powerup
     e_d = enable_disable(public_key)
 
     pi = PopupInfo.new
-    pi["Time Left"] = (@game.format_units (DURATION - BigFloat.new(durations))).to_s
+    pi["Time Left"] = (@game.format_time (DURATION - BigFloat.new(durations)))
     pi["Boost State"] = e_d
     pi["Units/s Boost"] = "#{(@game.format_units BigFloat.new(get_unit_boost(public_key)).round(2))}x"
     pi

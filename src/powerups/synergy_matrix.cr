@@ -56,7 +56,7 @@ class PowerupSynergyMatrix < Powerup
     alterations = @game.get_cached_alterations
     @game.increase_number_by_percentage price, BigFloat.new alterations.passive_price
   end
-  
+
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
     units = @game.get_player_time_units(public_key)
