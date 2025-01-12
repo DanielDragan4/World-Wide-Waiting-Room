@@ -61,7 +61,7 @@ class PowerupParasite < Powerup
   end
 
   def get_description(public_key)
-    "Over the course of #{(DURATION / 60).to_i} minutes, steal units from players directly ahead and behind you. For players with less than 100x your units, steals 20% of their units. For players with 100x or more units, steals a smaller percentage decreasing as the difference in units is higher. The price increases with each purchase."
+    "<strong>Duration:</strong> #{DURATION/60} Minutes<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br>Steals units from nearby players"
   end
 
   def get_price(public_key)
