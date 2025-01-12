@@ -346,7 +346,7 @@ export default {
                 <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'DEFENSIVE' }" @click="powerupClassChosen = 'DEFENSIVE'">DEFENSIVE</cbutton>
               </div>
 
-              <div class="overflow-y-auto max-h-[600px]">
+              <div class="overflow-y-auto max-h-[550px]">
                 <div class="grid grid-cols-3 gap-2">
                   <container 
                     v-for="powerup in powerupsByCategory"
