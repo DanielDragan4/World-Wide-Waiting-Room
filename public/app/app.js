@@ -84,11 +84,15 @@ export default {
     },
 
     availablePowerups() {
-      return this.powerups.filter((x) => x.is_available_for_purchase);
+      return this.powerups
+        .filter((x) => x.is_available_for_purchase)
+        .sort((a, b) => a.name > b.name ? 1 : -1)
     },
 
     unavailablePowerups() {
-      return this.powerups.filter((x) => !x.is_available_for_purchase);
+      return this.powerups
+        .filter((x) => !x.is_available_for_purchase)
+        .sort((a, b) => a.name > b.name ? 1 : -1)
     },
 
     availablePowerupsByCategory() {
@@ -385,10 +389,18 @@ export default {
               class="w-full rounded p-2 text-md text-center bg-[#323237] z-10" 
               v-model="powerupSearch"
             >
+
+            <div class="flex flex-row items-center justify-center space-x-2" v-show="!powerupSearch">
+              <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'ACTIVE' }" @click="powerupClassChosen = 'ACTIVE'">ACTIVE</cbutton>
+              <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'PASSIVE' }" @click="powerupClassChosen = 'PASSIVE'">PASSIVE</cbutton>
+              <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'SABOTAGE' }" @click="powerupClassChosen = 'SABOTAGE'">SABOTAGE</cbutton>
+              <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'DEFENSIVE' }" @click="powerupClassChosen = 'DEFENSIVE'">DEFENSIVE</cbutton>
+            </div>
+
             <div class="w-full flex flex-col space-y-1">
-              <h1 v-if="availablePowerups.length > 0" class="text-lg font-bold text-center my-2">Available for Purchase</h1>
+              <h1 v-if="availablePowerupsByCategory.length > 0" class="text-lg font-bold text-center my-2">Available for Purchase</h1>
               <container 
-                v-for="powerup in availablePowerups"
+                v-for="powerup in availablePowerupsByCategory"
                 class="w-full flex flex-col items-center "
               >
                 <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
@@ -400,10 +412,10 @@ export default {
 
               <hr class="w-full mb-4 !mt-4">
 
-              <h1 v-if="unavailablePowerups.length > 0" class="text-lg font-bold text-center mb-2 mt-2">Not Available for Purchase</h1>
+              <h1 v-if="unavailablePowerupsByCategory.length > 0" class="text-lg font-bold text-center mb-2 mt-2">Not Available for Purchase</h1>
 
               <container 
-                v-for="powerup in availablePowerups"
+                v-for="powerup in unavailablePowerupsByCategory"
                 class="w-full flex flex-col items-center "
               >
                 <h1 class="text-xl font-bold">{{ powerup.name }}</h1>

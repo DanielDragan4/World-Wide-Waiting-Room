@@ -8,6 +8,8 @@ export default {
   <div 
     :class="extraClasses" 
     class="
+    shadow-xl
+    shadow-slate-600
     z-[1000] 
     bg-[#212126] 
     border 
