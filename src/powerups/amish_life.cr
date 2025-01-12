@@ -40,7 +40,7 @@ class PowerupAmishLife < Powerup
     "Permanently multiplies unit production by 2x once the duration expires.
     <br>However, in order to receive the boost, for 8 hours total unit generation is reduced by 90%.
     <br> You are able to pause the duration at any point without restarting the duration by purchasing the powerup again. The duration
-    only ticks down while you are online. The duration does not tick down during Wormhole's unit generation cooldown.
+    only ticks down while you are online.
     <br> Current State: #{e_d}"
   end
 
