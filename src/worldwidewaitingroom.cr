@@ -490,7 +490,15 @@ class Game
     hours = (tl // 60 // 60) % 24
     days = tl // 60 // 60 // 24
 
-    "#{days}d #{hours}h #{minutes}m #{seconds}s"
+    if days > 0
+      "#{days}d #{hours}h #{minutes}m #{seconds}s"
+    elsif hours > 0
+      "#{hours}h #{minutes}m #{seconds}s"
+    elsif minutes > 0
+      "#{minutes}m #{seconds}s"
+    else
+      "#{seconds}s"
+    end
   end
 
   def update_frame_time
