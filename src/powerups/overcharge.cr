@@ -2,6 +2,8 @@
 require "../powerup"
 require "json"
 require "./unit_multiplier"
+require "./amish_life"
+require "./timewarp"
 require "./compound_interest"
 
 class PowerupOverCharge < Powerup
@@ -44,10 +46,40 @@ class PowerupOverCharge < Powerup
   end
 
   def get_description(public_key)
-        amount = ((get_unit_boost(public_key)) * new_multiplier(public_key)).round(2)
-        "Increases unit production by #{amount}x for 1 min, but disables all passive powerups while active.
-        <br>Price increases exponentially as active stack size increases. Base price increases with each purchase."
+      multi = new_multiplier(public_key)
+      projected = get_projected_ups(public_key)
+      "<strong>+#{multi.round(2)}x Units/s (#{projected} )</strong><br>
+      <strong>Duration:</strong> #{DURATION/60} minute<br>
+      <strong>Stackable:</strong> Yes<br>
+      <strong>Toggleable:</strong> No<br>
+      Boosts production. Disables passive effects"
   end
+
+  def get_projected_ups(public_key)
+    fremen = get_fremen_boost(public_key)
+    time = get_timewarp_boost(public_key)
+    overcharge_rate = (time *  fremen * (get_unit_boost(public_key)))
+    boost = BigFloat.new(overcharge_rate).round(2)
+
+    (boost == 0) ? 1.0 : boost
+  end
+
+  def get_fremen_boost(public_key)
+      fremen = @game.get_powerup_classes[PowerupAmishLife.get_powerup_id]
+      fremen = fremen.as PowerupAmishLife
+      stack_size = fremen.get_player_stack_size(public_key)
+      boost = BigFloat.new (2* stack_size)
+
+      (boost == 0) ? 1.0 : boost
+  end
+
+  def get_timewarp_boost(public_key)
+    time = @game.get_powerup_classes[PowerupTimeWarp.get_powerup_id]
+    time = time.as PowerupTimeWarp
+    multi = time.get_unit_boost(public_key)
+
+    multi
+end
 
   def get_price (public_key)
     active_stack = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY)

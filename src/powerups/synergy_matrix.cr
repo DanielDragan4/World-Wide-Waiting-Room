@@ -30,8 +30,13 @@ class PowerupSynergyMatrix < Powerup
     stack_size = get_player_stack_size(public_key)
     boost = get_civ_boost(public_key)
     boost_percent = (stack_size * boost * 100)
-    "Increases the effectiveness of all other powerups by #{(boost * 100).round}%. The effect stacks additively with each purchase.\n Purchasing does not affect active powerups currently in use.
-    <br>Current boost: #{boost_percent.round}%"
+    
+    "<strong>+#{(boost * 100).round}% Units/s (#{amount} )</strong><br>
+      <strong>Total:</strong> #{boost_percent.round}%<br>
+      <strong>Stackable:</strong> Yes<br>
+      <strong>Toggleable:</strong> No<br>
+      Increase potency of most powerups."
+
   end
 
   def is_stackable

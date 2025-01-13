@@ -476,6 +476,24 @@ class Game
     WWWR::R.set(Keys::LAST_FRAME_TIME, Time.utc.to_unix_ms)
   end
 
+  def format_time (tl) : String
+    tl = tl.to_i
+    seconds = tl % 60
+    minutes = (tl // 60) % 60
+    hours = (tl // 60 // 60) % 24
+    days = tl // 60 // 60 // 24
+
+    if days > 0
+      "#{days}d #{hours}h #{minutes}m #{seconds}s"
+    elsif hours > 0
+      "#{hours}h #{minutes}m #{seconds}s"
+    elsif minutes > 0
+      "#{minutes}m #{seconds}s"
+    else
+      "#{seconds}s"
+    end
+  end
+
   def get_leaderboard
     get_raw_leaderboard.map { |public_key| get_data_for public_key.to_s }
   end

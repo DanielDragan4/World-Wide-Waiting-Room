@@ -36,12 +36,32 @@ class PowerupAmishLife < Powerup
 
   def get_description(public_key)
     e_d = enable_disable(public_key)
+    estimate = BigFloat.new(@game.get_player_time_units_ps(public_key))
+    active_stack = get_player_active_stack_size(public_key)
+    enabled = enable_disable(public_key)
+    current_timer = @game.get_key_value_as_int(public_key, KEY_DURATION)
+    timer = DURATION -current_timer
+    time = @game.format_time(timer)
 
-    "Permanently multiplies unit production by 2x once the duration expires.
-    <br>However, in order to receive the boost, for 8 hours total unit generation is reduced by 90%.
-    <br> You are able to pause the duration at any point without restarting the duration by purchasing the powerup again. The duration
-    only ticks down while you are online. The duration does not tick down during Wormhole's unit generation cooldown.
-    <br> Current State: #{e_d}"
+    if (active_stack > 0)
+      estimate = (estimate * 10).round(2)
+    else
+      estimate = (estimate * 0.1).round(2)
+    end
+
+    if !(@game.has_powerup(public_key, PowerupAmishLife.get_powerup_id))
+      return "<strong>+0.1x Units/s (#{estimate.round(2)}):</strong><br>
+              <strong>Status:</strong> #{enabled}<br>
+              <strong>Toggleable:</strong> Yes<br>
+              Decrease Units/s and get a Boost after the timer"
+
+    else
+      return "<strong>+0.1x Units/s (#{estimate}):</strong><br>
+    <strong>Status:</strong> #{enabled}<br>
+    <strong>Toggleable:</strong> Yes<br>
+    <strong>Timer:</strong> #{time}<br>
+    Decrease Units/s and get a Boost after the timer"
+    end
   end
 
   def get_price (public_key)

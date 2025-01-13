@@ -20,7 +20,7 @@ class PowerupBoostSync < Powerup
   end
 
   def get_description(public_key)
-    "Temporarily reenables passive powerups for 10 seconds while Overcharge is active, allowing you to benefit from passive effects. Cost is based off of your current units, as well as 12 hours worth of units generated at the current rate"
+    "<strong>Duration:</strong> #{DURATION} Seconds<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br>Enables passive effects during Overcharge"
   end
 
   def is_stackable
