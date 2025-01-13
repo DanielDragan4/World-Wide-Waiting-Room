@@ -50,17 +50,19 @@ class PowerupAmishLife < Powerup
     end
 
     if !(@game.has_powerup(public_key, PowerupAmishLife.get_powerup_id))
-      return "<strong>+0.1x Units/s (#{estimate.round(2)}):</strong><br>
+      return "
               <strong>Status:</strong> #{enabled}<br>
               <strong>Toggleable:</strong> Yes<br>
-              Decrease Units/s and get a Boost each time the timer expires"
+              Increases your Units/s by some multiple every eight hours that it is active. While active, your Units/s will be cut by 90%. The multiplier doubles with every subsequent eight hours.
+"
 
     else
-      return "<strong>+0.1x Units/s (#{estimate}):</strong><br>
+      return "
     <strong>Status:</strong> #{enabled}<br>
     <strong>Toggleable:</strong> Yes<br>
     <strong>Timer:</strong> #{time}<br>
-    Decrease Units/s and get a Boost each time the timer expires"
+    Increases your Units/s by some multiple every eight hours that it is active. While active, your Units/s will be cut by 90%. The multiplier doubles with every subsequent eight hours.
+"
     end
   end
 
