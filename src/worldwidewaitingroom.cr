@@ -228,6 +228,7 @@ class Game
     end
 
     broadcast_animation_event
+    sync
     update_frame_time
   end
 
