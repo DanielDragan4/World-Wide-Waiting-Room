@@ -21,10 +21,21 @@ class AfflictPowerupBlackHole < Powerup
     "/afflict_black_hole.png"
   end
 
+  def get_inflicter (public_key)
+    powerup_id = AfflictPowerupBlackHole.get_powerup_id
+    inflicter_id = @game.get_key_value public_key, "#{powerup_id}_afflicted_by"
+    if inflicter_id
+      @game.get_player_name inflicter_id
+    else
+      ""
+    end
+  end
+
   def get_popup_info(public_key) : PopupInfo
     dec = dec_amount(public_key)
     pi = PopupInfo.new
     pi["Units/s Decrease"] = ("#{dec*100}%")
+    pi["Inflicted By"] = get_inflicter public_key
     pi
   end
 

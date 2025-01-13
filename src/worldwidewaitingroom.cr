@@ -638,7 +638,7 @@ class Game
 
     get_necrovoiders.each do |pk|
       pk_s = pk.to_s
-      if !lb.find { |x| x.to_s == pk.to_s }
+      if !lb.find { |x| x.to_s == pk_s }
         lb.push pk
       end
     end

@@ -20,6 +20,7 @@ class AfflictPowerupBreach < Powerup
   def get_popup_info (public_key)
     pi = PopupInfo.new
     pi["Time Left"] = (@game.get_timer_time_left public_key, COOLDOWN_KEY)
+    pi["Inflicted By"] = get_inflicter public_key
     pi
   end
 
@@ -29,6 +30,16 @@ class AfflictPowerupBreach < Powerup
 
   def is_afflication_powerup (public_key)
     true
+  end
+
+  def get_inflicter (public_key)
+    powerup_id = AfflictPowerupBreach.get_powerup_id
+    inflicter_id = @game.get_key_value public_key, "#{powerup_id}_afflicted_by"
+    if inflicter_id
+      @game.get_player_name inflicter_id
+    else
+      ""
+    end
   end
 
   def get_cooldown_time (public_key)
