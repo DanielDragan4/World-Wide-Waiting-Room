@@ -34,7 +34,7 @@ class PowerupForceField < Powerup
   end
 
   def get_description (public_key)
-    "Blocks all sabotoge effects for #{(get_cooldown_time(public_key)/3600).round(2)} hour(s). Can be used again 2 hours after Force Field expires. The price is increased multiplicatively with each purchase."
+    "<strong>Duration:</strong> #{(get_cooldown_time(public_key)/3600).round} Hour(s)<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br>Protects you from all sabotage effects (current and future)"
   end
 
   def get_cooldown_time(public_key)

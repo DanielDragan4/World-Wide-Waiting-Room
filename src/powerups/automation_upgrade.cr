@@ -32,11 +32,18 @@ class PowerupAutomationUpgrade < Powerup
       actives_since_purchase = [current_actives - actives_at_purchase, 0].max
       current_bonus = ((adjusted_multiplier * 100).round / 100 * actives_since_purchase * 100).round(2)
 
-      "For each active power up, excluding Schrödinger, after purchasing Automation Upgrade, increase your unit production by #{(adjusted_multiplier * 100).round}%. This powerup was purchased (One time purchase).<br>
-      Current boost: #{current_bonus}% from #{actives_since_purchase} purchases."
+      "<strong>+#{current_bonus}% Units/s:</strong><br>
+      <strong>Owned:</strong> #{actives_since_purchase}<br>
+      <strong>Stackable:</strong> Yes<br>
+      <strong>Toggleable:</strong> No<br>
+      Each active powerup purchased increases the number owned and Units/s by #{(adjusted_multiplier * 100).round}%."
+
     else
       adjusted_multiplier = new_multiplier(public_key)
-      "Adds an extra #{(adjusted_multiplier * 100).round(0)}% units/s for each active powerup purchased, excluding Schrödinger, after this powerup is purchased (One time purchase)."
+      "<strong>Owned:</strong> 0<br>
+      <strong>Stackable:</strong> Yes<br>
+      <strong>Toggleable:</strong> No<br>
+      Each active powerup purchased, after buying, increases the number owned and Units/s by #{(adjusted_multiplier * 100).round}%."
     end
   end
 

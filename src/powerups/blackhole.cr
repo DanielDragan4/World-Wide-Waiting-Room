@@ -39,7 +39,11 @@ class PowerupBlackHole < Powerup
   end
 
   def get_description(public_key)
-    "Over the course of #{(DURATION / 60).to_i} minutes, reduce the unit generation of the four people ahead and behind you. The effect becomes less powerful the further away the player is from you. "
+    "<strong>+0.05x - 0.5x</strong><br>
+    <strong>Duration:</strong> #{(DURATION / 60).to_i} Minutes<br>
+    <strong>Stackable:</strong> No<br>
+    <strong>Toggleable:</strong> No<br>
+    Reduce Units/s of players near you"
   end
 
   def get_price(public_key)

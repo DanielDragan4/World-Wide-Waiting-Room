@@ -22,9 +22,12 @@ class PowerupTediousGains < Powerup
   def get_description (public_key)
     unit_boost = get_unit_boost_desc(public_key, BigFloat.new 1.0)
 
-    "Increases gains from Territorial Expanse by #{(unit_boost*100).round()}% after your next purchase. Purchasing resets Territorial Expanses owned to 0.
-    <br>Number of Territorial Expanses Needed: #{get_required_multi_price(public_key)}
-    <br>Number of Von Neumann Probes: #{get_stack_size(public_key)}"
+    "<strong>+#{(unit_boost*100).round()}% Terretorial Expanse:</strong><br>
+    <strong>Territorial Expanses Req:</strong> #{get_required_multi_price(public_key)}<br>
+    <strong>Owned:</strong> #{get_stack_size(public_key)}<br>
+    <strong>Stackable:</strong> Yes<br>
+    <strong>Toggleable:</strong> No<br>
+    Reset Territorial Expanse but boost its power."
   end
 
   def is_stackable
