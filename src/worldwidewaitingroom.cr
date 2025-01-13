@@ -617,7 +617,7 @@ class Game
 
   def get_game_history
     lb = WWWR::R.lrange(Keys::GAME_WINNERS, 0, -1)
-    lb.map { |x| Hash(String, String).from_json (x.to_s) }
+    lb.map { |x| Hash(String, String | Array(String)).from_json (x.to_s) }
   end
 
   def add_necrovoider(public_key : String)
@@ -637,7 +637,10 @@ class Game
     lb = WWWR::R.lrange(Keys::LEADERBOARD, 0, -1)
 
     get_necrovoiders.each do |pk|
-      lb.push pk
+      pk_s = pk.to_s
+      if !lb.find { |x| x.to_s == pk.to_s }
+        lb.push pk
+      end
     end
 
     lb.map { |x| x.to_s }.sort { |a, b| (get_player_time_units a.to_s) <=> (get_player_time_units b.to_s) }
@@ -1116,6 +1119,7 @@ post "/login" do |ctx|
 end
 
 get "/history" do |ctx|
+  ctx.response.headers["Content-Type"] = "application/json"
   game.get_game_history.to_json
 end
 
