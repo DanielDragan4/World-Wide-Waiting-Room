@@ -45,6 +45,7 @@ require "./templates"
 alias Secret = String
 alias Public = String
 alias ChannelValueType = String
+alias PlayerData = Hash(String, Array(Hash(String, Array(Redis::RedisValue) | Int32 | Int64 | String | Nil)) | Array(Hash(String, String)) | Array(Redis::RedisValue) | Bool | Hash(String, Hash(String, Float32 | Float64 | Int32 | Int64 | String)) | Int32 | Int64 | String | Nil)
 
 templates = Templates.new
 
@@ -161,6 +162,9 @@ class Game
 
   @animation_queue = Array(String).new
 
+  @cached_raw_leaderboard = Array(String).new
+  @cached_leaderboard = Array(PlayerData).new
+
   def can_buy(public_key : Public) : Bool
     last_buy = @last_buy.fetch public_key, BigFloat.new 0
 
@@ -197,6 +201,10 @@ class Game
 
   def tick
     dt = frame_dt_ms
+
+    cache_raw_leaderboard
+    cache_leaderboard
+
     puts "Last frame #{dt}ms"
 
     if get_time_left <= 1
@@ -527,8 +535,13 @@ class Game
     end
   end
 
+  def cache_leaderboard
+    @cached_leaderboard.clear
+    @cached_leaderboard = get_raw_leaderboard.map { |public_key| get_data_for public_key.to_s }
+  end
+
   def get_leaderboard
-    get_raw_leaderboard.map { |public_key| get_data_for public_key.to_s }
+    @cached_leaderboard
   end
 
   def get_leaderboard_index (public_key : String) : Int32 | Nil
@@ -652,7 +665,9 @@ class Game
     WWWR::R.lrange(Keys::NECROVOIDERS, 0, -1)
   end
 
-  def get_raw_leaderboard
+  def cache_raw_leaderboard
+    @cached_raw_leaderboard.clear
+
     lb = WWWR::R.lrange(Keys::LEADERBOARD, 0, -1)
 
     get_necrovoiders.each do |pk|
@@ -662,7 +677,11 @@ class Game
       end
     end
 
-    lb.map { |x| x.to_s }.sort { |a, b| (get_player_time_units a.to_s) <=> (get_player_time_units b.to_s) }
+    @cached_raw_leaderboard = lb.map { |x| x.to_s }.sort { |a, b| (get_player_time_units a.to_s) <=> (get_player_time_units b.to_s) }
+  end
+
+  def get_raw_leaderboard
+    @cached_raw_leaderboard
   end
 
   def inc_time_units (public_key : String, by)
@@ -881,7 +900,7 @@ class Game
     name
   end
 
-  def get_data_for (public_key : String)
+  def get_data_for (public_key : String) : PlayerData
     time_units = Redis::Future.new
     player_name = Redis::Future.new
     player_bg_color = Redis::Future.new
