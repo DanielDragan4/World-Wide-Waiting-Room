@@ -31,7 +31,7 @@ class PowerupUnitMultiplier < Powerup
     <strong>Owned:</strong> #{get_player_stack_size(public_key)}<br>
     <strong>Stackable:</strong> Yes<br>
     <strong>Toggleable:</strong> No<br>
-    Each purchase increases unit production."
+    Each purchase increases Units/s." 
   end
 
   def is_stackable

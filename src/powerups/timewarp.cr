@@ -49,7 +49,7 @@ class PowerupTimeWarp < Powerup
       <strong>Duration:</strong> #{DURATION/60} minutes<br>
       <strong>Stackable:</strong> Yes<br>
       <strong>Toggleable:</strong> No<br>
-      Boosts production."
+      Boosts Units/s."
   end
 
   def get_price (public_key)

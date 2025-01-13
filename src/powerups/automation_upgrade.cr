@@ -36,7 +36,7 @@ class PowerupAutomationUpgrade < Powerup
       <strong>Owned:</strong> #{actives_since_purchase}<br>
       <strong>Stackable:</strong> Yes<br>
       <strong>Toggleable:</strong> No<br>
-      Each active powerup purchased increases the number owned and Units/s by #{(adjusted_multiplier * 100).round}%."
+      Each active powerup purchased increases Units/s by #{(adjusted_multiplier * 100).round}%."
 
     else
       adjusted_multiplier = new_multiplier(public_key)

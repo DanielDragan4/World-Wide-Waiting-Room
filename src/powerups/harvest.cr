@@ -33,7 +33,7 @@ class PowerupHarvest < Powerup
   def get_description(public_key)
     units = ((@game.get_player_frame_ups public_key) * HARVEST_TIME).round(0)
     "<strong>Unit Gain:</strong> #{(@game.format_units units.round(2))}<br>
-    <strong>Units/s Cooldown:</strong> #{COOLDOWN_DURATION/3600} hour<br>
+    <strong>Units/s Cooldown:</strong> #{HARVEST_TIME/3600} hour<br>
     One hour of units based on current Units/s"
   end
 
