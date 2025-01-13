@@ -352,7 +352,7 @@ export default {
                     v-for="powerup in powerupsByCategory"
                     class="w-full flex flex-col items-center justify-between space-y-1"
                   >
-                    <div class="flex flex-col text-center space-y-2">
+                    <div class="flex flex-col text-center space-y-2 items-center">
                       <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
                       <h2 class="text-xs">{{ powerup.category }}</h2>
                       <format-number class="font-bold text-xs" :number="powerup.price" />

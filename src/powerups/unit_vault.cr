@@ -72,7 +72,7 @@ class PowerupUnitVault < Powerup
     vault_units = get_vaulted_units(public_key)
     time_remaining = get_time_remaining(public_key)
 
-    description = "<strong>Duration:</strong> #{VAULT_DURATION/3600} Hour<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br> Store half of your units in a vault. These units are immune to all effects."
+    description = "<strong>Duration:</strong> #{VAULT_DURATION/3600} Hour<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br><br> Temporarily store <b>half</b> of your units in a vault. These units are immune to all effects."
 
     if vault_units > 0
       description += "<br><strong>Vaulted:</strong> #{(format_vaulted_units vault_units.round(2))}"

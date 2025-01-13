@@ -27,11 +27,12 @@ class PowerupUnitMultiplier < Powerup
   def get_description (public_key)
     adjusted_multiplier = new_multiplier(public_key)
 
-    "<strong>+#{(adjusted_multiplier).round(2)} Units/s:</strong><br>
+    "
     <strong>Owned:</strong> #{get_player_stack_size(public_key)}<br>
     <strong>Stackable:</strong> Yes<br>
     <strong>Toggleable:</strong> No<br>
-    Each purchase increases Units/s." 
+    <br>
+    Increases Units/s by <b>#{(adjusted_multiplier).round(2)}</b>."
   end
 
   def is_stackable

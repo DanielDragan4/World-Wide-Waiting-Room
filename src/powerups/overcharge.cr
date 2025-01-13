@@ -48,11 +48,12 @@ class PowerupOverCharge < Powerup
   def get_description(public_key)
       multi = new_multiplier(public_key)
       projected = get_projected_ups(public_key)
-      "<strong>+#{multi.round(2)}x Units/s (#{projected} )</strong><br>
-      <strong>Duration:</strong> #{DURATION/60} minute<br>
+      "
+      <strong>Duration:</strong> #{DURATION/60} minutes<br>
       <strong>Stackable:</strong> Yes<br>
       <strong>Toggleable:</strong> No<br>
-      Boosts Units/s. Disables passive effects"
+      <br>
+      Boosts your Units/s by #{multi.round(2)}x, but disables <b>Passive</b> effects while active."
   end
 
   def get_projected_ups(public_key)

@@ -27,7 +27,7 @@ class PowerupNecrovoid < Powerup
     end
 
     bottom = <<-D
-    Your character remains in-game for 12 hours even if you go offline.
+    Your character remains in-game for <b>12 hours even if you go offline</b> at the cost of a 10% Units/s reduction.
     Purchasing Necrovoid while it is active removes the effect.
     D
 
@@ -36,7 +36,7 @@ class PowerupNecrovoid < Powerup
       <<-D
       <strong>Status: #{active_inactive}</strong><br>
       <strong>Duration: #{@game.format_time DURATION}</strong><br>
-      <strong>-#{percentage}% Unit/s (#{projected_ups})</strong><br>
+      <strong>Toggleable:</strong> Yes<br>
       <br>
       #{bottom}
       D
@@ -44,7 +44,8 @@ class PowerupNecrovoid < Powerup
       time_left = @game.get_timer_time_left public_key, COOLDOWN_KEY
       <<-D
       <strong>Status: #{active_inactive}</strong><br>
-      <strong>Time Remaining: #{time_left}</strong>
+      <strong>Time Remaining: #{time_left}</strong><br>
+      <strong>Toggleable:</strong> Yes<br>
       <br>
       #{bottom}
       D

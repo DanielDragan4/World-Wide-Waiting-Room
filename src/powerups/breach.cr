@@ -33,10 +33,11 @@ class PowerupBreach < Powerup
     reduced_multi = multi/10
     time = AfflictPowerupBreach::COOLDOWN * (1 + reduced_multi)
 
-    "<strong>Duration:</strong> #{(time / 60).round(2)} Minutes<br>
+    "<strong>Duration:</strong> #{(time / 60).round(2)} minutes<br>
     <strong>Stackable:</strong> No<br>
     <strong>Toggleable:</strong> No<br>
-    Disables passive effects of selected player."
+    <br>
+    Temporarily disables all of a player's <b>Passive powerups</b>."
   end
 
   def get_price (public_key)

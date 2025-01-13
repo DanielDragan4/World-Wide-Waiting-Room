@@ -57,10 +57,11 @@ class PowerupCompoundInterest < Powerup
     next_milestone = BigFloat.new(get_next_milestone(public_key))
     boost_count = get_stored_boost_count(public_key)
     boost_multiplier = (new_multiplier(public_key) * 100).round
-    "<strong>+#{boost_multiplier}% Units/s (each)</strong> <br>
-    <strong>Stored:</strong> #{boost_count}<br>
-    <strong>Next Milestone:</strong> #{format_milestone(next_milestone)}<br>
-    Boosts earned at each milestone. Buy to use all stored boosts."
+    "
+    <strong>Unused Milestone:</strong> #{boost_count}<br>
+    <strong>Next Milestone:</strong> #{format_milestone(next_milestone)} Units<br>
+    <br>
+    Increases your Units/s by <b>#{boost_multiplier}%</b> with every purchase for each unused <b>milestone</b>. Purchasing this powerup consumes all unused milestones."
   end
 
   def is_stackable

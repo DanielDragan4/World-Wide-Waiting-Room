@@ -43,7 +43,8 @@ class PowerupBlackHole < Powerup
     <strong>Duration:</strong> #{(DURATION / 60).to_i} Minutes<br>
     <strong>Stackable:</strong> No<br>
     <strong>Toggleable:</strong> No<br>
-    Reduce Units/s of the four players ahead and behind you based on their distance from you. The effect starts at a 50% reduction and is halved for each player after that."
+    <br>
+    Reduce Units/s of the four players ahead and behind you based on their distance from you. The effect starts at a <b>50%</b> reduction and is <b>halved for each player after that</b>."
   end
 
   def get_price(public_key)

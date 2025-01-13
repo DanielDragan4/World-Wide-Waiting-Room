@@ -45,11 +45,13 @@ class PowerupTimeWarp < Powerup
     unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
     amount = (multi * unit_rate).round(2)
 
-    "<strong>+#{multi.round(2)}x Units/s (#{amount} )</strong><br>
+    "
       <strong>Duration:</strong> #{DURATION/60} minutes<br>
       <strong>Stackable:</strong> Yes<br>
       <strong>Toggleable:</strong> No<br>
-      Boosts Units/s."
+      <strong>Next Multiple:</strong> #{multi.round(2)}x<br>
+      <br>
+      Boosts Units/s by some multiple. The multiple <b>increases with each purchase</b>."
   end
 
   def get_price (public_key)

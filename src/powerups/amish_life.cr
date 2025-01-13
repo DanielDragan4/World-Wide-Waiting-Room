@@ -53,7 +53,8 @@ class PowerupAmishLife < Powerup
       return "
               <strong>Status:</strong> #{enabled}<br>
               <strong>Toggleable:</strong> Yes<br>
-              Increases your Units/s by some multiple every eight hours that it is active. While active, your Units/s will be cut by 90%. The multiplier doubles with every subsequent eight hours.
+              <br>
+              Increases your Units/s by some multiple every <b>eight hours</b> that it is active. While active, your Units/s will be cut by <b>90%</b>. The <b>multiplier doubles<b> with every subsequent eight hours.
 "
 
     else

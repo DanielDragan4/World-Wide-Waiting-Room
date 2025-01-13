@@ -43,11 +43,12 @@ class PowerupRelativisticShift < Powerup
     amount = (new_multiplier(public_key)).round(2)
     unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
     estimate = unit_rate * amount
-    "<strong>+#{amount}x (#{estimate.round(2)})</strong><br>
+    "
     <strong>Duration:</strong> #{DURATION/3600} Hours<br>
     <strong>Stackable:</strong> No<br>
     <strong>Toggleable:</strong> No<br>
-    Boosts Units/s. Disables Overcharge and Time Warp when active"
+    <br>
+    Increases you Units/s by <b>#{amount}x</b>, but makes <b>Time Warp</b> and <b>Overcharge</b> unavailable while active."
   end
 
   def get_price (public_key)
