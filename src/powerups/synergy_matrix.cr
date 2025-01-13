@@ -31,7 +31,7 @@ class PowerupSynergyMatrix < Powerup
     boost = get_civ_boost(public_key)
     boost_percent = (stack_size * boost * 100)
     
-    "<strong>+#{(boost * 100).round}% Units/s (#{amount} )</strong><br>
+    "<strong>+#{(boost * 100).round}% Units/s</strong><br>
       <strong>Total:</strong> #{boost_percent.round}%<br>
       <strong>Stackable:</strong> Yes<br>
       <strong>Toggleable:</strong> No<br>
