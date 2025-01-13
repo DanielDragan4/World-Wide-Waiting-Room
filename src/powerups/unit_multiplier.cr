@@ -26,7 +26,12 @@ class PowerupUnitMultiplier < Powerup
 
   def get_description (public_key)
     adjusted_multiplier = new_multiplier(public_key)
-    "Increases base unit production by #{(adjusted_multiplier).round(2)} with each purchase. <br>Price increases exponentially. <br>Number purchased: #{get_player_stack_size(public_key)}"
+
+    "<strong>+#{(adjusted_multiplier).round(2)} Units/s:</strong><br>
+    <strong>Owned:</strong> #{get_player_stack_size(public_key)}<br>
+    <strong>Stackable:</strong> Yes<br>
+    <strong>Toggleable:</strong> No<br>
+    Each purchase increases unit production."
   end
 
   def is_stackable

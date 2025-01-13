@@ -41,7 +41,13 @@ class PowerupRelativisticShift < Powerup
 
   def get_description(public_key)
     amount = (new_multiplier(public_key)).round(2)
-    "Multiplies unit production by #{amount}x for the next 8 hours, but disables the purchase and use of Time Warp and Over Charge during that time. These are not stackable. Price increases exponentially with each purchase."
+    unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
+    estimate = unit_rate * amount
+    "<strong>+#{amount}x (#{estimate.round(2)})</strong><br>
+    <strong>Duration:</strong> #{DURATION/3600} Hours<br>
+    <strong>Stackable:</strong> No<br>
+    <strong>Toggleable:</strong> No<br>
+    Boosts Units/s. Disables Overcharge and Time Warp when active"
   end
 
   def get_price (public_key)
