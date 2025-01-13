@@ -236,7 +236,7 @@ class Game
     end
 
     broadcast_animation_event
-    # sync
+    sync
     update_frame_time
   end
 
