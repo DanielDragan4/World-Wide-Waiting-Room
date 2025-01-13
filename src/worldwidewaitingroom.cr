@@ -236,7 +236,7 @@ class Game
     end
 
     broadcast_animation_event
-    sync
+    # sync
     update_frame_time
   end
 
@@ -536,7 +536,6 @@ class Game
   end
 
   def cache_leaderboard
-    @cached_leaderboard.clear
     @cached_leaderboard = get_raw_leaderboard.map { |public_key| get_data_for public_key.to_s }
   end
 
@@ -666,8 +665,6 @@ class Game
   end
 
   def cache_raw_leaderboard
-    @cached_raw_leaderboard.clear
-
     lb = WWWR::R.lrange(Keys::LEADERBOARD, 0, -1)
 
     get_necrovoiders.each do |pk|
