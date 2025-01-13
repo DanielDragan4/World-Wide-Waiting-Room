@@ -21,7 +21,7 @@ class AfflictPowerupSignalJammer < Powerup
 
   def get_popup_info (public_key)
     pi = PopupInfo.new
-    pi["Time Left"] = (@game.get_timer_seconds_left public_key, COOLDOWN_KEY)
+    pi["Time Left"] = (@game.get_timer_time_left public_key, COOLDOWN_KEY)
     pi
   end
 
@@ -37,7 +37,7 @@ class AfflictPowerupSignalJammer < Powerup
     afflictor = @game.get_key_value(public_key, "afflict_signal_jammer_afflicted_by")
     multi = (get_synergy_boosted_multiplier afflictor, BigFloat.new 1.0) -1
     reduced_multi = multi/10
-    
+
     COOLDOWN * (1 + reduced_multi)
   end
 

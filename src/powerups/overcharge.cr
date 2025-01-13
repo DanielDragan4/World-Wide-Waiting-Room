@@ -39,7 +39,7 @@ class PowerupOverCharge < Powerup
     duration = BigFloat.new durations[0][0]
 
     pi = PopupInfo.new
-    pi["Time Left"] = (duration - @game.ts).to_s
+    pi["Time Left"] = @game.format_time(duration - @game.ts)
     pi["Units/s Boost"] = "#{(get_unit_boost(public_key))}x"
     pi["Overcharge Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_s
     pi

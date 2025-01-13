@@ -326,7 +326,11 @@ export default {
           <modal @close="sideContentToShow=null" v-if="sideContentToShow === 'powerups'" class="max-lg:hidden overflow-y-hidden" title="Powerups">
             <div class="flex flex-row space-x-1 text-center justify-center mb-2">
               <format-number class="font-bold text-center" :number="player.time_units"/> 
-              <span >units available for purchasing.</span>
+              <span>Units available for purchasing.</span>
+            </div>
+            <div class="flex flex-row space-x-1 text-center justify-center mb-2">
+              <format-number class="font-bold text-center" :number="player.time_units_per_second"/> 
+              <span>Units/s</span>
             </div>
             <div class="flex flex-col space-y-4"> 
               <input 
@@ -342,7 +346,7 @@ export default {
                 <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'DEFENSIVE' }" @click="powerupClassChosen = 'DEFENSIVE'">DEFENSIVE</cbutton>
               </div>
 
-              <div class="overflow-y-auto max-h-[600px]">
+              <div class="overflow-y-auto max-h-[550px]">
                 <div class="grid grid-cols-3 gap-2">
                   <container 
                     v-for="powerup in powerupsByCategory"
@@ -370,7 +374,11 @@ export default {
             <h1 class="font-bold text-center">Powerups</h1>
             <div class="flex flex-row space-x-1 text-center justify-center mb-2">
               <format-number class="font-bold text-center" :number="player.time_units"/> 
-              <span >units available for purchasing.</span>
+              <span>Units available for purchasing.</span>
+            </div>
+            <div class="flex flex-row space-x-1 text-center justify-center mb-2">
+              <format-number class="font-bold text-center" :number="player.time_units_per_second"/> 
+              <span>Units/s</span>
             </div>
             <input 
               type="search" 

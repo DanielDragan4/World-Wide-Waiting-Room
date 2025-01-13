@@ -31,6 +31,7 @@ require "./powerups/cosmic_breakthrough"
 require "./powerups/unit_vault"
 require "./powerups/boost_sync"
 require "./powerups/afflict_black_hole"
+require "./powerups/necrovoid"
 
 
 require "./powerups/achievement_type_1.cr"
@@ -113,6 +114,7 @@ module Keys
   GLOBAL_VARS = "global_vars"
   LAST_FRAME_TIME = "frame_time"
   LEADERBOARD = "online-leaderboard"
+  NECROVOIDERS = "necrovoiders"
   PLAYER_PUBLIC_KEY = "public_key"
   PLAYER_POWERUPS = "powerups"
   PLAYER_METADATA = "metadata"
@@ -243,6 +245,17 @@ class Game
     end
   end
 
+  def is_player_online (public_key : String) : Bool
+    is_online = false
+    WWWR::Channels.each do |x|
+      if x[2] == public_key
+        is_online = true
+      end
+    end
+
+    is_online
+  end
+
   def cache_universe_change_log
     change_log = WWWR::R.lrange Keys::UNIVERSE_CHANGE_LOG, 0, -1
     @universe_change_log = change_log.map { |x| Hash(String, String).from_json (x.to_s) }
@@ -340,6 +353,7 @@ class Game
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupAmishLife.get_powerup_id => PowerupAmishLife.new(self),
       PowerupTediousGains.get_powerup_id => PowerupTediousGains.new(self),
+      PowerupNecrovoid.get_powerup_id => PowerupNecrovoid.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
       PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
       PowerupSynergyMatrix.get_powerup_id => PowerupSynergyMatrix.new(self),
@@ -469,6 +483,24 @@ class Game
           puts "POWERUP ACHIEVEMENT CLEANUP ERROR: Failed to execute achievement cleanup #{pc.get_name} with error #{e}. Skipping."
         end
       end
+    end
+  end
+
+  def format_time (tl) : String
+    tl = tl.to_i
+    seconds = tl % 60
+    minutes = (tl // 60) % 60
+    hours = (tl // 60 // 60) % 24
+    days = tl // 60 // 60 // 24
+
+    if days > 0
+      "#{days}d #{hours}h #{minutes}m #{seconds}s"
+    elsif hours > 0
+      "#{hours}h #{minutes}m #{seconds}s"
+    elsif minutes > 0
+      "#{minutes}m #{seconds}s"
+    else
+      "#{seconds}s"
     end
   end
 
@@ -606,8 +638,26 @@ class Game
     lb.map { |x| Hash(String, String).from_json (x.to_s) }
   end
 
+  def add_necrovoider(public_key : String)
+    remove_necrovoider public_key
+    WWWR::R.rpush Keys::NECROVOIDERS, public_key
+  end
+
+  def remove_necrovoider(public_key : String)
+    WWWR::R.lrem Keys::NECROVOIDERS, 0, public_key
+  end
+
+  def get_necrovoiders
+    WWWR::R.lrange(Keys::NECROVOIDERS, 0, -1)
+  end
+
   def get_raw_leaderboard
     lb = WWWR::R.lrange(Keys::LEADERBOARD, 0, -1)
+
+    get_necrovoiders.each do |pk|
+      lb.push pk
+    end
+
     lb.map { |x| x.to_s }.sort { |a, b| (get_player_time_units a.to_s) <=> (get_player_time_units b.to_s) }
   end
 
@@ -664,6 +714,11 @@ class Game
 
   def get_timer_seconds_left (public_key : String, timer_key : String) : Int32
     ((get_key_value_as_float public_key, timer_key) - ts).to_i
+  end
+
+  def get_timer_time_left (public_key : String, timer_key : String) : String
+    seconds_left = get_timer_seconds_left public_key, timer_key
+    format_time seconds_left
   end
 
   def is_timer_expired (public_key : String, timer_key : String) : Bool
@@ -969,7 +1024,8 @@ class Game
       "name" => get_player_name(winner),
       "public_key" => winner,
       "units" => get_player_time_units(winner).to_s,
-      "date" => Time.utc.to_s
+      "date" => Time.utc.to_s,
+      "leaderboard" => players
     }.to_json
 
     WWWR::R.rpush(Keys::GAME_WINNERS, winner_data)

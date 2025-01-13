@@ -47,7 +47,7 @@ class PowerupBoostSync < Powerup
     if !@game.get_key_value(public_key, KEY_DURATION).nil?
       durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
       if !durations.empty?
-        pi["Time Left"] = (force_big_int(durations[0][0]) - @game.ts).to_s
+        pi["Time Left"] = @game.format_time (force_big_int(durations[0][0]) - @game.ts)
       end
     end
 
