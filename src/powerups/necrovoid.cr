@@ -16,9 +16,9 @@ class PowerupNecrovoid < Powerup
 
   def get_description(public_key)
     player_ups = @game.get_player_frame_ups public_key
-    projected_ups = @game.format_units (@game.increase_number_by_percentage player_ups, -PRODUCTION_HIT * 100).round(2)
 
-    percentage = (PRODUCTION_HIT * 100).round(2)
+    #projected_ups = @game.format_units (@game.increase_number_by_percentage player_ups, -PRODUCTION_HIT * 100).round(2)
+    # percentage = (PRODUCTION_HIT * 100).round(2)
 
     active_inactive = "Disabled"
 
@@ -27,7 +27,7 @@ class PowerupNecrovoid < Powerup
     end
 
     bottom = <<-D
-    Your character remains in-game for <b>12 hours even if you go offline</b> at the cost of a 10% Units/s reduction.
+    Your character remains in-game for <b>12 hours even if you go offline</b>.
     Purchasing Necrovoid while it is active removes the effect.
     D
 
@@ -35,7 +35,7 @@ class PowerupNecrovoid < Powerup
     if active_inactive == "Disabled"
       <<-D
       <strong>Status: #{active_inactive}</strong><br>
-      <strong>Duration: #{@game.format_time DURATION}</strong><br>
+      <strong>Duration: #{@game.format_time (get_duration_time public_key)}</strong><br>
       <strong>Toggleable:</strong> Yes<br>
       <br>
       #{bottom}
@@ -106,8 +106,8 @@ class PowerupNecrovoid < Powerup
   end
 
   def action(public_key : String, dt)
-    amount_dec = (@game.get_player_time_units_ps public_key) * PRODUCTION_HIT
-    @game.inc_time_units_ps public_key, -amount_dec
+    #amount_dec = (@game.get_player_time_units_ps public_key) * PRODUCTION_HIT
+    #@game.inc_time_units_ps public_key, -amount_dec
   end
 
   def cleanup(public_key : String)
