@@ -1006,7 +1006,8 @@ class Game
       "name" => get_player_name(winner),
       "public_key" => winner,
       "units" => get_player_time_units(winner).to_s,
-      "date" => Time.utc.to_s
+      "date" => Time.utc.to_s,
+      "leaderboard" => players
     }.to_json
 
     WWWR::R.rpush(Keys::GAME_WINNERS, winner_data)

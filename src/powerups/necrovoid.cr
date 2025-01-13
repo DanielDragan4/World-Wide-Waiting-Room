@@ -26,14 +26,29 @@ class PowerupNecrovoid < Powerup
       active_inactive = "Enabled"
     end
 
-    <<-D
-    <strong>#{active_inactive}</strong><br>
-    <strong>Duration: #{@game.format_time DURATION}</strong><br>
-    <strong>-#{percentage}% Unit/s (#{projected_ups})</strong><br>
-    <br>
+    bottom = <<-D
     Your character remains in-game for 12 hours even if you go offline.
     Purchasing Necrovoid while it is active removes the effect.
     D
+
+
+    if active_inactive == "Disabled"
+      <<-D
+      <strong>Status: #{active_inactive}</strong><br>
+      <strong>Duration: #{@game.format_time DURATION}</strong><br>
+      <strong>-#{percentage}% Unit/s (#{projected_ups})</strong><br>
+      <br>
+      #{bottom}
+      D
+    else
+      time_left = @game.get_timer_time_left public_key, COOLDOWN_KEY
+      <<-D
+      <strong>Status: #{active_inactive}</strong><br>
+      <strong>Time Remaining: #{time_left}</strong>
+      <br>
+      #{bottom}
+      D
+    end
   end
 
   def category
