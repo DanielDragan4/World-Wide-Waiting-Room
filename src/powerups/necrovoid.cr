@@ -51,6 +51,13 @@ class PowerupNecrovoid < Powerup
     end
   end
 
+  def get_duration_time (public_key)
+    multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) - 1
+    reduced_multi = multi/10
+
+    (DURATION * (1 + reduced_multi)).to_i
+  end
+
   def category
     PowerupCategory::PASSIVE
   end
@@ -86,8 +93,9 @@ class PowerupNecrovoid < Powerup
       @game.remove_necrovoider public_key
       @game.remove_powerup public_key, PowerupNecrovoid.get_powerup_id
     else
+      adjusted_duration = get_duration_time(public_key)
       @game.add_powerup public_key, PowerupNecrovoid.get_powerup_id
-      @game.set_timer public_key, COOLDOWN_KEY, DURATION
+      @game.set_timer public_key, COOLDOWN_KEY, adjusted_duration
       @game.add_necrovoider public_key
     end
   end
