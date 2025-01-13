@@ -52,7 +52,7 @@ class PowerupOverCharge < Powerup
       <strong>Duration:</strong> #{DURATION/60} minute<br>
       <strong>Stackable:</strong> Yes<br>
       <strong>Toggleable:</strong> No<br>
-      Boosts production. Disables passive effects"
+      Boosts Units/s. Disables passive effects"
   end
 
   def get_projected_ups(public_key)

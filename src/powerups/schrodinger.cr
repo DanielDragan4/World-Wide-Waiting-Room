@@ -28,7 +28,7 @@ class PowerupSchrodinger < Powerup
     end
     "<strong>Bet Amount:</strong> #{(get_bet_amount(public_key)*100)}%<br>
     <strong>Win Probability:</strong> #{((1-get_bet_prob(public_key))*100)}%<br>
-    <strong>Win Multi:</strong> #{(multi + 2).round(2)}<br>
+    <strong>Win Multiplier:</strong> #{(multi + 2).round(2)}<br>
     Gamble units to win or loose."
   end
 

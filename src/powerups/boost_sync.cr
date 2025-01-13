@@ -20,7 +20,7 @@ class PowerupBoostSync < Powerup
   end
 
   def get_description(public_key)
-    "<strong>Duration:</strong> #{DURATION} Seconds<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br>Enables passive effects during Overcharge"
+    "<strong>Duration:</strong> #{DURATION} Seconds<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br>Re-enables passive effects during Overcharge"
   end
 
   def is_stackable

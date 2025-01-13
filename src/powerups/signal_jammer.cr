@@ -32,7 +32,7 @@ class PowerupSignalJammer < Powerup
     multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
     reduced_multi = multi/10
     time = AfflictPowerupSignalJammer::COOLDOWN * (1 + reduced_multi)
-    "<strong>Duration:</strong> #{(time/60).round} Minutes<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br>Halves a selected player's unit production"
+    "<strong>Duration:</strong> #{(time/60).round} Minutes<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br>Halves a selected player's Units/s"
   end
 
   def get_price (public_key)

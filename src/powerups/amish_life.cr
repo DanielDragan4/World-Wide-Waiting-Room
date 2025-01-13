@@ -53,14 +53,14 @@ class PowerupAmishLife < Powerup
       return "<strong>+0.1x Units/s (#{estimate.round(2)}):</strong><br>
               <strong>Status:</strong> #{enabled}<br>
               <strong>Toggleable:</strong> Yes<br>
-              Decrease Units/s and get a Boost after the timer"
+              Decrease Units/s and get a Boost each time the timer expires"
 
     else
       return "<strong>+0.1x Units/s (#{estimate}):</strong><br>
     <strong>Status:</strong> #{enabled}<br>
     <strong>Toggleable:</strong> Yes<br>
     <strong>Timer:</strong> #{time}<br>
-    Decrease Units/s and get a Boost after the timer"
+    Decrease Units/s and get a Boost each time the timer expires"
     end
   end
 
