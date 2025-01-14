@@ -46,7 +46,6 @@ class PowerupRelativisticShift < Powerup
     "
     <strong>Duration:</strong> #{DURATION/3600} Hours<br>
     <strong>Stackable:</strong> No<br>
-    <strong>Toggleable:</strong> No<br>
     <br>
     Increases you Units/s by <b>#{amount}x</b>, but makes <b>Time Warp</b> and <b>Overcharge</b> unavailable while active."
   end

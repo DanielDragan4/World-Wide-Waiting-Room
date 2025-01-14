@@ -36,8 +36,7 @@ class PowerupAntimatter < Powerup
     time = AfflictPowerupAntimatter::COOLDOWN * (1 + reduced_multi)
 
     "<strong>Duration:</strong> #{(time / 60).round(2)} Minutes<br>
-    <strong>Stackable:</strong> No<br>
-    <strong>Toggleable:</strong> No<br>
+    <strong>Stackable:</strong> No<br><br>
     Disables purchase of sabotage powerups for the selected player."
   end
 

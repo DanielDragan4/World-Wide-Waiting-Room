@@ -48,7 +48,6 @@ class PowerupTimeWarp < Powerup
     "
       <strong>Duration:</strong> #{DURATION/60} minutes<br>
       <strong>Stackable:</strong> Yes<br>
-      <strong>Toggleable:</strong> No<br>
       <strong>Next Multiple:</strong> #{multi.round(2)}x<br>
       <br>
       Boosts Units/s by some multiple. The multiple <b>increases with each purchase</b>."

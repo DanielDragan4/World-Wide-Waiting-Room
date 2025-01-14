@@ -30,7 +30,6 @@ class PowerupUnitMultiplier < Powerup
     "
     <strong>Owned:</strong> #{get_player_stack_size(public_key)}<br>
     <strong>Stackable:</strong> Yes<br>
-    <strong>Toggleable:</strong> No<br>
     <br>
     Increases Units/s by <b>#{(adjusted_multiplier).round(2)}</b>."
   end

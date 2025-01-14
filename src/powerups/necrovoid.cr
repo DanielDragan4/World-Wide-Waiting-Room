@@ -36,7 +36,6 @@ class PowerupNecrovoid < Powerup
       <<-D
       <strong>Status: #{active_inactive}</strong><br>
       <strong>Duration: #{@game.format_time (get_duration_time public_key)}</strong><br>
-      <strong>Toggleable:</strong> Yes<br>
       <br>
       #{bottom}
       D
@@ -45,7 +44,6 @@ class PowerupNecrovoid < Powerup
       <<-D
       <strong>Status: #{active_inactive}</strong><br>
       <strong>Time Remaining: #{time_left}</strong><br>
-      <strong>Toggleable:</strong> Yes<br>
       <br>
       #{bottom}
       D
