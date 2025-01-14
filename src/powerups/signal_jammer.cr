@@ -1,5 +1,6 @@
 require "../powerup"
 require "./afflict_signal_jammer.cr"
+require "./afflict_antimatter.cr"
 
 class PowerupSignalJammer < Powerup
   BASE_PRICE = BigFloat.new 2_000
@@ -43,7 +44,7 @@ class PowerupSignalJammer < Powerup
   end
 
   def is_available_for_purchase (public_key)
-    if (@game.has_powerup public_key, PowerupSignalJammer.get_powerup_id)
+    if (@game.has_powerup public_key, PowerupSignalJammer.get_powerup_id) || (@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id)
       return false
     end
 

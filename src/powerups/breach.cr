@@ -1,5 +1,6 @@
 require "../powerup"
 require "./afflict_breach.cr"
+require "./afflict_antimatter.cr"
 
 class PowerupBreach < Powerup
   BASE_PRICE = BigFloat.new 3_000
@@ -48,7 +49,7 @@ class PowerupBreach < Powerup
   end
 
   def is_available_for_purchase (public_key)
-    if (@game.has_powerup public_key, PowerupBreach.get_powerup_id)
+    if (@game.has_powerup public_key, PowerupBreach.get_powerup_id) || (@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id)
       return false
     end
 
