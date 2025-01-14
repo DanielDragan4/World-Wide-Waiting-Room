@@ -13,6 +13,8 @@ require "./powerups/tedious_gains.cr"
 require "./powerups/amish_life.cr"
 require "./powerups/relativistic_shift.cr"
 require "./powerups/blackhole.cr"
+require "./powerups/antimatter.cr"
+require "./powerups/afflict_antimatter.cr"
 
 require "./powerups/parasite.cr"
 require "./powerups/breach.cr"
@@ -376,10 +378,12 @@ class Game
       PowerupRelativisticShift.get_powerup_id => PowerupRelativisticShift.new(self),
       PowerupBoostSync.get_powerup_id => PowerupBoostSync.new(self),
       PowerupBlackHole.get_powerup_id => PowerupBlackHole.new(self),
+      PowerupAntimatter.get_powerup_id => PowerupAntimatter.new(self),
 
       AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
       AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
       AfflictPowerupBlackHole.get_powerup_id => AfflictPowerupBlackHole.new(self),
+      AfflictPowerupAntimatter.get_powerup_id => AfflictPowerupAntimatter.new(self),
 
       AchievementTypeI.get_powerup_id => AchievementTypeI.new(self),
       AchievementTypeII.get_powerup_id => AchievementTypeII.new(self),

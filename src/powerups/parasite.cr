@@ -1,6 +1,7 @@
 require "../powerup"
 require "json"
 require "./force_field.cr"
+require "./afflict_antimatter.cr"
 require "math"
 
 class PowerupParasite < Powerup
@@ -72,6 +73,9 @@ class PowerupParasite < Powerup
   end
 
   def is_available_for_purchase(public_key)
+    if(@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id)
+      return false
+    end
     (((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0) && !(@game.has_powerup(public_key, PowerupParasite.get_powerup_id))
   end
 

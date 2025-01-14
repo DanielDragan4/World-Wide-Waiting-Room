@@ -3,6 +3,7 @@ require "json"
 require "./force_field.cr"
 require "./afflict_black_hole.cr"
 require "math"
+require "./afflict_antimatter.cr"
 
 class PowerupBlackHole < Powerup
   BASE_PRICE = BigFloat.new 100_000
@@ -55,7 +56,7 @@ class PowerupBlackHole < Powerup
 
   def is_available_for_purchase(public_key)
     timer = (@game.get_key_value_as_int public_key, KEY_COOLDOWN) - @game.ts
-    (((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0) && !(@game.has_powerup(public_key, PowerupBlackHole.get_powerup_id)) && (timer <= 0)
+    (((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0) && !(@game.has_powerup(public_key, PowerupBlackHole.get_powerup_id)) && (timer <= 0) && !(@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id)
   end
 
   def get_active_black_hole_stack(public_key)
