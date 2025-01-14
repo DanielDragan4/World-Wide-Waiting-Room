@@ -36,9 +36,8 @@ class PowerupBreach < Powerup
 
     "<strong>Duration:</strong> #{(time / 60).round(2)} minutes<br>
     <strong>Stackable:</strong> No<br>
-    <strong>Toggleable:</strong> No<br>
     <br>
-    Temporarily disables all of a player's <b>Passive powerups</b>."
+    Temporarily disables all of a selected player's <b>Passive powerups</b>."
   end
 
   def get_price (public_key)

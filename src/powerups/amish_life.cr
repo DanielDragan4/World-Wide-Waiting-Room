@@ -52,17 +52,15 @@ class PowerupAmishLife < Powerup
     if !(@game.has_powerup(public_key, PowerupAmishLife.get_powerup_id))
       return "
               <strong>Status:</strong> #{enabled}<br>
-              <strong>Toggleable:</strong> Yes<br>
               <br>
-              Increases your Units/s by some multiple every <b>eight hours</b> that it is active. While active, your Units/s will be cut by <b>90%</b>. The <b>multiplier doubles<b> with every subsequent eight hours.
+              Increases your Units/s by some multiple every <b>eight hours</b> that it is active. While active, your Units/s will be cut by <b>90%</b>. The <b>multiplier doubles<b> with every subsequent eight hours. Purchasing this powerup while active removes the effect..
 "
 
     else
       return "
     <strong>Status:</strong> #{enabled}<br>
-    <strong>Toggleable:</strong> Yes<br>
     <strong>Timer:</strong> #{time}<br>
-    Increases your Units/s by some multiple every eight hours that it is active. While active, your Units/s will be cut by 90%. The multiplier doubles with every subsequent eight hours.
+    Increases your Units/s by some multiple every eight hours that it is active. While active, your Units/s will be cut by 90%. The multiplier doubles with every subsequent eight hours. Purchasing this powerup while active removes the effect..
 "
     end
   end

@@ -34,7 +34,7 @@ class PowerupForceField < Powerup
   end
 
   def get_description (public_key)
-    "<strong>Duration:</strong> #{(get_cooldown_time(public_key)/3600).round} Hour(s)<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br><br>Temporarily makes you immune to all <b>Sabotage</b> effects (current and future)."
+    "<strong>Duration:</strong> #{(get_cooldown_time(public_key)/3600).round} Hour(s)<br><strong>Stackable:</strong> No<br><br>Temporarily makes you immune to all <b>Sabotage</b> effects (current and future)."
   end
 
   def get_cooldown_time(public_key)

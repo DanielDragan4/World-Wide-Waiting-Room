@@ -62,7 +62,7 @@ class PowerupParasite < Powerup
   end
 
   def get_description(public_key)
-    "<strong>Duration:</strong> #{DURATION/60} Minutes<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br><br>While active, steal a portion of the Units from the player immediately in front of you and immediately behind you."
+    "<strong>Duration:</strong> #{DURATION/60} Minutes<br><strong>Stackable:</strong> No<br><br>While active, steal a portion of the Units from the player immediately in front of you and immediately behind you."
   end
 
   def get_price(public_key)

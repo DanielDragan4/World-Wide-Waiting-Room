@@ -51,7 +51,6 @@ class PowerupOverCharge < Powerup
       "
       <strong>Duration:</strong> #{DURATION/60} minutes<br>
       <strong>Stackable:</strong> Yes<br>
-      <strong>Toggleable:</strong> No<br>
       <br>
       Boosts your Units/s by #{multi.round(2)}x, but disables <b>Passive</b> effects while active."
   end
