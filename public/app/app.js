@@ -403,7 +403,7 @@ export default {
                 <h2 class="text-xs">{{ powerup.category }}</h2>
                 <format-number class="font-bold text-xs" :number="powerup.price" />
                 <div class="my-2 text-center" v-html="powerup.description"></div>
-                <cbutton :waitAfterClick="1000" textAfterClick="Purchasing..." v-if="powerup.is_available_for_purchase" extraClasses="w-full" @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
+                <cbutton v-if="powerup.is_available_for_purchase" extraClasses="w-full" @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
                 <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
                   <span>Next purchase</span>
                   <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
