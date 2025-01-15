@@ -1280,6 +1280,7 @@ post "/buy" do |ctx|
     if public_key
       resp = powerups[name].buy_action public_key
       # game.sync
+      game.sync_player public_key
       resp
     end
   end
