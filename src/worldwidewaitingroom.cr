@@ -166,6 +166,7 @@ class Game
 
   @cached_raw_leaderboard = Array(String).new
   @cached_leaderboard = Array(PlayerData).new
+  @cached_player_data = Hash(Public, Hash(String, String | Int32 | Bool)).new
 
   def can_buy(public_key : Public) : Bool
     last_buy = @last_buy.fetch public_key, BigFloat.new 0
@@ -222,6 +223,7 @@ class Game
 
     get_leaderboard.each do |player_data|
       player_public_key = player_data["public_key"].to_s
+      get_player_data(player_public_key)
 
       set_player_time_units_ps player_public_key, BigFloat.new (@default_ups + altered_ups)
       do_powerup_actions player_public_key, dt
@@ -233,7 +235,7 @@ class Game
       else
         WWWR::R.hset Keys::PLAYER_FRAME_TUPS, player_public_key, 0
       end
-
+      set_cached_data(player_public_key)
       do_powerup_cleanup player_public_key
     end
 
@@ -700,10 +702,28 @@ class Game
     WWWR::R.lrem Keys::LEADERBOARD, 0, public_key
   end
 
-  def get_key_value (public_key : String, key : String) : String
+  def get_player_data (public_key)  
     global_vars = WWWR::R.hget Keys::GLOBAL_VARS, public_key
-    global_vars ||= "{}"
-    global_vars = JSON.parse global_vars
+    if !global_vars.nil?
+      global_vars = JSON.parse(global_vars)
+    end
+    global_vars ||= {String, String | Bool | Int32}
+    begin
+      @cached_player_data[public_key] = global_vars
+    rescue e
+      @cached_player_data[public_key] = {String, String | Bool | Int32}
+    end
+  end
+
+  def get_cached_player_data
+    @cached_player_data
+  end
+
+  def get_key_value (public_key : String, key : String) : String
+    # global_vars = WWWR::R.hget Keys::GLOBAL_VARS, public_key
+    # global_vars ||= "{}"
+    global_vars = get_cached_player_data
+    global_vars = global_vars[public_key]
     begin
       global_vars[key].to_s
     rescue e
@@ -712,7 +732,7 @@ class Game
   end
 
   def get_key_value_as_float (public_key : String , key : String, default : BigFloat) : BigFloat
-    kv = get_key_value public_key, key
+    kv = get_key_value(public_key, key)
     if kv == ""
       kv = default
     end
@@ -754,10 +774,16 @@ class Game
   end
 
   def set_key_value (public_key : String, key : String, value : String)
-    gv = WWWR::R.hget Keys::GLOBAL_VARS, public_key
-    gv ||= "{}"
-    gv = Hash(String, String).from_json gv
+    gv = get_cached_player_data
+    gv = gv[public_key]
+    gv ||= Hash(String, String | Bool | Int32).new
     gv[key] = value
+    @cached_player_data[public_key] = gv
+  end
+
+  def set_cached_data (public_key : String, key : String, value : String)
+    gv = get_cached_player_data
+    gv = gv[public_key]
     WWWR::R.hset Keys::GLOBAL_VARS, public_key, gv.to_json
   end
 
