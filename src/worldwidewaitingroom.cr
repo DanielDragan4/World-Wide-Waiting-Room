@@ -166,7 +166,7 @@ class Game
 
   @cached_raw_leaderboard = Array(String).new
   @cached_leaderboard = Array(PlayerData).new
-  @cached_player_data = "{}"#= Hash(Public, Hash(String, String | Int32 | Bool)).new
+  #@cached_player_data = "{}"#= Hash(Public, Hash(String, String | Int32 | Bool)).new
   @cached_player_key = ""
 
   def can_buy(public_key : Public) : Bool
@@ -718,13 +718,9 @@ class Game
     end
   end
 
-  def get_cached_player_data
-    @cached_player_data
-  end
-
   def get_key_value (public_key : String, key : String) : String
     if @cached_player_key == public_key
-      global_vars = get_cached_player_data
+      global_vars = @cached_player_data
     else
       global_vars = WWWR::R.hget Keys::GLOBAL_VARS, public_key
     end
@@ -782,18 +778,17 @@ class Game
 
   def set_key_value (public_key : String, key : String, value : String)
     if @cached_player_key == public_key
-      global_vars = get_cached_player_data
+      global_vars = @cached_player_data
     else
       global_vars = WWWR::R.hget Keys::GLOBAL_VARS, public_key
     end
     global_vars ||= "{}"
     global_vars = Hash(String, String).from_json global_vars
     global_vars[key] = value
-    
-    if @cached_player_key == public_key
-      @cached_player_data = global_vars.to_json
-    else
-      WWWR::R.hset Keys::GLOBAL_VARS, @cached_player_key, global_vars.to_json
+    @cached_player_data = global_vars.to_json
+
+    if @cached_player_key != public_key
+      WWWR::R.hset Keys::GLOBAL_VARS, public_key, global_vars.to_json
     end
   end
 
@@ -805,8 +800,8 @@ class Game
     gv = @cached_player_data
     gv ||= "{}"
     #gv = gv[public_key] 
-    puts gv 
-    
+    puts "#{gv}=++++++++++++++++++++++++++++++++"
+
     WWWR::R.hset Keys::GLOBAL_VARS, @cached_player_key, gv
   end
 
