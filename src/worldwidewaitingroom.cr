@@ -225,8 +225,9 @@ class Game
     get_leaderboard.each do |player_data|
       player_public_key = player_data["public_key"].to_s
 
-      cache_player_data(player_public_key)
       @cached_player_key = player_public_key
+      cache_player_data(player_public_key)
+      puts  @cached_player_key 
 
       set_player_time_units_ps player_public_key, BigFloat.new (@default_ups + altered_ups)
       do_powerup_actions player_public_key, dt
@@ -242,6 +243,8 @@ class Game
       do_powerup_cleanup player_public_key
 
       commit_player_data
+      @cached_player_key = nil
+      @cached_player_data = nil
     end
 
     broadcast_animation_event
@@ -727,6 +730,7 @@ class Game
 
     global_vars ||= "{}"
     global_vars = JSON.parse global_vars
+    puts "#{global_vars}''''''''''''''''''''''''''''''''''''........"
     begin
       global_vars[key].to_s
     rescue e
@@ -785,15 +789,20 @@ class Game
     global_vars ||= "{}"
     global_vars = Hash(String, String).from_json global_vars
     global_vars[key] = value
-    @cached_player_data = global_vars.to_json
+    
+    puts "#{@cached_player_data}TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
 
     if @cached_player_key != public_key
       WWWR::R.hset Keys::GLOBAL_VARS, public_key, global_vars.to_json
-    end
+      puts "direcccccccttttttt calllllllll RRRRRRRRRRRRRRR"
+    else
+      @cached_player_data = global_vars.to_json
+      puts "cacccccchhhhhhhhed wrhigbfoiwrbgo"
+    end 
   end
 
   def commit_player_data
-    puts  @cached_player_key 
+    #puts  @cached_player_key 
     if @cached_player_key.nil?
       return
     end
