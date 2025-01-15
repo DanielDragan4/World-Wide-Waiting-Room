@@ -1,6 +1,6 @@
 import { createApp } from '/vue.js'
 
-import App from "/app/app.js?v=19"
+import App from "/app/app.js?v=20"
 import Card from "/app/card.js?v=8"
 import Container from "/app/container.js?v=7"
 import Button from "/app/button.js?v=8"
