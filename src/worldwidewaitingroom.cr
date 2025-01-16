@@ -105,6 +105,7 @@ module Events
 end
 
 module Keys
+  LAST_PING = "last_ping"
   GAME_WINNERS = "game_winners"
   PLAYER_POWERUP_ICONS = "player_powerup_icons"
   PLAYER_CARD_CSS_CLASSES = "player_card_css_classes"
@@ -220,8 +221,21 @@ class Game
 
     altered_ups = @alterations.base_units_per_second
 
+    now = Time.utc.to_unix_ms
+
     get_leaderboard.each do |player_data|
       player_public_key = player_data["public_key"].to_s
+
+      last_ping = now - (get_key_value_as_float player_public_key, Keys::LAST_PING)
+
+      if last_ping >= 15000 # 15 seconds
+        if !has_powerup player_public_key, PowerupNecrovoid.get_powerup_id
+          broadcast_offline player_public_key
+          next
+        end
+      end
+
+      puts "#{player_public_key} last ping #{last_ping}"
 
       set_player_time_units_ps player_public_key, BigFloat.new (@default_ups + altered_ups)
       do_powerup_actions player_public_key, dt
@@ -1374,6 +1388,8 @@ ws "/ws" do |socket, context|
       game.broadcast_online public_key
     end
 
+    game.set_key_value public_key, Keys::LAST_PING, Time.utc.to_unix_ms.to_s
+    puts "Ping from #{public_key}"
     game.sync_player public_key
   end
 
