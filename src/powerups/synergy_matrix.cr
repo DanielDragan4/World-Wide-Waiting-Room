@@ -33,7 +33,6 @@ class PowerupSynergyMatrix < Powerup
 
     "
       <strong>Stackable:</strong> Yes<br>
-      <strong>Toggleable:</strong> No<br>
       <br>
       Increase potency of most powerups by <b>#{boost_percent.round}%</b>. The effect increases with each <b>subsequent purchase</b>. Purchasing does not affect active powerups <b>currently in use</b>."
 

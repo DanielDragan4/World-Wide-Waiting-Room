@@ -36,9 +36,8 @@ class PowerupBreach < Powerup
 
     "<strong>Duration:</strong> #{(time / 60).round(2)} minutes<br>
     <strong>Stackable:</strong> No<br>
-    <strong>Toggleable:</strong> No<br>
     <br>
-    Temporarily disables all of a player's <b>Passive powerups</b>."
+    Temporarily disables all of a selected player's <b>Passive powerups</b>."
   end
 
   def get_price (public_key)
@@ -49,7 +48,7 @@ class PowerupBreach < Powerup
   end
 
   def is_available_for_purchase (public_key)
-    if (@game.has_powerup public_key, PowerupBreach.get_powerup_id) || (@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id)
+    if (@game.has_powerup public_key, PowerupBreach.get_powerup_id) || ((@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id) && !(@game.has_powerup public_key, PowerupForceField.get_powerup_id))
       return false
     end
 

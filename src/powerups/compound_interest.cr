@@ -61,7 +61,7 @@ class PowerupCompoundInterest < Powerup
     <strong>Unused Milestone:</strong> #{boost_count}<br>
     <strong>Next Milestone:</strong> #{format_milestone(next_milestone)} Units<br>
     <br>
-    Increases your Units/s by <b>#{boost_multiplier}%</b> with every purchase for each unused <b>milestone</b>. Purchasing this powerup consumes all unused milestones."
+    Increases your Units/s by <b>#{boost_multiplier}%</b> with every purchase for each unused <b>milestone</b> for 10 minutes. Purchasing this powerup consumes all unused milestones."
   end
 
   def is_stackable

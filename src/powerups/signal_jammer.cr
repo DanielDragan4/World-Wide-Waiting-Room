@@ -1,6 +1,7 @@
 require "../powerup"
 require "./afflict_signal_jammer.cr"
 require "./afflict_antimatter.cr"
+require "./force_field.cr"
 
 class PowerupSignalJammer < Powerup
   BASE_PRICE = BigFloat.new 2_000
@@ -33,7 +34,7 @@ class PowerupSignalJammer < Powerup
     multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
     reduced_multi = multi/10
     time = AfflictPowerupSignalJammer::COOLDOWN * (1 + reduced_multi)
-    "<strong>Duration:</strong> #{(time/60).round} minutes<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br><br>Temporarily <b>halves</b> a selected player's Units/s."
+    "<strong>Duration:</strong> #{(time/60).round} minutes<br><strong>Stackable:</strong> No<br><br>Temporarily <b>halves</b> a selected player's Units/s."
   end
 
   def get_price (public_key)
@@ -44,7 +45,7 @@ class PowerupSignalJammer < Powerup
   end
 
   def is_available_for_purchase (public_key)
-    if (@game.has_powerup public_key, PowerupSignalJammer.get_powerup_id) || (@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id)
+    if (@game.has_powerup public_key, PowerupSignalJammer.get_powerup_id) || ((@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id) && !(@game.has_powerup public_key, PowerupForceField.get_powerup_id))
       return false
     end
 

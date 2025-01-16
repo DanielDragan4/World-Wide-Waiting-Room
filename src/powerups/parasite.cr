@@ -62,7 +62,7 @@ class PowerupParasite < Powerup
   end
 
   def get_description(public_key)
-    "<strong>Duration:</strong> #{DURATION/60} Minutes<br><strong>Stackable:</strong> No<br><strong>Toggleable:</strong> No<br><br>While active, steal a portion of the Units from the player immediately in front of you and immediately behind you."
+    "<strong>Duration:</strong> #{DURATION/60} Minutes<br><strong>Stackable:</strong> No<br><br>While active, steal a portion of the Units from the player immediately in front of you and immediately behind you."
   end
 
   def get_price(public_key)
@@ -73,7 +73,7 @@ class PowerupParasite < Powerup
   end
 
   def is_available_for_purchase(public_key)
-    if(@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id)
+    if((@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id) && !(@game.has_powerup public_key, PowerupForceField.get_powerup_id))
       return false
     end
     (((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0) && !(@game.has_powerup(public_key, PowerupParasite.get_powerup_id))

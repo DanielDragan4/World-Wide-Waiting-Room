@@ -43,7 +43,6 @@ class PowerupBlackHole < Powerup
     "
     <strong>Duration:</strong> #{(DURATION / 60).to_i} Minutes<br>
     <strong>Stackable:</strong> No<br>
-    <strong>Toggleable:</strong> No<br>
     <br>
     Reduce Units/s of the four players ahead and behind you based on their distance from you. The effect starts at a <b>50%</b> reduction and is <b>halved for each player after that</b>."
   end
@@ -56,7 +55,7 @@ class PowerupBlackHole < Powerup
 
   def is_available_for_purchase(public_key)
     timer = (@game.get_key_value_as_int public_key, KEY_COOLDOWN) - @game.ts
-    (((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0) && !(@game.has_powerup(public_key, PowerupBlackHole.get_powerup_id)) && (timer <= 0) && !(@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id)
+    (((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0) && !(@game.has_powerup(public_key, PowerupBlackHole.get_powerup_id)) && (timer <= 0) && (!(@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id) || (@game.has_powerup public_key, PowerupForceField.get_powerup_id))
   end
 
   def get_active_black_hole_stack(public_key)
