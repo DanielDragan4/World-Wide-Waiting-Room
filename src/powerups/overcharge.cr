@@ -9,7 +9,7 @@ require "./compound_interest"
 class PowerupOverCharge < Powerup
   STACK_KEY = "overcharge_stack"
   ACTIVE_STACK_KEY = "overcharge_active_stack"
-  BASE_PRICE = BigFloat.new -25.0
+  BASE_PRICE = BigFloat.new 25.0
   UNIT_MULTIPLIER = BigFloat.new 5.0
   DURATION = 60
   KEY_DURATION = "overcharge_duration"

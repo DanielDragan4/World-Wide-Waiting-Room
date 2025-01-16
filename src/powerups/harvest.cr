@@ -4,6 +4,7 @@ require "./unit_multiplier"
 require "./compound_interest"
 require "./overcharge"
 require "./timewarp"
+require "./gravitational_wave"
 
 class PowerupHarvest < Powerup
   STACK_KEY = "harvest_stack"
@@ -60,11 +61,12 @@ class PowerupHarvest < Powerup
 
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
+    g_w_timer = @game.is_timer_expired public_key, PowerupGravitationalWave::GRAVITATIONAL_WAVE_COOLDOWN_KEY
 
     timer_expired = @game.is_timer_expired public_key, DURATION_KEY
     cooldown_expired = @game.is_timer_expired public_key, COOLDOWN_KEY
 
-    return ((@game.get_player_time_units public_key) >= price) && timer_expired && cooldown_expired
+    return ((@game.get_player_time_units public_key) >= price) && timer_expired && cooldown_expired && g_w_timer
   end
 
   def max_stack_size (public_key)

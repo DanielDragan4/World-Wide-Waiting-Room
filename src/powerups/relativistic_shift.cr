@@ -1,6 +1,7 @@
 require "../powerup"
 require "big"
 require "json"
+require "./gravitational_wave"
 
 class PowerupRelativisticShift < Powerup
   STACK_KEY = "relativistic_shift_stack"
@@ -14,7 +15,14 @@ class PowerupRelativisticShift < Powerup
   end
 
   def new_multiplier(public_key) : BigFloat
-    get_synergy_boosted_multiplier(public_key, UNIT_MULTIPLIER)
+    gw_boost = BigFloat.new(get_gw_boost(public_key, UNIT_MULTIPLIER))
+    get_synergy_boosted_multiplier(public_key, gw_boost)
+  end
+
+  def get_gw_boost(public_key, amount)
+    g_w = @game.get_powerup_classes[PowerupGravitationalWave.get_powerup_id]
+    g_w = g_w.as PowerupGravitationalWave
+    g_w.get_relativistic_shift_boost(public_key, amount)
   end
 
   def self.get_powerup_id

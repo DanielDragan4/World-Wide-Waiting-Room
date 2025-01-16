@@ -34,7 +34,7 @@ require "./powerups/unit_vault"
 require "./powerups/boost_sync"
 require "./powerups/afflict_black_hole"
 require "./powerups/necrovoid"
-
+require "./powerups/gravitational_wave"
 
 require "./powerups/achievement_type_1.cr"
 require "./powerups/achievement_type_2.cr"
@@ -379,6 +379,7 @@ class Game
       PowerupBoostSync.get_powerup_id => PowerupBoostSync.new(self),
       PowerupBlackHole.get_powerup_id => PowerupBlackHole.new(self),
       PowerupAntimatter.get_powerup_id => PowerupAntimatter.new(self),
+      PowerupGravitationalWave.get_powerup_id => PowerupGravitationalWave.new(self),
 
       AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
       AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
