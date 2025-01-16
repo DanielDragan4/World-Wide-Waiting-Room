@@ -281,6 +281,16 @@ class Game
     is_online
   end
 
+  def is_player_on_leaderboard (public_key : String) : Bool
+    is_on_leaderboard = false
+    get_raw_leaderboard.each do |pk|
+      if pk == public_key
+        is_on_leaderboard = true
+      end
+    end
+    is_on_leaderboard
+  end
+
   def cache_universe_change_log
     change_log = WWWR::R.lrange Keys::UNIVERSE_CHANGE_LOG, 0, -1
     @universe_change_log = change_log.map { |x| Hash(String, String).from_json (x.to_s) }
@@ -1384,9 +1394,11 @@ ws "/ws" do |socket, context|
   end
 
   socket.on_message do |msg|
-    if public_key && !WWWR::Channels.find { |v| v[0] == channel_key }
-      WWWR::Channels.add ({ channel_key, events, public_key })
-      game.broadcast_online public_key
+    if public_key
+      if !WWWR::Channels.find { |v| v[0] == channel_key } || !(game.is_player_on_leaderboard public_key) || !(game.is_player_online public_key)
+        WWWR::Channels.add ({ channel_key, events, public_key })
+        game.broadcast_online public_key
+      end
     end
 
     game.set_key_value public_key, Keys::LAST_PING, Time.utc.to_unix_ms.to_s
