@@ -235,7 +235,7 @@ class Game
         end
       end
 
-      puts "#{player_public_key} last ping #{last_ping}"
+      puts "#{player_public_key} (#{player_data["name"]}) last ping #{last_ping}"
 
       set_player_time_units_ps player_public_key, BigFloat.new (@default_ups + altered_ups)
       do_powerup_actions player_public_key, dt
