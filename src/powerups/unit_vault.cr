@@ -82,8 +82,8 @@ class PowerupUnitVault < Powerup
     description = "<strong>Duration:</strong> #{VAULT_DURATION/3600} Hour<br><strong>Stackable:</strong> No<br><br> Temporarily store <b>half</b> of your units in a vault. These units are immune to all effects."
 
     if vault_units > 0
-      description += "<br><strong>Vaulted:</strong> #{(format_vaulted_units vault_units.round(2))}"
-      description += "<br><strong>Remaining:</strong> #{format_time(time_remaining)}"
+      description += "<br><strong>Vaulted:</strong> #{(@game.format_units vault_units.round(2))}"
+      description += "<br><strong>Remaining:</strong> #{@game.format_time(time_remaining)}"
     end
     return description
   end

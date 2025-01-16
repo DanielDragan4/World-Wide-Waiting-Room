@@ -53,7 +53,7 @@ class PowerupSynergyMatrix < Powerup
     base_increase = (multi == 1) ? 1 : multi/2
 
     p1 = BigFloat.new((BASE_PRICE * base_increase))
-    p2 = BigFloat.new((5 +(stack_size * (BigFloat.new 0.2))))
+    p2 = BigFloat.new((4 +(stack_size * (BigFloat.new 0.1))))
 
     price = (p1 * (stack_size ** p2)).round(2)
 

@@ -31,8 +31,8 @@ class PowerupBootStrap < Powerup
   def new_base_percent_increase(public_key) : BigFloat
     precentage = get_synergy_boosted_multiplier(public_key, (percent_increase public_key))
 
-    if precentage > 5
-      precentage = 5.0
+    if precentage > 10
+      precentage = 10.0
       precentage = BigFloat.new precentage
     end
     precentage

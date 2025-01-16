@@ -4,7 +4,7 @@ require "math"
 
 class PowerupTediousGains < Powerup
   BASE_PRICE = BigFloat.new 10
-  BASE_AMOUNT = BigFloat.new 0.1
+  BASE_AMOUNT = BigFloat.new 0.69
   KEY = "tedious_gains_stack"
 
   def category

@@ -11,7 +11,7 @@ class PowerupHarvest < Powerup
   DURATION_KEY = "harvest_duration"
   BASE_PRICE = BigFloat.new 500.0
   HARVEST_TIME = 3600
-  COOLDOWN_DURATION = 60 * 60 * 6
+  COOLDOWN_DURATION = 60 * 60 * 8
   COOLDOWN_KEY = "harvest cooldown"
 
   def category
@@ -34,7 +34,7 @@ class PowerupHarvest < Powerup
     units = ((@game.get_player_frame_ups public_key) * HARVEST_TIME).round(0)
     "<strong>Unit Gain:</strong> #{(@game.format_units units.round(2))}<br>
     <br>
-    Immediately collect the next <b>hour's worth of units</b> based on <b>current Units/s</b>, but your Units/s drops to <b>0 for that hour</b>. Wormhole can be used once ever <b>six hours</b>."
+    Immediately collect the next <b>hour's worth of units</b> based on <b>current Units/s</b>, but your Units/s drops to <b>0 for that hour</b>. Wormhole can be used once ever <b>eight hours</b>."
   end
 
   def cooldown_seconds_left(public_key)

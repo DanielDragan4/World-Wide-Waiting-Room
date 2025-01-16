@@ -3,7 +3,7 @@ require "./cosmic_breakthrough"
 
 class PowerupBoostSync < Powerup
   BASE_PRICE = BigFloat.new 43200.0
-  DURATION = 10
+  DURATION = 15
   KEY_DURATION = "boost_sync_duration"
   KEY_PASSIVE_BOOSTS = "boost_sync_passive_boosts"
 
