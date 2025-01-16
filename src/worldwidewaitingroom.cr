@@ -13,6 +13,8 @@ require "./powerups/tedious_gains.cr"
 require "./powerups/amish_life.cr"
 require "./powerups/relativistic_shift.cr"
 require "./powerups/blackhole.cr"
+require "./powerups/antimatter.cr"
+require "./powerups/afflict_antimatter.cr"
 
 require "./powerups/parasite.cr"
 require "./powerups/breach.cr"
@@ -31,6 +33,7 @@ require "./powerups/cosmic_breakthrough"
 require "./powerups/unit_vault"
 require "./powerups/boost_sync"
 require "./powerups/afflict_black_hole"
+require "./powerups/necrovoid"
 
 
 require "./powerups/achievement_type_1.cr"
@@ -44,6 +47,7 @@ require "./templates"
 alias Secret = String
 alias Public = String
 alias ChannelValueType = String
+alias PlayerData = Hash(String, Array(Hash(String, Array(Redis::RedisValue) | Int32 | Int64 | String | Nil)) | Array(Hash(String, String)) | Array(Redis::RedisValue) | Bool | Hash(String, Hash(String, Float32 | Float64 | Int32 | Int64 | String)) | Int32 | Int64 | String | Nil)
 
 templates = Templates.new
 
@@ -113,6 +117,7 @@ module Keys
   GLOBAL_VARS = "global_vars"
   LAST_FRAME_TIME = "frame_time"
   LEADERBOARD = "online-leaderboard"
+  NECROVOIDERS = "necrovoiders"
   PLAYER_PUBLIC_KEY = "public_key"
   PLAYER_POWERUPS = "powerups"
   PLAYER_METADATA = "metadata"
@@ -159,6 +164,9 @@ class Game
 
   @animation_queue = Array(String).new
 
+  @cached_raw_leaderboard = Array(String).new
+  @cached_leaderboard = Array(PlayerData).new
+
   def can_buy(public_key : Public) : Bool
     last_buy = @last_buy.fetch public_key, BigFloat.new 0
 
@@ -195,6 +203,10 @@ class Game
 
   def tick
     dt = frame_dt_ms
+
+    cache_raw_leaderboard
+    cache_leaderboard
+
     puts "Last frame #{dt}ms"
 
     if get_time_left <= 1
@@ -226,6 +238,7 @@ class Game
     end
 
     broadcast_animation_event
+    sync
     update_frame_time
   end
 
@@ -241,6 +254,17 @@ class Game
     else
       Array(Hash(String, String)).new
     end
+  end
+
+  def is_player_online (public_key : String) : Bool
+    is_online = false
+    WWWR::Channels.each do |x|
+      if x[2] == public_key
+        is_online = true
+      end
+    end
+
+    is_online
   end
 
   def cache_universe_change_log
@@ -261,7 +285,7 @@ class Game
 
   def get_alteration_options
     {
-      Keys::ALTERATION_GAME_DURATION => { "name" => "Cycle Length", "text" => "Alter cycle duration by", "unit" => "hours", "increment" => 1, "min" => -(24 * 5), "max" => 24 * 5, "current_value" => @alterations.game_duration },
+      Keys::ALTERATION_GAME_DURATION => { "name" => "Cycle Length", "text" => "Alter cycle duration by", "unit" => "days", "increment" => 1, "min" => -6, "max" => 7, "current_value" => @alterations.game_duration },
       Keys::ALTERATION_BASE_RATE => { "name" => "Base Unit/s Rate", "text" => "Alter base units per second by", "unit" => "units", "increment" => 0.1, "min" => 0.1, "max" => 1_000_000, "current_value" => @alterations.base_units_per_second },
       Keys::ALTERATION_ACHIEVEMENT_GOAL => { "name" => "Achievement Goals", "text" => "Alter achievement goals by", "unit" => "%", "increment" => 1, "min" => -50, "max" => 50, "current_value" => @alterations.achievement_goal },
       Keys::ALTERATION_PASSIVE_PRICE => { "name" => "Passive Powerup Prices", "text" => "Alter PASSIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.passive_price },
@@ -340,6 +364,7 @@ class Game
       PowerupUnitMultiplier.get_powerup_id => PowerupUnitMultiplier.new(self),
       PowerupAmishLife.get_powerup_id => PowerupAmishLife.new(self),
       PowerupTediousGains.get_powerup_id => PowerupTediousGains.new(self),
+      PowerupNecrovoid.get_powerup_id => PowerupNecrovoid.new(self),
       PowerupParasite.get_powerup_id => PowerupParasite.new(self),
       PowerupCompoundInterest.get_powerup_id => PowerupCompoundInterest.new(self),
       PowerupSynergyMatrix.get_powerup_id => PowerupSynergyMatrix.new(self),
@@ -353,10 +378,12 @@ class Game
       PowerupRelativisticShift.get_powerup_id => PowerupRelativisticShift.new(self),
       PowerupBoostSync.get_powerup_id => PowerupBoostSync.new(self),
       PowerupBlackHole.get_powerup_id => PowerupBlackHole.new(self),
+      PowerupAntimatter.get_powerup_id => PowerupAntimatter.new(self),
 
       AfflictPowerupSignalJammer.get_powerup_id => AfflictPowerupSignalJammer.new(self),
       AfflictPowerupBreach.get_powerup_id => AfflictPowerupBreach.new(self),
       AfflictPowerupBlackHole.get_powerup_id => AfflictPowerupBlackHole.new(self),
+      AfflictPowerupAntimatter.get_powerup_id => AfflictPowerupAntimatter.new(self),
 
       AchievementTypeI.get_powerup_id => AchievementTypeI.new(self),
       AchievementTypeII.get_powerup_id => AchievementTypeII.new(self),
@@ -367,7 +394,7 @@ class Game
   end
 
   def get_time_left
-    alter_game_duration_by = (@alterations.game_duration * 60 * 60) # alter by number of hours
+    alter_game_duration_by = (@alterations.game_duration * 60 * 60 * 24) # alter by number of days
 
     tl = WWWR::R.get Keys::TIME_LEFT
     if !tl || tl.to_i <= 0
@@ -472,12 +499,52 @@ class Game
     end
   end
 
+  def format_time (tl) : String
+    tl = tl.to_i
+    seconds = tl % 60
+    minutes = (tl // 60) % 60
+    hours = (tl // 60 // 60) % 24
+    days = tl // 60 // 60 // 24
+
+    if days > 0
+      "#{days}d #{hours}h #{minutes}m #{seconds}s"
+    elsif hours > 0
+      "#{hours}h #{minutes}m #{seconds}s"
+    elsif minutes > 0
+      "#{minutes}m #{seconds}s"
+    else
+      "#{seconds}s"
+    end
+  end
+
   def update_frame_time
     WWWR::R.set(Keys::LAST_FRAME_TIME, Time.utc.to_unix_ms)
   end
 
+  def format_time (tl) : String
+    tl = tl.to_i
+    seconds = tl % 60
+    minutes = (tl // 60) % 60
+    hours = (tl // 60 // 60) % 24
+    days = tl // 60 // 60 // 24
+
+    if days > 0
+      "#{days}d #{hours}h #{minutes}m #{seconds}s"
+    elsif hours > 0
+      "#{hours}h #{minutes}m #{seconds}s"
+    elsif minutes > 0
+      "#{minutes}m #{seconds}s"
+    else
+      "#{seconds}s"
+    end
+  end
+
+  def cache_leaderboard
+    @cached_leaderboard = get_raw_leaderboard.map { |public_key| get_data_for public_key.to_s }
+  end
+
   def get_leaderboard
-    get_raw_leaderboard.map { |public_key| get_data_for public_key.to_s }
+    @cached_leaderboard
   end
 
   def get_leaderboard_index (public_key : String) : Int32 | Nil
@@ -585,12 +652,37 @@ class Game
 
   def get_game_history
     lb = WWWR::R.lrange(Keys::GAME_WINNERS, 0, -1)
-    lb.map { |x| Hash(String, String).from_json (x.to_s) }
+    lb.map { |x| Hash(String, String | Array(String)).from_json (x.to_s) }
+  end
+
+  def add_necrovoider(public_key : String)
+    remove_necrovoider public_key
+    WWWR::R.rpush Keys::NECROVOIDERS, public_key
+  end
+
+  def remove_necrovoider(public_key : String)
+    WWWR::R.lrem Keys::NECROVOIDERS, 0, public_key
+  end
+
+  def get_necrovoiders
+    WWWR::R.lrange(Keys::NECROVOIDERS, 0, -1)
+  end
+
+  def cache_raw_leaderboard
+    lb = WWWR::R.lrange(Keys::LEADERBOARD, 0, -1)
+
+    get_necrovoiders.each do |pk|
+      pk_s = pk.to_s
+      if !lb.find { |x| x.to_s == pk_s }
+        lb.push pk
+      end
+    end
+
+    @cached_raw_leaderboard = lb.map { |x| x.to_s }.sort { |a, b| (get_player_time_units a.to_s) <=> (get_player_time_units b.to_s) }
   end
 
   def get_raw_leaderboard
-    lb = WWWR::R.lrange(Keys::LEADERBOARD, 0, -1)
-    lb.map { |x| x.to_s }.sort { |a, b| (get_player_time_units a.to_s) <=> (get_player_time_units b.to_s) }
+    @cached_raw_leaderboard
   end
 
   def inc_time_units (public_key : String, by)
@@ -646,6 +738,11 @@ class Game
 
   def get_timer_seconds_left (public_key : String, timer_key : String) : Int32
     ((get_key_value_as_float public_key, timer_key) - ts).to_i
+  end
+
+  def get_timer_time_left (public_key : String, timer_key : String) : String
+    seconds_left = get_timer_seconds_left public_key, timer_key
+    format_time seconds_left
   end
 
   def is_timer_expired (public_key : String, timer_key : String) : Bool
@@ -804,7 +901,7 @@ class Game
     name
   end
 
-  def get_data_for (public_key : String)
+  def get_data_for (public_key : String) : PlayerData
     time_units = Redis::Future.new
     player_name = Redis::Future.new
     player_bg_color = Redis::Future.new
@@ -951,7 +1048,8 @@ class Game
       "name" => get_player_name(winner),
       "public_key" => winner,
       "units" => get_player_time_units(winner).to_s,
-      "date" => Time.utc.to_s
+      "date" => Time.utc.to_s,
+      "leaderboard" => players
     }.to_json
 
     WWWR::R.rpush(Keys::GAME_WINNERS, winner_data)
@@ -1060,6 +1158,7 @@ post "/login" do |ctx|
 end
 
 get "/history" do |ctx|
+  ctx.response.headers["Content-Type"] = "application/json"
   game.get_game_history.to_json
 end
 
@@ -1181,6 +1280,7 @@ post "/buy" do |ctx|
     if public_key
       resp = powerups[name].buy_action public_key
       # game.sync
+      game.sync_player public_key
       resp
     end
   end

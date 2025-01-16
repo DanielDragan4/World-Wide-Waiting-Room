@@ -28,7 +28,7 @@ class PowerupAmishLife < Powerup
     e_d = enable_disable(public_key)
 
     pi = PopupInfo.new
-    pi["Time Left"] = (@game.format_units (DURATION - BigFloat.new(durations))).to_s
+    pi["Time Left"] = (@game.format_time (DURATION - BigFloat.new(durations)))
     pi["Boost State"] = e_d
     pi["Units/s Boost"] = "#{(@game.format_units BigFloat.new(get_unit_boost(public_key)).round(2))}x"
     pi
@@ -36,12 +36,33 @@ class PowerupAmishLife < Powerup
 
   def get_description(public_key)
     e_d = enable_disable(public_key)
+    estimate = BigFloat.new(@game.get_player_time_units_ps(public_key))
+    active_stack = get_player_active_stack_size(public_key)
+    enabled = enable_disable(public_key)
+    current_timer = @game.get_key_value_as_int(public_key, KEY_DURATION)
+    timer = DURATION -current_timer
+    time = @game.format_time(timer)
 
-    "Permanently multiplies unit production by 2x once the duration expires.
-    <br>However, in order to recive the boost, for 8 hours total unit generation is reduced by 90%.
-    <br> You are able to pause the duration at any point without restarting the duration by purchasing the powerup again. The duration
-    only ticks down while you are online. The duration does not tick down during Wormhole's unit generation cooldown.
-    <br> Current State: #{e_d}"
+    if (active_stack > 0)
+      estimate = (estimate * 10).round(2)
+    else
+      estimate = (estimate * 0.1).round(2)
+    end
+
+    if !(@game.has_powerup(public_key, PowerupAmishLife.get_powerup_id))
+      return "
+              <strong>Status:</strong> #{enabled}<br>
+              <br>
+              Increases your Units/s by some multiple every <b>eight hours</b> that it is active. While active, your Units/s will be cut by <b>90%</b>. The <b>multiplier doubles<b> with every subsequent eight hours. Purchasing this powerup while active removes the effect..
+"
+
+    else
+      return "
+    <strong>Status:</strong> #{enabled}<br>
+    <strong>Timer:</strong> #{time}<br>
+    Increases your Units/s by some multiple every eight hours that it is active. While active, your Units/s will be cut by 90%. The multiplier doubles with every subsequent eight hours. Purchasing this powerup while active removes the effect..
+"
+    end
   end
 
   def get_price (public_key)
@@ -119,7 +140,7 @@ class PowerupAmishLife < Powerup
   end
 
   def action (public_key, dt)
-    if public_key 
+    if public_key
         unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
 
         active_stack = get_player_active_stack_size(public_key)

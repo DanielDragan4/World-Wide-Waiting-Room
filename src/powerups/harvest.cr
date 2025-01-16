@@ -32,8 +32,9 @@ class PowerupHarvest < Powerup
 
   def get_description(public_key)
     units = ((@game.get_player_frame_ups public_key) * HARVEST_TIME).round(0)
-    "Collects the next hour's worth of units based on current unit production rate, but pauses unit generation for the next hour. Has a 6 hour cooldown.
-    <br>Use to gain #{(@game.format_units units.round(2))} units. "
+    "<strong>Unit Gain:</strong> #{(@game.format_units units.round(2))}<br>
+    <br>
+    Immediately collect the next <b>hour's worth of units</b> based on <b>current Units/s</b>, but your Units/s drops to <b>0 for that hour</b>. Wormhole can be used once ever <b>six hours</b>."
   end
 
   def cooldown_seconds_left(public_key)
@@ -42,7 +43,7 @@ class PowerupHarvest < Powerup
 
   def get_popup_info (public_key) : PopupInfo
     pi = PopupInfo.new
-    pi["Time Left"] = @game.get_timer_seconds_left public_key, DURATION_KEY
+    pi["Time Left"] = @game.get_timer_time_left public_key, DURATION_KEY
     pi
   end
 

@@ -29,25 +29,25 @@ class PowerupForceField < Powerup
 
   def get_popup_info (public_key) : PopupInfo
     pi = PopupInfo.new
-    pi["Time Left"] = (@game.get_timer_seconds_left public_key, COOLDOWN_KEY)
+    pi["Time Left"] = (@game.get_timer_time_left public_key, COOLDOWN_KEY)
     pi
   end
 
   def get_description (public_key)
-    "Blocks all sabotoge effects for #{(get_cooldown_time(public_key)/3600).round(2)} hour(s). Can be used again 2 hours after Force Field expires. The price is increased multiplicatively with each purchase."
+    "<strong>Duration:</strong> #{(get_cooldown_time(public_key)/3600).round} Hour(s)<br><strong>Stackable:</strong> No<br><br>Temporarily makes you immune to all <b>Sabotage</b> effects (current and future)."
   end
 
   def get_cooldown_time(public_key)
     multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
     reduced_multi = multi/10
-    
+
     COOLDOWN * (1 + reduced_multi)
   end
 
   def get_next_use_cooldown (public_key)
     multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
     reduced_multi = multi/10
-    
+
     NEXT_USE_COOLDOWN * (1 + reduced_multi)
   end
 

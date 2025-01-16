@@ -38,7 +38,10 @@ class PowerupCosmicBreak < Powerup
 
   def get_description(public_key)
     stack_size = get_stack_size(public_key)
-    "Resets Territorial Expanse, Synergy Matrix, Automation Upgrade, and von Neumann probe to 0 but increases their base rate by some multiple. Requires getting the designated Type Achievement before each purchase, <br> Current Civi Type: #{stack_size} <br> Next Synergy Precent: #{SYNERGY_VALUES[stack_size+1]*10}% <br> Next Territorial Expanse Rate: #{UNIT_VALUES[stack_size+1]}"
+    "<strong>Current Level:</strong> #{stack_size}<br>
+    <strong>Stackable:</strong> Yes<br>
+    <br>
+    Resets <b>Territorial Expanse</b>, <b>Synergy Matrix</b>, <b>Automation Upgrade</b>, and <b>Von Neumann Probe</b> to 0 but greatly increases their base rate. Purchasable at each <b>Achievement</b> milestone."
   end
 
   def category
@@ -72,7 +75,7 @@ class PowerupCosmicBreak < Powerup
       if is_available_for_purchase(public_key)
         current_stack = get_stack_size(public_key)
         new_stack = current_stack + 1
-        
+
         @game.inc_time_units(public_key, -price)
         @game.set_key_value(public_key, KEY, new_stack.to_s)
         @game.add_powerup(public_key, PowerupCosmicBreak.get_powerup_id)

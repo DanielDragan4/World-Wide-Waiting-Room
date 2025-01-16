@@ -26,11 +26,11 @@ class PowerupSchrodinger < Powerup
     if multi < 0
       multi = 0
     end
-
-    "Much like Schrödinger's cat, the outcome of your gamble - whether you win or lose units - exists in uncertainty until you take the risk.
-    <br>Current Probability of winning: #{((1-get_bet_prob(public_key))*100)}% 
-    <br>Current Bet Precentage: #{(get_bet_amount(public_key)*100)}% 
-    <br>Current Winning Multiplier: #{(multi + 2).round(2)}"
+    "<strong>Bet Amount:</strong> #{(get_bet_amount(public_key)*100)}%<br>
+    <strong>Win Probability:</strong> #{((1-get_bet_prob(public_key))*100)}%<br>
+    <strong>Win Multiplier:</strong> #{(multi + 2).round(2)}<br>
+    <br>
+    Gamble a portion of your units based on the above predetermined odds."
   end
 
   def get_price (public_key)
@@ -74,7 +74,7 @@ class PowerupSchrodinger < Powerup
     r = Random.new
     gamble_value = r.rand
 
-    gamble_value
+    Math.max(Math.min(0.25, gamble_value), 0.75)
   end
 
   def win_or_lose(public_key)

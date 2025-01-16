@@ -1,5 +1,6 @@
 require "../powerup"
 require "./afflict_breach.cr"
+require "./afflict_antimatter.cr"
 
 class PowerupBreach < Powerup
   BASE_PRICE = BigFloat.new 3_000
@@ -32,7 +33,11 @@ class PowerupBreach < Powerup
     multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
     reduced_multi = multi/10
     time = AfflictPowerupBreach::COOLDOWN * (1 + reduced_multi)
-    "Disables all of a selected player's passive powerups for #{(time / 60).round(2)} minutes. Price increases exponentially."
+
+    "<strong>Duration:</strong> #{(time / 60).round(2)} minutes<br>
+    <strong>Stackable:</strong> No<br>
+    <br>
+    Temporarily disables all of a selected player's <b>Passive powerups</b>."
   end
 
   def get_price (public_key)
@@ -43,7 +48,7 @@ class PowerupBreach < Powerup
   end
 
   def is_available_for_purchase (public_key)
-    if (@game.has_powerup public_key, PowerupBreach.get_powerup_id)
+    if (@game.has_powerup public_key, PowerupBreach.get_powerup_id) || ((@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id) && !(@game.has_powerup public_key, PowerupForceField.get_powerup_id))
       return false
     end
 

@@ -30,8 +30,12 @@ class PowerupSynergyMatrix < Powerup
     stack_size = get_player_stack_size(public_key)
     boost = get_civ_boost(public_key)
     boost_percent = (stack_size * boost * 100)
-    "Increases the effectiveness of all other powerups by #{(boost * 100).round}%. The effect stacks additively with each purchase.\n Purchasing does not affect active powerups currently in use.
-    <br>Current boost: #{boost_percent.round}%"
+
+    "
+      <strong>Stackable:</strong> Yes<br>
+      <br>
+      Increase potency of most powerups by <b>#{boost_percent.round}%</b>. The effect increases with each <b>subsequent purchase</b>. Purchasing does not affect active powerups <b>currently in use</b>."
+
   end
 
   def is_stackable
@@ -56,7 +60,7 @@ class PowerupSynergyMatrix < Powerup
     alterations = @game.get_cached_alterations
     @game.increase_number_by_percentage price, BigFloat.new alterations.passive_price
   end
-  
+
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
     units = @game.get_player_time_units(public_key)

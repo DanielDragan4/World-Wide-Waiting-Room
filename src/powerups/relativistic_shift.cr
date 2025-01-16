@@ -34,14 +34,20 @@ class PowerupRelativisticShift < Powerup
     durations = @game.get_key_value_as_int public_key, KEY_DURATION
 
     pi = PopupInfo.new
-    pi["Time Left"] = (BigFloat.new(durations) - @game.ts).to_s
+    pi["Time Left"] = @game.get_timer_time_left public_key, KEY_DURATION
     pi["Units/s Boost"] = "#{(new_multiplier(public_key)).round(2)}x"
     pi
   end
 
   def get_description(public_key)
     amount = (new_multiplier(public_key)).round(2)
-    "Multiplies unit production by #{amount}x for the next 8 hours, but disables the purchase and use of Time Warp and Over Charge during that time. These are not stackable. Price increases exponentially with each purchase."
+    unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
+    estimate = unit_rate * amount
+    "
+    <strong>Duration:</strong> #{DURATION/3600} Hours<br>
+    <strong>Stackable:</strong> No<br>
+    <br>
+    Increases you Units/s by <b>#{amount}x</b>, but makes <b>Time Warp</b> and <b>Overcharge</b> unavailable while active."
   end
 
   def get_price (public_key)

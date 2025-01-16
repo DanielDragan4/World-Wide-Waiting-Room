@@ -1,13 +1,13 @@
 import { createApp } from '/vue.js'
 
-import App from "/app/app.js?v=10"
-import Card from "/app/card.js?v=6"
-import Container from "/app/container.js?v=5"
-import Button from "/app/button.js?v=5"
-import Modal from "/app/modal.js?v=5"
-import FormatNumber from "/app/number.js?v=4"
+import App from "/app/app.js?v=20"
+import Card from "/app/card.js?v=8"
+import Container from "/app/container.js?v=7"
+import Button from "/app/button.js?v=8"
+import Modal from "/app/modal.js?v=9"
+import FormatNumber from "/app/number.js?v=6"
 
-const worker = new Worker("/worker.js") 
+const worker = new Worker("/worker.js?v=2") 
 let lastSync = null 
 let nextSync = null;
 

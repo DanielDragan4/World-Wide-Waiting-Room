@@ -1,6 +1,7 @@
 require "../powerup"
 require "json"
 require "./force_field.cr"
+require "./afflict_antimatter.cr"
 require "math"
 
 class PowerupParasite < Powerup
@@ -47,7 +48,7 @@ class PowerupParasite < Powerup
 
   def get_popup_info(public_key) : PopupInfo
     pi = PopupInfo.new
-    pi["Timer Left"] = (@game.get_timer_seconds_left public_key, KEY_DURATION)
+    pi["Timer Left"] = (@game.get_timer_time_left public_key, KEY_DURATION)
     pi["Parasite Stack"] = (get_active_parasite_stack public_key).to_s
     pi
   end
@@ -61,7 +62,7 @@ class PowerupParasite < Powerup
   end
 
   def get_description(public_key)
-    "Over the course of #{(DURATION / 60).to_i} minutes, steal units from players directly ahead and behind you. For players with less than 100x your units, steals 20% of their units. For players with 100x or more units, steals a smaller percentage decreasing as the difference in units is higher. The price increases with each purchase."
+    "<strong>Duration:</strong> #{DURATION/60} Minutes<br><strong>Stackable:</strong> No<br><br>While active, steal a portion of the Units from the player immediately in front of you and immediately behind you."
   end
 
   def get_price(public_key)
@@ -72,6 +73,9 @@ class PowerupParasite < Powerup
   end
 
   def is_available_for_purchase(public_key)
+    if((@game.has_powerup public_key, AfflictPowerupAntimatter.get_powerup_id) && !(@game.has_powerup public_key, PowerupForceField.get_powerup_id))
+      return false
+    end
     (((@game.get_player_time_units public_key) >= (get_price public_key)) && (cooldown_seconds_left public_key) <= 0) && !(@game.has_powerup(public_key, PowerupParasite.get_powerup_id))
   end
 

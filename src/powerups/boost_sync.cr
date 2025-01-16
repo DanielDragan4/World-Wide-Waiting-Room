@@ -20,7 +20,7 @@ class PowerupBoostSync < Powerup
   end
 
   def get_description(public_key)
-    "Temporarily reenables passive powerups for 10 seconds while Overcharge is active, allowing you to benefit from passive effects. Cost is based off of your current units, as well as 12 hours worth of units generated at the current rate"
+    "<strong>Duration:</strong> #{DURATION} Seconds<br><strong>Stackable:</strong> No<br><br>Re-enables <b>Passive</b> effects during <b>Overcharge</b>."
   end
 
   def is_stackable
@@ -47,7 +47,7 @@ class PowerupBoostSync < Powerup
     if !@game.get_key_value(public_key, KEY_DURATION).nil?
       durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
       if !durations.empty?
-        pi["Time Left"] = (force_big_int(durations[0][0]) - @game.ts).to_s
+        pi["Time Left"] = @game.format_time (force_big_int(durations[0][0]) - @game.ts)
       end
     end
 

@@ -2,16 +2,21 @@ export default {
   props: {
     title: String,
     noClose: Boolean,
+    extraClasses: String,
   },
   template: `
-  <div class="
+  <div 
+    :class="extraClasses" 
+    class="
+    shadow-xl
+    shadow-slate-600
     z-[1000] 
     bg-[#212126] 
     border 
     rounded 
     min-w-96 
-    h-max
-    lg:w-max
+    h-full
+    lg:w-[1200px]
     max-lg:w-11/12
     min-h-[300px] 
     max-h-[800px] 

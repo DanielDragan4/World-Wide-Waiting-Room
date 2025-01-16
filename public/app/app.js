@@ -35,6 +35,7 @@ export default {
       alterations: {},
       allPowerups: [],
       leaderboard: [],
+      powerupClassChosen: 'ACTIVE',
       discordLink: 'https://discord.gg/vQnnjhQGqu',
       history: [],
       timeLeft: 0,
@@ -81,6 +82,35 @@ export default {
         })
         .sort((a, b) => a.name > b.name ? 1 : -1)
     },
+
+
+    powerupsByCategory() {
+      if (this.powerupSearch) return this.powerups
+      return this.powerups.filter((x) => x.category === this.powerupClassChosen);
+    },
+
+    availablePowerups() {
+      return this.powerups
+        .filter((x) => x.is_available_for_purchase)
+    },
+
+    unavailablePowerups() {
+      return this.powerups
+        .filter((x) => !x.is_available_for_purchase)
+    },
+
+    availablePowerupsByCategory() {
+      if (this.powerupSearch) return this.availablePowerups
+
+      return this.availablePowerups.filter((x) => x.category === this.powerupClassChosen);
+    },
+
+    unavailablePowerupsByCategory() {
+      if (this.powerupSearch) return this.unavailablePowerups
+
+      return this.unavailablePowerups.filter((x) => x.category === this.powerupClassChosen);
+    },
+
 
     playerCanAlterUniverse() {
       return this.player.player_can_alter_universe;
@@ -164,8 +194,11 @@ export default {
   },
   template:`
     <modal title="What is this?" @close="showWhatIsThis=false" v-show="showWhatIsThis">
-      Welcome to Idle Cosmos! An online competitive idle game. Be the person with the most "Units" by the end of the timer to win.
-      Use powerups to increase you Unit generation, sabotage other players, and protect yourself.
+      Welcome to <strong>Idle Cosmos</strong>! A multi-player competitive online idle game. 
+      <br/><br/>
+      By the end of the in-game timer be the player online with the most "Units" to win. Use powerups to increase your unit production, sabotage other players' unit production, and protect yourself. The game is played in cycles. At the end of each cycle all progress is reset and the game starts anew.
+      <br/><br/>
+      The winner of each cycle is given the power to incrementally change one of the foundational mechanics of the game. This changes the game permanently for everyone in future cycles.      
       <br><br>
       Head over to our <a class="font-bold hover:underline" target="_blank" :href="discordLink">Discord</a> if you have any questions or concerns about the game.
       <br><br>
@@ -290,30 +323,94 @@ export default {
               </container>
           </container>
 
-          <container v-if="sideContentToShow === 'powerups'" class="flex flex-col items-center justify-between space-y-2 max-h-[600px] overflow-y-auto">
+          <modal @close="sideContentToShow=null" v-if="sideContentToShow === 'powerups'" class="max-lg:hidden overflow-y-hidden" title="Powerups">
+            <div class="flex flex-row space-x-1 text-center justify-center mb-2">
+              <format-number class="font-bold text-center" :number="player.time_units"/> 
+              <span>Units available for purchasing.</span>
+            </div>
+            <div class="flex flex-row space-x-1 text-center justify-center mb-2">
+              <format-number class="font-bold text-center" :number="player.time_units_per_second"/> 
+              <span>Units/s</span>
+            </div>
+            <div class="flex flex-col space-y-4"> 
+              <input 
+                type="search" 
+                placeholder="Search"
+                class="w-full rounded p-2 text-md text-center bg-[#323237] z-10" 
+                v-model="powerupSearch"
+              >
+              <div class="flex flex-row items-center justify-center space-x-2" v-show="!powerupSearch">
+                <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'ACTIVE' }" @click="powerupClassChosen = 'ACTIVE'">ACTIVE</cbutton>
+                <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'PASSIVE' }" @click="powerupClassChosen = 'PASSIVE'">PASSIVE</cbutton>
+                <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'SABOTAGE' }" @click="powerupClassChosen = 'SABOTAGE'">SABOTAGE</cbutton>
+                <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'DEFENSIVE' }" @click="powerupClassChosen = 'DEFENSIVE'">DEFENSIVE</cbutton>
+              </div>
+
+              <div class="overflow-y-auto max-h-[550px]">
+                <div class="grid grid-cols-3 gap-2">
+                  <container 
+                    v-for="powerup in powerupsByCategory"
+                    class="w-full flex flex-col items-center justify-between space-y-1"
+                  >
+                    <div class="flex flex-col text-center space-y-2 items-center">
+                      <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
+                      <h2 class="text-xs">{{ powerup.category }}</h2>
+                      <format-number class="font-bold text-xs" :number="powerup.price" />
+                    </div>
+                    <div class="my-2 text-center" v-html="powerup.description"></div>
+                    <cbutton @click="buy(powerup.id)" extraClasses="w-full" v-if="powerup.is_available_for_purchase">Buy</cbutton>
+                    <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
+                      <span>Next purchase</span>
+                      <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
+                    </div>
+                    <div v-else>Unavailable</div>
+                  </container>
+                </div>
+              </div>
+            </div>
+          </modal>
+
+          <container v-if="sideContentToShow === 'powerups'" class="flex flex-col items-center justify-between space-y-4 max-h-[600px] lg:hidden overflow-y-auto">
             <h1 class="font-bold text-center">Powerups</h1>
+            <div class="flex flex-row space-x-1 text-center justify-center mb-2">
+              <format-number class="font-bold text-center" :number="player.time_units"/> 
+              <span>Units available for purchasing.</span>
+            </div>
+            <div class="flex flex-row space-x-1 text-center justify-center mb-2">
+              <format-number class="font-bold text-center" :number="player.time_units_per_second"/> 
+              <span>Units/s</span>
+            </div>
             <input 
               type="search" 
               placeholder="Search"
               class="w-full rounded p-2 text-md text-center bg-[#323237] z-10" 
               v-model="powerupSearch"
             >
-            <container 
-              v-for="powerup in powerups"
-              class="w-full flex flex-col items-center space-y-1"
-            >
-              <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
-              <h2 class="text-xs">{{ powerup.category }}</h2>
-              <format-number class="font-bold text-xs" :number="powerup.price" />
-              <div class="my-2 text-center" v-html="powerup.description"></div>
-              <cbutton @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
-              <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
-                <span>Next purchase</span>
-                <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
-              </div>
-              <div v-else-if="powerup.currently_owns">Purchased</div>
-              <div v-else>Unavailable</div>
-            </container>
+
+            <div class="flex flex-row items-center justify-center space-x-2" v-show="!powerupSearch">
+              <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'ACTIVE' }" @click="powerupClassChosen = 'ACTIVE'">ACTIVE</cbutton>
+              <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'PASSIVE' }" @click="powerupClassChosen = 'PASSIVE'">PASSIVE</cbutton>
+              <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'SABOTAGE' }" @click="powerupClassChosen = 'SABOTAGE'">SABOTAGE</cbutton>
+              <cbutton :extraClasses="{ 'bg-white text-black': powerupClassChosen === 'DEFENSIVE' }" @click="powerupClassChosen = 'DEFENSIVE'">DEFENSIVE</cbutton>
+            </div>
+
+            <div class="w-full flex flex-col space-y-1">
+              <container 
+                v-for="powerup in powerupsByCategory"
+                class="w-full flex flex-col items-center "
+              >
+                <h1 class="text-xl font-bold">{{ powerup.name }}</h1>
+                <h2 class="text-xs">{{ powerup.category }}</h2>
+                <format-number class="font-bold text-xs" :number="powerup.price" />
+                <div class="my-2 text-center" v-html="powerup.description"></div>
+                <cbutton v-if="powerup.is_available_for_purchase" extraClasses="w-full" @click="buy(powerup.id)" v-if="powerup.is_available_for_purchase">Buy</cbutton>
+                <div v-else-if="powerup.cooldown_seconds_left > 0" class="flex flex-col text-center">
+                  <span>Next purchase</span>
+                  <strong>{{ formatTimeString(powerup.cooldown_seconds_left) }}</strong>
+                </div>
+                <div v-else>Unavailable</div>
+              </container>
+            </div>
           </container>
         </div>
       </div>

@@ -37,7 +37,7 @@ class PowerupCompoundInterest < Powerup
 
     pi = PopupInfo.new
     if durations.any?
-      time_left = (BigFloat.new(durations[0][0]) - @game.ts).to_s
+      time_left = @game.format_time (BigFloat.new(durations[0][0]) - @game.ts)
       pi["Time Left"] = time_left
     else
       pi["Time Left"] = "No active boosts"
@@ -57,13 +57,11 @@ class PowerupCompoundInterest < Powerup
     next_milestone = BigFloat.new(get_next_milestone(public_key))
     boost_count = get_stored_boost_count(public_key)
     boost_multiplier = (new_multiplier(public_key) * 100).round
-    if !is_purchased(public_key)
-    "Earn a temporary #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.<br>"
-    else
-    "Earn a temporary #{boost_multiplier}% production boost for each new milestone reached (one-time use). Next milestone: #{format_milestone(next_milestone)} units.<br>
-    Stored boosts: #{boost_count}<br>
-    (Purchase again to use stored boosts)"
-    end
+    "
+    <strong>Unused Milestone:</strong> #{boost_count}<br>
+    <strong>Next Milestone:</strong> #{format_milestone(next_milestone)} Units<br>
+    <br>
+    Increases your Units/s by <b>#{boost_multiplier}%</b> with every purchase for each unused <b>milestone</b> for 10 minutes. Purchasing this powerup consumes all unused milestones."
   end
 
   def is_stackable

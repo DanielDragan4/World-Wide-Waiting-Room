@@ -26,7 +26,7 @@ class PowerupTimeWarp < Powerup
     "Time Warp"
   end
 
-  def is_stackable  
+  def is_stackable
     true
   end
 
@@ -34,16 +34,23 @@ class PowerupTimeWarp < Powerup
     durations = Array(Array(String)).from_json(@game.get_key_value public_key, KEY_DURATION)
 
     pi = PopupInfo.new
-    pi["Time Left"] = (BigFloat.new(durations[0][0]) - @game.ts).to_s
+    pi["Time Left"] = @game.format_time (BigFloat.new(durations[0][0]) - @game.ts)
     pi["Units/s Boost"] = "#{(get_unit_boost(public_key)).round(2)}x"
     pi["Time Warp Stack"] = (@game.get_key_value_as_float public_key, ACTIVE_STACK_KEY).to_s
     pi
   end
 
   def get_description(public_key)
+    multi = new_multiplier(public_key)
+    unit_rate =  BigFloat.new(@game.get_player_time_units_ps(public_key))
+    amount = (multi * unit_rate).round(2)
 
-    amount = ((get_unit_boost(public_key)) * new_multiplier(public_key)).round(2)
-    "Multiplies unit production by #{amount}x for the next 10 minutes. Price increases exponentially. Active Time Warps are stackable, with each additional purchase increasing the base price exponentially. Each active Time Warp amplifies this exponential rate, making growth even faster until the active Time Warp expires."
+    "
+      <strong>Duration:</strong> #{DURATION/60} minutes<br>
+      <strong>Stackable:</strong> Yes<br>
+      <strong>Next Multiple:</strong> #{multi.round(2)}x<br>
+      <br>
+      Boosts Units/s by some multiple. The multiple <b>increases with each purchase</b>."
   end
 
   def get_price (public_key)

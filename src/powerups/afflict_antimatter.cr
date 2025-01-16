@@ -5,16 +5,16 @@ require "./unit_multiplier"
 require "./compound_interest.cr"
 require "./force_field.cr"
 
-class AfflictPowerupBreach < Powerup
-  COOLDOWN = BigFloat.new 60 * 10
+class AfflictPowerupAntimatter < Powerup
+  COOLDOWN = BigFloat.new 60 * 20
   COOLDOWN_KEY = "afflict_breach_cooldown"
 
   def self.get_powerup_id
-    "afflict_breach"
+    "afflict_antimatter"
   end
 
   def get_name
-    "Breach"
+    "Antimatter"
   end
 
   def get_popup_info (public_key)
@@ -25,7 +25,7 @@ class AfflictPowerupBreach < Powerup
   end
 
   def player_card_powerup_icon (public_key)
-    "/breach.png"
+    "/antimatter.png"
   end
 
   def is_afflication_powerup (public_key)
@@ -33,7 +33,7 @@ class AfflictPowerupBreach < Powerup
   end
 
   def get_inflicter (public_key)
-    powerup_id = AfflictPowerupBreach.get_powerup_id
+    powerup_id = AfflictPowerupAntimatter.get_powerup_id
     inflicter_id = @game.get_key_value public_key, "#{powerup_id}_afflicted_by"
     if inflicter_id
       @game.get_player_name inflicter_id
@@ -55,11 +55,7 @@ class AfflictPowerupBreach < Powerup
   end
 
   def buy_action (public_key)
-    if @game.has_powerup public_key, PowerupForceField.get_powerup_id
-      return
-    end
-
-    @game.add_powerup public_key, AfflictPowerupBreach.get_powerup_id
+    @game.add_powerup public_key, AfflictPowerupAntimatter.get_powerup_id
     @game.set_timer public_key, COOLDOWN_KEY, (get_cooldown_time(public_key)).to_i64
   end
 
@@ -68,6 +64,6 @@ class AfflictPowerupBreach < Powerup
   end
 
   def cleanup (public_key)
-    @game.remove_powerup_if_timer_expired public_key, COOLDOWN_KEY, AfflictPowerupBreach.get_powerup_id
+    @game.remove_powerup_if_timer_expired public_key, COOLDOWN_KEY, AfflictPowerupAntimatter.get_powerup_id
   end
 end

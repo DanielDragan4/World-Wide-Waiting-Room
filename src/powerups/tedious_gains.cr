@@ -20,10 +20,12 @@ class PowerupTediousGains < Powerup
   end
 
   def get_description (public_key)
-    unit_boost = get_unit_boost(public_key, BigFloat.new 1.0) - 1
-    "Increases gains from Territorial Expanse by #{(unit_boost*100).round()}% your next purchase. Purchasing resets Territorial Expanses owned to 0.
-    <br>Number of Territorial Expanses Needed: #{get_required_multi_price(public_key)}
-    <br>Number of Von Neumann Probes: #{get_stack_size(public_key)}"
+    "
+    <strong>Territorial Expanses Requirement:</strong> #{get_required_multi_price(public_key)}<br>
+    <strong>Owned:</strong> #{get_stack_size(public_key)}<br>
+    <strong>Stackable:</strong> Yes<br>
+    <br/>
+    Resets <b>Territorial Expanse</b> to <b>zero</b>, but boosts its power. A certain number of <b>Territorial Expanse</b> purchases are required before a new <b>Von Neumann Probe</b> can be purchased."
   end
 
   def is_stackable
@@ -52,8 +54,8 @@ class PowerupTediousGains < Powerup
   end
 
   def get_unit_boost(public_key : String, base_amount : BigFloat) : BigFloat
-    stack_size = get_stack_size(public_key)
-    if stack_size == 0
+    stack_size = get_stack_size(public_key) +1
+    if stack_size == 1
       return base_amount
     end
     base_multi = (1 + BASE_AMOUNT) ** stack_size
@@ -61,6 +63,20 @@ class PowerupTediousGains < Powerup
     unit_boost = base_amount * base_multi
 
     BigFloat.new unit_boost
+  end
+
+  def get_unit_boost_desc(public_key : String, base_amount : BigFloat) : BigFloat
+    stack_size = get_stack_size(public_key)
+    if stack_size == 0
+      return BASE_AMOUNT
+    end
+    stack_size = stack_size + 1
+    base_multi = (1 + BASE_AMOUNT) ** stack_size
+    next_multi = (1 + BASE_AMOUNT) ** (stack_size + 1)
+    next_multi = BigFloat.new next_multi
+    base_multi = BigFloat.new base_multi
+
+    next_multi - base_multi
   end
 
   def is_available_for_purchase(public_key)
