@@ -9,10 +9,14 @@ require "./compound_interest"
 class PowerupOverCharge < Powerup
   STACK_KEY = "overcharge_stack"
   ACTIVE_STACK_KEY = "overcharge_active_stack"
+  MAX_ACTIVE_STACK_KEY = "overcharge_max_a_s"
   BASE_PRICE = BigFloat.new 25.0
   UNIT_MULTIPLIER = BigFloat.new 5.0
   DURATION = 60
   KEY_DURATION = "overcharge_duration"
+  COOLDOWN_DURATION = 60 * 5
+  COOLDOWN_REDUCTION = 60 * 2
+  COOLDOWN_KEY = "overcharge_cooldown"
 
   def self.get_powerup_id
     "overcharge"
@@ -48,11 +52,19 @@ class PowerupOverCharge < Powerup
   def get_description(public_key)
       multi = new_multiplier(public_key)
       projected = get_projected_ups(public_key)
+      max_stack = get_max_active_stack(public_key)
+      cooldown = calculate_cooldown(max_stack).to_i
       "
       <strong>Duration:</strong> #{DURATION/60} minutes<br>
+      <strong>Cooldown:</strong> #{(cooldown/60)} minutes<br>
       <strong>Stackable:</strong> Yes<br>
       <br>
-      Boosts your Units/s by #{multi.round(2)}x, but disables <b>Passive</b> effects while active."
+      Boosts your Units/s by #{multi.round(2)}x, but disables <b>Passive</b> effects while active.
+      <br>Larger stack reduces <b>Cooldown</b>."
+  end
+
+  def cooldown_seconds_left(public_key)
+    @game.get_timer_seconds_left public_key, COOLDOWN_KEY
   end
 
   def get_projected_ups(public_key)
@@ -99,8 +111,9 @@ end
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
     is_active = !(@game.has_powerup public_key, PowerupRelativisticShift.get_powerup_id)
+    cooldown_expired = @game.is_timer_expired public_key, COOLDOWN_KEY
 
-    return (((@game.get_player_time_units public_key) >= price) && is_active)
+    return (((@game.get_player_time_units public_key) >= price) && is_active && cooldown_expired)
   end
 
   def max_stack_size (public_key)
@@ -127,6 +140,15 @@ end
       end
     end
     boost_units.round 2
+  end
+
+  def calculate_cooldown(max_stack) 
+   reduction = max_stack > 1 ? (max_stack - 1) * COOLDOWN_REDUCTION : 0
+   [COOLDOWN_DURATION - reduction, 0].max
+  end 
+
+  def get_max_active_stack(public_key)
+    @game.get_key_value_as_int(public_key, MAX_ACTIVE_STACK_KEY, BigInt.new 0)
   end
 
   def buy_action (public_key)
@@ -161,8 +183,14 @@ end
         if !active_stack.nil?
             new_active_stack = active_stack + 1
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, new_active_stack.to_s)
+
+            current_max = get_max_active_stack(public_key)
+            if(new_active_stack > current_max)
+              @game.set_key_value(public_key, MAX_ACTIVE_STACK_KEY, new_active_stack.to_s)
+            end
         else
             @game.set_key_value(public_key, ACTIVE_STACK_KEY, "1")
+            @game.set_key_value(public_key, MAX_ACTIVE_STACK_KEY, "1")
         end
 
       else
@@ -205,6 +233,11 @@ end
 
             if(durations.size == 0)
                 @game.remove_powerup public_key, PowerupOverCharge.get_powerup_id
+                max_stack = get_max_active_stack(public_key)
+                cooldown = calculate_cooldown(max_stack).to_i
+                @game.set_timer(public_key, COOLDOWN_KEY, cooldown)
+
+                @game.set_key_value(public_key, MAX_ACTIVE_STACK_KEY, "0")
             end
             @game.set_key_value public_key, ACTIVE_STACK_KEY, (active_stack -1).to_s
         else
