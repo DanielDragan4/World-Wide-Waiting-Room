@@ -26,7 +26,7 @@ class PowerupTediousGains < Powerup
     <strong>Owned:</strong> #{get_stack_size(public_key)}<br>
     <strong>Stackable:</strong> Yes<br>
     <br/>
-    Resets <b>Territorial Expanse</b> to <b>zero</b>, but boosts its power. A certain number of <b>Territorial Expanse</b> purchases are required before a new <b>Von Neumann Probe</b> can be purchased."
+    Resets <b>Territorial Expanse</b> to <b>zero</b>, but boosts its power. A certain number of <b>Territorial Expanse</b> purchases are required before a new <b>Von Neumann Probe</b> can be purchased. If you have enough units, you are able to purchase, without additional Terretorial Expanses'."
   end
 
   def is_stackable
