@@ -26,7 +26,7 @@ class PowerupGravitationalWave < Powerup
     <strong>Duration:</strong> #{(COOLDOWN_DURATION/3600).round()} Hours<br>
     <strong>Stackable:</strong> Yes<br>
     <br>
-    Increase Relatavistic Shifts boost exponentially, but disable the use of Wormhole for 1.5 days. Only purchasable every 1.5 days."
+    Increase Relatavistic Shift's boost exponentially, but disables the use of Wormhole for 1.5 days. Only purchasable every 1.5 days."
   end
 
   def get_price (public_key)
