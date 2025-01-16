@@ -57,7 +57,7 @@ class PowerupBoostSync < Powerup
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
 
-    (@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) &&  ((@game.get_player_time_units public_key) >= price))
+    (@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) && ((@game.get_player_time_units public_key) >= price) && !(@game.has_powerup(public_key, PowerupBoostSync.get_powerup_id)))
   end
 
   # Method to calculate to overall unit generation boost from passives
