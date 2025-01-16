@@ -59,7 +59,7 @@ class PowerupSchrodinger < Powerup
   def get_multi(public_key)
     prob = get_bet_prob(public_key)
     
-    multi = ((1/prob)*(1-HOUSE_EDGE)) - 1
+    multi = ((1/prob)*(1-HOUSE_EDGE))
     if multi < 0
       multi = 0
     end
