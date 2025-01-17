@@ -5,7 +5,7 @@ require "json"
 class PowerupGravitationalWave < Powerup
   STACK_KEY = "gravitational_wave_stack"
   BASE_PRICE = BigFloat.new 0.0
-  COOLDOWN_DURATION = 3#6 * 60 * 60
+  COOLDOWN_DURATION = 36 * 60 * 60
   GRAVITATIONAL_WAVE_COOLDOWN_KEY = "gravitational_wave_cooldown"
   EXPONENT = 2
 
