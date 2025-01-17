@@ -20,8 +20,12 @@ class PowerupUnitVault < Powerup
     compound_interest_boost = get_compound_interest_boost(public_key)
     fremen_boost = get_fremen_boost(public_key)
     auto_boost = get_auto_upgrade_boost(public_key)
+    
+    grav_wave = @game.get_powerup_classes[PowerupGravitationalWave.get_powerup_id].as PowerupGravitationalWave
+    grav_wave_boost = grav_wave.get_player_stack_size(public_key)
 
-    base_generation = BASE_GENERATION
+    base_generation = BASE_GENERATION + (0.1 * grav_wave_boost.to_i)
+    puts "================================================> base: #{base_generation}"
     total_multiplier = base_generation * unit_multiplier * compound_interest_boost * fremen_boost * auto_boost
 
     total_multiplier
@@ -79,7 +83,11 @@ class PowerupUnitVault < Powerup
     vault_units = get_vaulted_units(public_key)
     time_remaining = get_time_remaining(public_key)
 
-    description = "<strong>Duration:</strong> #{VAULT_DURATION/3600} Hour<br><strong>Stackable:</strong> No<br><br> Temporarily store <b>half</b> of your units in a vault. These units are immune to all effects."
+    description = "<strong>Duration:</strong> #{VAULT_DURATION/3600} Hour<br>
+    <strong>Stackable:</strong> No<br>
+    <strong>Internal Rate: </strong>#{@game.format_units((calculate_vault_generation_multiplier(public_key)).round(2))} Units/s<br>
+    <br> Temporarily store <b>half</b> of your units in a vault at a reduced production rate.
+    <br>These units are immune to all effects and are automatically returned when the timer expires."
 
     if vault_units > 0
       description += "<br><strong>Vaulted:</strong> #{(@game.format_units vault_units.round(2))}"

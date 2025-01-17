@@ -5,7 +5,7 @@ require "json"
 class PowerupGravitationalWave < Powerup
   STACK_KEY = "gravitational_wave_stack"
   BASE_PRICE = BigFloat.new 0.0
-  COOLDOWN_DURATION = 36 * 60 * 60
+  COOLDOWN_DURATION = 3#6 * 60 * 60
   GRAVITATIONAL_WAVE_COOLDOWN_KEY = "gravitational_wave_cooldown"
   EXPONENT = 2
 
@@ -26,7 +26,7 @@ class PowerupGravitationalWave < Powerup
     <strong>Duration:</strong> #{(COOLDOWN_DURATION/3600).round()} Hours<br>
     <strong>Stackable:</strong> Yes<br>
     <br>
-    Increase Relatavistic Shift's boost exponentially, but disables the use of Wormhole for 1.5 days. Only purchasable every 1.5 days."
+    Increase Relatavistic Shift's boost exponentially and unit production in Unit Vault, but disables the use of Wormhole for 1.5 days. Only purchasable every 1.5 days."
   end
 
   def get_price (public_key)
