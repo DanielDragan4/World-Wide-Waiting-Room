@@ -25,7 +25,6 @@ class PowerupUnitVault < Powerup
     grav_wave_boost = grav_wave.get_player_stack_size(public_key)
 
     base_generation = BASE_GENERATION + (0.1 * grav_wave_boost.to_i)
-    puts "================================================> base: #{base_generation}"
     total_multiplier = base_generation * unit_multiplier * compound_interest_boost * fremen_boost * auto_boost
 
     total_multiplier
