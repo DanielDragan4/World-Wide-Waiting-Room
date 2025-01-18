@@ -1099,9 +1099,9 @@ class Game
   end
 
   def save_game_winner(players)
-    winner = players.last
+    winner = players.last?
 
-    if winner.empty?
+    if !winner
       return
     end
 
