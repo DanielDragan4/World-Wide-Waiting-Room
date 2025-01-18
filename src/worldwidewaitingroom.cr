@@ -312,12 +312,12 @@ class Game
   def get_alteration_options
     {
       Keys::ALTERATION_GAME_DURATION => { "name" => "Cycle Length", "text" => "Alter cycle duration by", "unit" => "days", "increment" => 1, "min" => -6, "max" => 7, "current_value" => @alterations.game_duration },
-      Keys::ALTERATION_BASE_RATE => { "name" => "Base Unit/s Rate", "text" => "Alter base units per second by", "unit" => "units", "increment" => 0.1, "min" => 0.1, "max" => 1_000_000, "current_value" => @alterations.base_units_per_second },
-      Keys::ALTERATION_ACHIEVEMENT_GOAL => { "name" => "Achievement Goals", "text" => "Alter achievement goals by", "unit" => "%", "increment" => 1, "min" => -50, "max" => 50, "current_value" => @alterations.achievement_goal },
-      Keys::ALTERATION_PASSIVE_PRICE => { "name" => "Passive Powerup Prices", "text" => "Alter PASSIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.passive_price },
-      Keys::ALTERATION_ACTIVE_PRICE => { "name" => "Active Powerup Prices", "text" => "Alter ACTIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.active_price},
-      Keys::ALTERATION_DEFENSIVE_PRICE => { "name" => "Defensive Powerup Prices", "text" => "Alter DEFENSIVE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.defensive_price },
-      Keys::ALTERATION_SABOTAGE_PRICE => { "name" => "Sabotage Powerup Prices", "text" => "Alter SABOTAGE powerup price by", "unit" => "%", "min" => -10, "max" => 10, "increment" => 1, "current_value" => @alterations.sabotage_price },
+      Keys::ALTERATION_BASE_RATE => { "name" => "Base Unit/s Rate", "text" => "Alter base units per second by", "unit" => "units", "increment" => 100, "min" => 1, "max" => 1_000_000, "current_value" => @alterations.base_units_per_second },
+      Keys::ALTERATION_ACHIEVEMENT_GOAL => { "name" => "Achievement Goals", "text" => "Alter achievement goals by", "unit" => "%", "increment" => 10, "min" => -50, "max" => 50, "current_value" => @alterations.achievement_goal },
+      Keys::ALTERATION_PASSIVE_PRICE => { "name" => "Passive Powerup Prices", "text" => "Alter PASSIVE powerup price by", "unit" => "%", "min" => -50, "max" => 50, "increment" => 10, "current_value" => @alterations.passive_price },
+      Keys::ALTERATION_ACTIVE_PRICE => { "name" => "Active Powerup Prices", "text" => "Alter ACTIVE powerup price by", "unit" => "%", "min" => -50, "max" => 50, "increment" => 10, "current_value" => @alterations.active_price},
+      Keys::ALTERATION_DEFENSIVE_PRICE => { "name" => "Defensive Powerup Prices", "text" => "Alter DEFENSIVE powerup price by", "unit" => "%", "min" => -50, "max" => 50, "increment" => 10, "current_value" => @alterations.defensive_price },
+      Keys::ALTERATION_SABOTAGE_PRICE => { "name" => "Sabotage Powerup Prices", "text" => "Alter SABOTAGE powerup price by", "unit" => "%", "min" => -50, "max" => 50, "increment" => 10, "current_value" => @alterations.sabotage_price },
     }
   end
 
@@ -853,6 +853,23 @@ class Game
     @animation_queue.clear
   end
 
+  def broadcast_game_end
+    event = { "event" => "game_end", "leaderboard" => get_leaderboard }.to_json
+
+    WWWR::Channels.each do |c|
+      spawn do
+        channel = c[1]
+        public_key = c[2]
+
+        next if channel.closed?
+        begin
+          channel.send event
+        rescue
+        end
+      end
+    end
+  end
+
   def broadcast_online (public_key : String)
     add_to_leaderboard public_key
     puts "Broadcase online from #{public_key}"
@@ -1040,6 +1057,8 @@ class Game
   def reset_game
     active_players = get_raw_leaderboard
     save_game_winner(active_players)
+
+    broadcast_game_end
 
     players = get_all_players
 
