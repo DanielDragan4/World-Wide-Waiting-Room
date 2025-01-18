@@ -6,8 +6,8 @@ class PowerupAmishLife < Powerup
   STACK_KEY = "amish_life_stack"
   ACTIVE_STACK_KEY = "amish_active_stack"
   BASE_PRICE = BigFloat.new 1.0
-  UNIT_MULTIPLIER = BigFloat.new 2.0
-  DURATION = 60 * 60 * 8
+  UNIT_MULTIPLIER = BigFloat.new 1.5
+  DURATION = 60 * 60 * 3
   KEY_DURATION = "amish_life_duration"
   DEBUFF_RATE = BigFloat.new 0.1
 
@@ -53,14 +53,14 @@ class PowerupAmishLife < Powerup
       return "
               <strong>Status:</strong> #{enabled}<br>
               <br>
-              Increases your Units/s by some multiple every <b>eight hours</b> that it is active. While active, your Units/s will be cut by <b>90%</b>. The <b>multiplier doubles<b> with every subsequent eight hours. Purchasing this powerup while active removes the effect..
+              Increases your Units/s by some multiple every <b>3 hours</b> that it is active. While active, your Units/s will be cut by <b>90%</b>. The <b>multiplier 1.5x<b> with every subsequent three hours. Purchasing this powerup while active removes the effect..
 "
 
     else
       return "
     <strong>Status:</strong> #{enabled}<br>
     <strong>Timer:</strong> #{time}<br>
-    Increases your Units/s by some multiple every eight hours that it is active. While active, your Units/s will be cut by 90%. The multiplier doubles with every subsequent eight hours. Purchasing this powerup while active removes the effect..
+    Increases your Units/s by some multiple every three hours that it is active. While active, your Units/s will be cut by 90%. The multiplier 1.5x with every subsequent three hours. Purchasing this powerup while active removes the effect..
 "
     end
   end

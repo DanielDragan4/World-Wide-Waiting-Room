@@ -5,7 +5,7 @@ class PowerupCompoundInterest < Powerup
   KEY = "compound_interest_purchased"
   BOOST_COUNT_KEY = "compound_interest_boost_count"
   USED_MILESTONES_KEY = "compound_interest_used_milestones"
-  BOOST_MULTIPLIER = BigFloat.new 0.1
+  BOOST_MULTIPLIER = BigFloat.new 0.5
   BOOST_DURATION = 600
   KEY_DURATION = "compound_interest_durations"
   INITIAL_MILESTONE = BigFloat.new 1000.0

@@ -5,12 +5,12 @@ require "./afflict_antimatter.cr"
 require "math"
 
 class PowerupParasite < Powerup
-  BASE_PRICE = BigFloat.new 10_000
+  BASE_PRICE = BigFloat.new 50_000
   NEXT_TAKE_COOLDOWN = 1
   DURATION = 60 * 10
 
   BASE_STEAL_RATE = BigFloat.new 0.2
-  PRICE_MULTIPLIER = BigFloat.new 1.3
+  PRICE_MULTIPLIER = BigFloat.new 6
 
   KEY_DURATION = "parasite_duration"
   KEY_NEXT_TAKE_COOLDOWN = "parasite_next_take"
@@ -46,6 +46,15 @@ class PowerupParasite < Powerup
     "parasite"
   end
 
+  def factorial(stack_size) : BigFloat
+    result = BigFloat.new(1.0)
+  
+    (1..stack_size).each do |i|
+      result *= i
+    end
+    return BigFloat.new result  
+  end
+
   def get_popup_info(public_key) : PopupInfo
     pi = PopupInfo.new
     pi["Timer Left"] = (@game.get_timer_time_left public_key, KEY_DURATION)
@@ -66,8 +75,9 @@ class PowerupParasite < Powerup
   end
 
   def get_price(public_key)
-    stack_size = @game.get_powerup_stack public_key, PowerupParasite.get_powerup_id
-    price = stack_size > 0 ? BASE_PRICE * (PRICE_MULTIPLIER * stack_size) : BASE_PRICE
+    stack_size = (@game.get_powerup_stack public_key, PowerupParasite.get_powerup_id) + 1
+    stack_factorial = factorial(stack_size)
+    price = stack_size > 0 ? BASE_PRICE * stack_factorial : BASE_PRICE
     alterations = @game.get_cached_alterations
     @game.increase_number_by_percentage price, BigFloat.new alterations.sabotage_price
   end

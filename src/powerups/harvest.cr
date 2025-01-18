@@ -4,6 +4,7 @@ require "./unit_multiplier"
 require "./compound_interest"
 require "./overcharge"
 require "./timewarp"
+require "./gravitational_wave"
 
 class PowerupHarvest < Powerup
   STACK_KEY = "harvest_stack"
@@ -11,7 +12,7 @@ class PowerupHarvest < Powerup
   DURATION_KEY = "harvest_duration"
   BASE_PRICE = BigFloat.new 500.0
   HARVEST_TIME = 3600
-  COOLDOWN_DURATION = 60 * 60 * 6
+  COOLDOWN_DURATION = 60 * 60 * 8
   COOLDOWN_KEY = "harvest cooldown"
 
   def category
@@ -34,7 +35,7 @@ class PowerupHarvest < Powerup
     units = ((@game.get_player_frame_ups public_key) * HARVEST_TIME).round(0)
     "<strong>Unit Gain:</strong> #{(@game.format_units units.round(2))}<br>
     <br>
-    Immediately collect the next <b>hour's worth of units</b> based on <b>current Units/s</b>, but your Units/s drops to <b>0 for that hour</b>. Wormhole can be used once ever <b>six hours</b>."
+    Immediately collect the next <b>hour's worth of units</b> based on <b>current Units/s</b>, but your Units/s drops to <b>0 for that hour</b>. Wormhole can be used once ever <b>eight hours</b>."
   end
 
   def cooldown_seconds_left(public_key)
@@ -60,11 +61,12 @@ class PowerupHarvest < Powerup
 
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
+    g_w_timer = @game.is_timer_expired public_key, PowerupGravitationalWave::GRAVITATIONAL_WAVE_COOLDOWN_KEY
 
     timer_expired = @game.is_timer_expired public_key, DURATION_KEY
     cooldown_expired = @game.is_timer_expired public_key, COOLDOWN_KEY
 
-    return ((@game.get_player_time_units public_key) >= price) && timer_expired && cooldown_expired
+    return ((@game.get_player_time_units public_key) >= price) && timer_expired && cooldown_expired && g_w_timer
   end
 
   def max_stack_size (public_key)

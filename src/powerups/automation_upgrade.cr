@@ -109,29 +109,34 @@ class PowerupAutomationUpgrade < Powerup
     end
   end
 
+  def get_auto_boost(public_key)
+    actives_at_purchase = get_actives_at_purchase(public_key)
+    current_actives = @game.get_actives(public_key)
+
+    # Calculate number of actives purchased since automation upgrade
+    actives_since_purchase = [current_actives - actives_at_purchase, 0].max
+
+    multiplier = (new_multiplier(public_key) * 100).round / 100
+
+    1 + (actives_since_purchase * multiplier)
+  end
+
   def action(public_key, dt)
     if public_key && is_purchased(public_key)
-      actives_at_purchase = get_actives_at_purchase(public_key)
-      current_actives = @game.get_actives(public_key)
-
-      # Calculate number of actives purchased since automation upgrade
-      actives_since_purchase = [current_actives - actives_at_purchase, 0].max
-
       # Only apply the bonus if neither harvest nor overcharge is active
       if !(@game.has_powerup(public_key, PowerupHarvest.get_powerup_id) || @game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) || @game.has_powerup public_key, AfflictPowerupBreach.get_powerup_id)
-        multiplier = (new_multiplier(public_key) * 100).round / 100
+       
         current_units_ps = @game.get_player_time_units_ps(public_key)
 
         # Apply bonus based on total actives since purchase
-        bonus = 1 + (actives_since_purchase * multiplier)
+        bonus = get_auto_boost(public_key)
         increased_rate = current_units_ps * bonus - current_units_ps
 
         @game.inc_time_units_ps(public_key, increased_rate)
       end
-
+      current_actives = @game.get_actives(public_key)
       # Update processed actives to current state
       @game.set_key_value(public_key, PROCESSED_ACTIVES_KEY, current_actives.to_s)
     end
   end
-
 end

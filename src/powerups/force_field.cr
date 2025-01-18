@@ -34,7 +34,7 @@ class PowerupForceField < Powerup
   end
 
   def get_description (public_key)
-    "<strong>Duration:</strong> #{(get_cooldown_time(public_key)/3600).round} Hour(s)<br><strong>Stackable:</strong> No<br><br>Temporarily makes you immune to all <b>Sabotage</b> effects (current and future)."
+    "<strong>Duration:</strong> #{(get_cooldown_time(public_key)/3600).round(2)} Hour(s)<br><strong>Stackable:</strong> No<br><br>Temporarily makes you immune to all <b>Sabotage</b> effects (current and future)."
   end
 
   def get_cooldown_time(public_key)
@@ -45,10 +45,7 @@ class PowerupForceField < Powerup
   end
 
   def get_next_use_cooldown (public_key)
-    multi = (get_synergy_boosted_multiplier public_key, BigFloat.new 1.0) -1
-    reduced_multi = multi/10
-
-    NEXT_USE_COOLDOWN * (1 + reduced_multi)
+    get_cooldown_time(public_key) + 7200
   end
 
   def get_price (public_key)

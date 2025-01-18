@@ -3,7 +3,7 @@ require "./cosmic_breakthrough"
 
 class PowerupBoostSync < Powerup
   BASE_PRICE = BigFloat.new 43200.0
-  DURATION = 10
+  DURATION = 15
   KEY_DURATION = "boost_sync_duration"
   KEY_PASSIVE_BOOSTS = "boost_sync_passive_boosts"
 
@@ -28,10 +28,10 @@ class PowerupBoostSync < Powerup
   end
 
   def get_price(public_key)
-    units_ps = BigFloat.new(@game.get_player_time_units_ps(public_key))
-    purchased_passives_multi = BigFloat.new(calculate_passive_multiplier(public_key))
-
-    price =  BigFloat.new((BASE_PRICE * units_ps * purchased_passives_multi))
+    units_ps = BigFloat.new(@game.get_player_time_units_ps(public_key)) 
+    purchased_passives_multi = BigFloat.new(calculate_passive_multiplier(public_key)) 
+    passives_and_fremen = purchased_passives_multi * get_fremen_boost(public_key)
+    price =  BigFloat.new((BASE_PRICE * passives_and_fremen))
 
     alterations = @game.get_cached_alterations
     @game.increase_number_by_percentage price, BigFloat.new alterations.active_price
@@ -57,15 +57,16 @@ class PowerupBoostSync < Powerup
   def is_available_for_purchase(public_key)
     price = get_price(public_key)
 
-    (@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) &&  ((@game.get_player_time_units public_key) >= price))
+    (@game.has_powerup(public_key, PowerupOverCharge.get_powerup_id) && ((@game.get_player_time_units public_key) >= price) && !(@game.has_powerup(public_key, PowerupBoostSync.get_powerup_id)))
   end
 
   # Method to calculate to overall unit generation boost from passives
   def calculate_passive_multiplier(public_key) : BigFloat
     unit_multiplier = get_unit_multiplier(public_key)
     compound_interest_boost = get_compound_interest_boost(public_key)
+    auto_boost = get_auto_upgrade_boost(public_key)
 
-    total_multiplier = unit_multiplier * compound_interest_boost
+    total_multiplier = unit_multiplier * compound_interest_boost * auto_boost
 
     total_multiplier
   end
@@ -84,6 +85,18 @@ class PowerupBoostSync < Powerup
     compound_powerup = @game.get_powerup_classes[PowerupCompoundInterest.get_powerup_id]
     compound_powerup = compound_powerup.as PowerupCompoundInterest
     compound_powerup.get_unit_boost(public_key)
+  end
+
+  def get_auto_upgrade_boost(public_key) : BigFloat
+    auto_upgrade_powerup = @game.get_powerup_classes[PowerupAutomationUpgrade.get_powerup_id]
+    auto_upgrade_powerup = auto_upgrade_powerup.as PowerupAutomationUpgrade
+    auto_upgrade_powerup.get_auto_boost(public_key)
+  end
+
+  def get_fremen_boost(public_key) : BigFloat
+    fremen_powerup = @game.get_powerup_classes[PowerupAmishLife.get_powerup_id]
+    fremen_powerup = fremen_powerup.as PowerupAmishLife
+    BigFloat.new(fremen_powerup.get_unit_boost(public_key))
   end
 
   def buy_action(public_key)

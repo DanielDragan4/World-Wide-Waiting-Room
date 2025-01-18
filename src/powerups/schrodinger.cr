@@ -2,8 +2,12 @@ require "../powerup"
 
 class PowerupSchrodinger < Powerup
   STACK_KEY = "schrodinger_stack"
-  BET_AMOUNT_KEY = "schrodinger_bet"
+  BET_AMOUNT = 0.50
+  #BET_AMOUNT_KEY = "schrodinger_bet"
   BET_PROBABILITY_KEY = "schrodinger_prob"
+  MIN_WIN_PROB = 0.3
+  MAX_WIN_PROB = 0.7
+  HOUSE_EDGE = 0.05
 
   def self.get_powerup_id
     "schrodinger"
@@ -26,29 +30,20 @@ class PowerupSchrodinger < Powerup
     if multi < 0
       multi = 0
     end
-    "<strong>Bet Amount:</strong> #{(get_bet_amount(public_key)*100)}%<br>
-    <strong>Win Probability:</strong> #{((1-get_bet_prob(public_key))*100)}%<br>
-    <strong>Win Multiplier:</strong> #{(multi + 2).round(2)}<br>
+    "<strong>Bet Amount:</strong> #{(BET_AMOUNT*100)}%<br>
+    <strong>Win Probability:</strong> #{((get_bet_prob(public_key))*100)}%<br>
+    <strong>Win Multiplier:</strong> #{(multi + 1).round(2)}<br>
     <br>
     Gamble a portion of your units based on the above predetermined odds."
   end
 
   def get_price (public_key)
-    amount = ((@game.get_player_time_units public_key) * get_bet_amount(public_key)).round(2)
+    amount = ((@game.get_player_time_units public_key) * BET_AMOUNT).round(2)
     amount
   end
 
-  def get_bet_amount(public_key)
-    amount = @game.get_key_value_as_float public_key, BET_AMOUNT_KEY
-    if amount.nil? || (amount == 0)
-      0.5
-    else
-      amount.round(2)
-    end
-  end
-
   def get_bet_prob(public_key)
-    prob = @game.get_key_value_as_float public_key, BET_AMOUNT_KEY
+    prob = @game.get_key_value_as_float public_key, BET_PROBABILITY_KEY
     if prob.nil? || (prob == 0)
       0.51
     else
@@ -63,18 +58,19 @@ class PowerupSchrodinger < Powerup
 
   def get_multi(public_key)
     prob = get_bet_prob(public_key)
-    multi = (((prob/0.5) -1 ) * 10)
+    
+    multi = ((1/prob)*(1-HOUSE_EDGE))
     if multi < 0
       multi = 0
     end
     multi
-  end
+end
 
   def random_gen
     r = Random.new
-    gamble_value = r.rand
+    gamble_value = r.rand * (MAX_WIN_PROB - MIN_WIN_PROB) + MIN_WIN_PROB
 
-    Math.max(Math.min(0.25, gamble_value), 0.75)
+    gamble_value.round(2)
   end
 
   def win_or_lose(public_key)
@@ -82,7 +78,7 @@ class PowerupSchrodinger < Powerup
     gamble_value = r.rand
     prob = get_bet_prob(public_key)
 
-    if gamble_value >= prob
+    if gamble_value < prob
       true
     else
       false
@@ -107,14 +103,11 @@ class PowerupSchrodinger < Powerup
       won_lose = win_or_lose(public_key)
 
       if won_lose
-        @game.inc_time_units public_key, (bet_amount * (2 + get_multi(public_key)))
+        @game.inc_time_units public_key, (bet_amount * (1 + get_multi(public_key)))
       end
 
       next_prob = random_gen
       @game.set_key_value public_key, BET_PROBABILITY_KEY, next_prob.to_s
-
-      next_bet = random_gen
-      @game.set_key_value public_key, BET_AMOUNT_KEY, next_prob.to_s
 
     else
       puts "GET SOME UNITS"
