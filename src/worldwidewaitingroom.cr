@@ -51,7 +51,7 @@ alias PlayerData = Hash(String, Array(Hash(String, Array(Redis::RedisValue) | In
 
 templates = Templates.new
 
-ONE_WEEK = 604800
+ONE_WEEK = Int64.new 604800
 
 class Alterations
   property game_duration : Float64
@@ -112,6 +112,7 @@ module Keys
   NUMBER_OF_ACTIVES = "number_of_actives_purchased_ever"
   UNIT_GEN_DISABLED = "unit_gen_disabled"
   TIME_LEFT = "time_left"
+  TIME_START = "time_start"
   COOKIE = "token"
   UNIVERSE_CHANGE_LOG = "universe_change_log"
   PLAYER_CAN_ALTER_UNIVERSE = "player_can_alter_universe"
@@ -165,6 +166,8 @@ class Game
 
   @animation_queue = Array(String).new
 
+  @game_time_start : Nil | Int64 = nil
+
   @cached_raw_leaderboard = Array(String).new
   @cached_leaderboard = Array(PlayerData).new
 
@@ -216,7 +219,6 @@ class Game
 
     multiplier = BigFloat.new (dt / 1000.0)
 
-    WWWR::R.incrby Keys::TIME_LEFT, -1
     get_time_left
 
     altered_ups = @alterations.base_units_per_second
@@ -421,13 +423,24 @@ class Game
   def get_time_left
     alter_game_duration_by = (@alterations.game_duration * 60 * 60 * 24) # alter by number of days
 
-    tl = WWWR::R.get Keys::TIME_LEFT
-    if !tl || tl.to_i <= 0
-      WWWR::R.set Keys::TIME_LEFT, ONE_WEEK
-      return ONE_WEEK + alter_game_duration_by
+    if @game_time_start != nil
+      time_start = @game_time_start.as Int64
     else
-      return tl.to_i + alter_game_duration_by
+      time_start_str = WWWR::R.get Keys::TIME_START
+      if !time_start_str
+        time_start = 0
+      else
+        time_start = time_start_str.to_i64
+      end
     end
+
+    now = Time.utc.to_unix
+
+    time_passed = now - time_start
+
+    tl = ONE_WEEK - time_passed
+
+    tl.to_i64 + alter_game_duration_by
   end
 
   def get_serialized_powerups (public_key)
@@ -1053,8 +1066,12 @@ class Game
 
       enable_unit_generation(public_key)
     end
-    WWWR::R.set(Keys::TIME_LEFT, ONE_WEEK)
 
+    now = Time.utc.to_unix
+
+    WWWR::R.set(Keys::TIME_START, now.to_s)
+
+    @game_time_start = now
     @time_units_cache.clear
     @time_units_ps_cache.clear
     @last_buy.clear
