@@ -3,6 +3,7 @@ html, body {
   padding: 0;
   margin: 0;
   background-color: #212126;
+  overflow-x: hidden;
   font-family: "Nunito", sans-serif;
   font-optical-sizing: auto;
   font-weight: <weight>;
