@@ -1,6 +1,6 @@
 import { createApp } from '/vue.js'
 
-import App from "/app/app.js?v=20"
+import App from "/app/app.js?v=21"
 import Card from "/app/card.js?v=8"
 import Container from "/app/container.js?v=7"
 import Button from "/app/button.js?v=8"
@@ -93,7 +93,11 @@ document.addEventListener("htmx:wsAfterMessage", (wsMsg) => {
 
   worker.postMessage(jsonMsg) 
 
-  document.dispatchEvent(new CustomEvent("tickEvent", { detail: jsonMsg }))
+  if (event === "sync") {
+    document.dispatchEvent(new CustomEvent("tickEvent", { detail: jsonMsg }))
+  } else if (event === "game_end") {
+    document.dispatchEvent(new CustomEvent("gameEnd", { detail: jsonMsg }))
+  }
 })
 
 const app = createApp({})

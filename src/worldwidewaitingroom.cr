@@ -839,6 +839,23 @@ class Game
     @animation_queue.clear
   end
 
+  def broadcast_game_end
+    event = { "event" => "game_end", "leaderboard" => get_leaderboard }.to_json
+
+    WWWR::Channels.each do |c|
+      spawn do
+        channel = c[1]
+        public_key = c[2]
+
+        next if channel.closed?
+        begin
+          channel.send event
+        rescue
+        end
+      end
+    end
+  end
+
   def broadcast_online (public_key : String)
     add_to_leaderboard public_key
     puts "Broadcase online from #{public_key}"
@@ -1026,6 +1043,8 @@ class Game
   def reset_game
     active_players = get_raw_leaderboard
     save_game_winner(active_players)
+
+    broadcast_game_end
 
     players = get_all_players
 

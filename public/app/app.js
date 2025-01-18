@@ -27,6 +27,20 @@ export default {
       this.allPowerups = powerups;
     });
 
+    document.addEventListener("gameEnd", ({ detail: { leaderboard } }) => {
+      const player = this.player.public_key;
+      const winner = this.leaderboard[0];
+
+      if (winner && winner.public_key === player) {
+        console.log("You won!");
+      } else {
+        this.showGameEndScreen = true;
+        this.finalLeaderboard = leaderboard;
+      }
+
+      console.log(leaderboard);
+    });
+
     this.secret = window.this_player_secret;
   },
 
@@ -38,6 +52,7 @@ export default {
       powerupClassChosen: 'ACTIVE',
       discordLink: 'https://discord.gg/vQnnjhQGqu',
       history: [],
+      finalLeaderboard: [],
       timeLeft: 0,
       player: {},
       playerName: null,
@@ -45,6 +60,7 @@ export default {
       bgColor: null,
       secret: null,
       newKey: "",
+      showGameEndScreen: false,
       showWhatIsThis: false,
       showSession: false,
       sideContentToShow: null,
@@ -193,6 +209,23 @@ export default {
     }
   },
   template:`
+    <modal title="The cycle has ended!" @close="showGameEndScreen=false" v-show="showGameEndScreen">
+      <p class="text-center">
+        You made it to the end of the cycle. Below you will find the final rankings. A new cycle has now begun. The winner has been granted the power to modify the game slightly. Once the change is made, it will remain for all future cycles.
+      </p>
+      <h2 class="mt-4 text-xl font-bold text-center">The Final Rankings</h2>
+      <div class="flex flex-row flex-wrap items-center">
+        <card
+          v-for="p, i in finalLeaderboard"
+          @activate-input="usePowerup($event, p.public_key)"
+          :this-player="player"
+          :player="p"
+          :place="i"
+          class="m-2"
+        />
+      </div>
+    </modal> 
+
     <modal title="What is this?" @close="showWhatIsThis=false" v-show="showWhatIsThis">
       Welcome to <strong>Idle Cosmos</strong>! A multi-player competitive online idle game. 
       <br/><br/>
