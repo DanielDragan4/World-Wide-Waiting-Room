@@ -35,7 +35,7 @@ export default {
         console.log("You won!");
       } else {
         this.showGameEndScreen = true;
-        this.finalLeaderboard = leaderboard;
+        this.finalLeaderboard = leaderboard.reverse();
       }
 
       console.log(leaderboard);
@@ -214,7 +214,7 @@ export default {
         You made it to the end of the cycle. Below you will find the final rankings. A new cycle has now begun. The winner has been granted the power to modify the game slightly. Once the change is made, it will remain for all future cycles.
       </p>
       <h2 class="mt-4 text-xl font-bold text-center">The Final Rankings</h2>
-      <div class="flex flex-row flex-wrap items-center">
+      <div class="flex flex-row flex-wrap items-center justify-center">
         <card
           v-for="p, i in finalLeaderboard"
           @activate-input="usePowerup($event, p.public_key)"
