@@ -110,15 +110,19 @@ class PowerupAutomationUpgrade < Powerup
   end
 
   def get_auto_boost(public_key)
-    actives_at_purchase = get_actives_at_purchase(public_key)
-    current_actives = @game.get_actives(public_key)
+    if @game.has_powerup public_key, PowerupAutomationUpgrade.get_powerup_id
+      actives_at_purchase = get_actives_at_purchase(public_key)
+      current_actives = @game.get_actives(public_key)
 
-    # Calculate number of actives purchased since automation upgrade
-    actives_since_purchase = [current_actives - actives_at_purchase, 0].max
+      # Calculate number of actives purchased since automation upgrade
+      actives_since_purchase = [current_actives - actives_at_purchase, 0].max
 
-    multiplier = (new_multiplier(public_key) * 100).round / 100
+      multiplier = (new_multiplier(public_key) * 100).round / 100
 
-    1 + (actives_since_purchase * multiplier)
+      1 + (actives_since_purchase * multiplier)
+    else
+      BigFloat.new(1)
+    end
   end
 
   def action(public_key, dt)

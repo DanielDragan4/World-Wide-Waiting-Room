@@ -53,7 +53,7 @@ class PowerupAmishLife < Powerup
       return "
               <strong>Status:</strong> #{enabled}<br>
               <br>
-              Increases your Units/s by some multiple every <b>r hours</b> that it is active. While active, your Units/s will be cut by <b>90%</b>. The <b>multiplier 1.5x</b> with every subsequent three hours. Purchasing this powerup while active removes the effect.
+              Increases your Units/s by some multiple every <b>3 hours</b> that it is active. While active, your Units/s will be cut by <b>90%</b>. The <b>multiplier 1.5x</b> with every subsequent three hours. Purchasing this powerup while active removes the effect.
 "
 
     else
