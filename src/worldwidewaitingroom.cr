@@ -517,7 +517,7 @@ class Game
     powerup_classes = get_powerup_classes
     (get_player_powerups public_key).each do |powerup_name|
       powerup_class = powerup_classes.fetch powerup_name, nil
-      if powerup_class
+      if powerup_class && !powerup_class.is_achievement_powerup public_key
         begin
           powerup_class.cleanup public_key
         rescue e
@@ -1099,9 +1099,9 @@ class Game
   end
 
   def save_game_winner(players)
-    winner = players.last
+    winner = players.last?
 
-    if winner.empty?
+    if !winner
       return
     end
 
